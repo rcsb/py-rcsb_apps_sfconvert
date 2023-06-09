@@ -1,4 +1,4 @@
-# mmCIF File Manipulation Script
+# mmCIF File Script
 
 This Python script provides command line interface to read, write, and manipulate mmCIF files using the `py-mmcif` library. 
 
