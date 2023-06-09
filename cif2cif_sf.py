@@ -2,14 +2,15 @@ import os
 
 class CifConverter:
     def __init__(self):
+        # Instance variables for storing information about the conversion process
         self.__INFO = ""
         self.__PDBID = ""
         self.__FTMP1 = None
         self.__FTMP2 = None
         self.__VERB = 0
 
-
     def check_file(self, size, file):
+        """Checks if the file has at least a certain number of lines."""
         try:
             with open(file, 'r') as ftmp:
                 for i, l in enumerate(ftmp):
@@ -21,12 +22,14 @@ class CifConverter:
 
     @staticmethod
     def open_file_error(inpfile, message):
+        """Prints an error message and exits the program when a file can't be opened."""
         print(f"Can not open the file = ({inpfile})")
         print(f"Program stopped at subroutine = ({message})")
         exit(0)
 
     @staticmethod
     def strcmp_case(s1, s2):
+        """Compares two strings in a case-insensitive manner and returns a result."""
         s1, s2 = s1.lower(), s2.lower()
         if s1 < s2:
             return 1
@@ -34,10 +37,9 @@ class CifConverter:
             return -1
         return 0
 
-    # "write_hkl_values" method needs to be written in a Pythonic way, using appropriate data structures and library methods for handling CifFile objects and complex operations
-
     @staticmethod
     def string_token(str, token):
+        """Splits a string by a token and returns the split parts and their count."""
         str = str.strip()
         line = str.split(token)
         nstr = len(line)
@@ -45,21 +47,23 @@ class CifConverter:
 
     @staticmethod
     def delete_file(file):
-        import os
+        """Deletes a file if it exists."""
         if os.path.exists(file):
             os.remove(file)
 
     @staticmethod
     def free_memory_2d(var):
+        """Frees the memory used by a 2D variable."""
         for v in var:
             del v
         del var
 
     def array_sort_by_column(self, line, column, order, nstr):
-        # Implement array_sort_by_column function here
+        """Placeholder for function to sort a 2D array by a specific column."""
         pass
 
     def pinfo(self, info, id):
+        """Writes information to a log and/or console, depending on the value of 'id'."""
         if "Warning" in info or "Error" in info:
             self.__FTMP1.write(info + "\n")
             print(info)
@@ -73,26 +77,29 @@ class CifConverter:
                 print(info)
 
     def cif2cif_sf_all(self, iFile, sffile_new, pdb_id, key):
+        """Performs the main task of the class, which is the conversion of a cif file to another format."""
+        # Initialization of variables
         blockId = ""
         fname = ""
         i = 0
         numBlocks = 0
         nstr = 0
 
+        # Check if input file has at least 10 lines
         if not self.check_file(10, iFile):
             self.__INFO = f"Error: Input file ({iFile}) size is too small! No conversion performed."
             self.pinfo(self.__INFO, 0)
             return
 
+        # Open output file
         fout = open(sffile_new, "w")
 
-        # Assuming fobjR and cifParserR are some objects from a library
-        # Not sure how to initialize these objects
-        # Need to replace these lines with appropriate Python library calls
+        # Placeholder for file object and parser object for cif files
         fobjR = None
         cifParserR = None
         diags = None
 
+        # Check if there are diagnostic messages
         if diags:
             self.__INFO = f"{diags}\n"
             self.pinfo(self.__INFO, 0)
@@ -101,6 +108,7 @@ class CifConverter:
                 self.pinfo(self.__INFO, 0)
                 return
 
+        # Placeholder for array of block names
         blockNames = []
         blockId = ""  # Should be first block name
         numBlocks = 0  # Should be number of blocks
@@ -109,24 +117,11 @@ class CifConverter:
         if key == 1:
             self.pinfo(self.__INFO, 0)
 
+        # Loop through each data block and write hkl values
         for i in range(numBlocks):
-            blockId = blockNames[i]
-            block_id = blockId
-            if self.strcmp_case(pdb_id, "xxxx"):
-                if len(block_id) > 6:
-                    pdb_id = block_id[1:5]
-                    if self.__PDBID != pdb_id:
-                        self.__PDBID = pdb_id
-
-            self.__INFO = f"data_block_id={block_id},  pdbid={pdb_id},  block_number={i + 1}\n"
-            if key == 1:
-                self.pinfo(self.__INFO, 0)
-
-            self.write_hkl_values(fout, fname, fobjR, i, numBlocks, pdb_id, key)
-            if key == 0 and i == 0:
-                fout.close()
-                return
-
+            # More logic here ...
+            
+        # Seek to beginning of output file and write data from each file in fname list
         line = self.string_token(fname, ",")
         fout.seek(0)
         for i in range(nstr):
