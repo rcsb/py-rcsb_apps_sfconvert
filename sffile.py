@@ -3,60 +3,60 @@ from mmcif.io.IoAdapterCore import IoAdapterCore
 
 class SFFile:
     def __init__(self):
-        self.containers = []
-        self.io_core = IoAdapterCore()
+        self.__containers = []  # Using name mangling to avoid accidental modification
+        self.__io_core = IoAdapterCore()  # Also using name mangling for the io_core instance
+        self.__default_block_number = 0  # Initializing default block number to 0
 
     def readFile(self, filename):
-        self.containers = self.io_core.readFile(filename)
+        self.__containers = self.__io_core.readFile(filename)
 
     def writeFile(self, filename):
-        self.io_core.writeFile(filename, self.containers)
+        self.__io_core.writeFile(filename, self.__containers)
 
     def getBlocksNames(self):
-        return [container.getName() for container in self.containers]
+        return [container.getName() for container in self.__containers]
 
     def getBlock(self, name):
-        for container in self.containers:
+        for idx, container in enumerate(self.__containers):
             if container.getName() == name:
-                return container
+                return idx, container
         return None
-
-    def getObj(self, block_name, category):
-        block = self.getBlock(block_name)
-        if block is None:
-            return None
-        return block.getObj(category)
+    
+    def getObj(self, category, block_name=None):
+        if block_name is None:
+            block_number = self.__default_block_number
+            return self.__containers[block_number].getObj(category)
+        else:
+            block_number, block_res = self.getBlock(block_name)
+            if block_res is None:
+                return None
+            return block_res.getObj(category)
 
     def setDefaultBlock(self, block_name):
-        default_block = self.getBlock(block_name)
-        if default_block is not None:
-            self.containers.insert(0, self.containers.pop(self.containers.index(default_block)))
+        block_number, _ = self.getBlock(block_name)
+        if block_number is not None:
+            self.__default_block_number = block_number
 
-    def getDefaultObj(self, category):
-        if len(self.containers) > 0:
-            return self.containers[0].getObj(category)
-        return None
-
-    def getObjBlock(self, block_name, category):
-        return self.getObj(block_name, category)
-
-    def getCategories(self, block_name):
-        block = self.getBlock(block_name)
-        if block is not None:
-            return block.getObjNameList()
-        return None
+    def getCategories(self, block_name=None):
+        if block_name == "Default":
+            block_number = self.__default_block_number
+            return self.__containers[block_number].getObjNameList()
+        else:
+            block_number, block_res = self.getBlock(block_name)
+            if block_res is None:
+                return None
+            return block_res.getObjNameList()
 
 def main():
-    parser = argparse.ArgumentParser(description='Manipulate mmCIF files.')
+    parser = argparse.ArgumentParser(description='SFFile operations')
     parser.add_argument('-r', '--read', metavar='filename', help='Read from an mmCIF file')
     parser.add_argument('-w', '--write', metavar='filename', help='Write to an mmCIF file')
-    parser.add_argument('-b', '--block', metavar='block_name', help='Get block by name')
-    parser.add_argument('-o', '--object', nargs=2, metavar=('block_name', 'category'), help='Get object from a block')
-    parser.add_argument('-d', '--default', metavar='block_name', help='Set default block')
-    parser.add_argument('-g', '--get', metavar='category', help='Get object from default block')
-    parser.add_argument('-ob', '--objblock', nargs=2, metavar=('block_name', 'category'), help='Get object from a block')
-    parser.add_argument('-l', '--list', action='store_true', help='List all blocks')
-    parser.add_argument('-c', '--categories', metavar='block_name', help='List all categories in a block')
+    parser.add_argument('-g', '--getBlocksNames', action='store_true', help='Get block names')
+    parser.add_argument('-o', '--getObj', nargs='+', metavar=('category', 'block_name'),
+                        help='Get object from a block or the default block if not specified')
+    parser.add_argument('-s', '--setDefaultBlock', metavar='block_name', help='Set default block')
+    parser.add_argument('-c', '--getCategories', nargs='?', metavar='block_name', const="Default", help='Get categories by optional block name')
+
 
     args = parser.parse_args()
 
@@ -66,20 +66,20 @@ def main():
         sf_file.readFile(args.read)
     if args.write:
         sf_file.writeFile(args.write)
-    if args.block:
-        print(sf_file.getBlock(args.block))
-    if args.object:
-        print(sf_file.getObj(*args.object))
-    if args.default:
-        sf_file.setDefaultBlock(args.default)
-    if args.get:
-        print(sf_file.getDefaultObj(args.get))
-    if args.objblock:
-        print(sf_file.getObjBlock(*args.objblock))
-    if args.list:
+    if args.getBlocksNames:
         print(sf_file.getBlocksNames())
-    if args.categories:
-        print(sf_file.getCategories(args.categories))
+    if args.getObj:
+        if len(args.getObj) == 2:
+            category, block_name = args.getObj
+            print(sf_file.getObj(category, block_name))
+        else:
+            category = args.getObj[0]
+            print(sf_file.getObj(category))
+    if args.setDefaultBlock:
+        sf_file.setDefaultBlock(args.setDefaultBlock)
+    if args.getCategories:
+        print(sf_file.getCategories(args.getCategories))
 
-if __name__ == "__main__":
+
+if __name__ == '__main__':
     main()
