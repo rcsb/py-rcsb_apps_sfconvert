@@ -32,15 +32,17 @@ class ResolutionCalculator:
 
         return rcell
 
-    def convert_reflections(self, reflection_data):
+    def extract_reflection_indices(self, reflection_data):
+        n = reflection_data.getRowCount()
+
         h_list = []
         k_list = []
         l_list = []
 
-        for reflection in reflection_data:
-            h = int(reflection[3])
-            k = int(reflection[4])
-            l = int(reflection[5])
+        for i in range(n):
+            h = int(reflection_data.getValue("index_h", i))
+            k = int(reflection_data.getValue("index_k", i))
+            l = int(reflection_data.getValue("index_l", i))
 
             h_list.append(h)
             k_list.append(k)
@@ -69,7 +71,7 @@ class ResolutionCalculator:
     def calc_hkl(self):
         refln_data = self.sf_file.getObj("refln")
         if refln_data is not None:
-            h_list, k_list, l_list = self.convert_reflections(refln_data)
+            h_list, k_list, l_list = self.extract_reflection_indices(refln_data)
 
             # Print the converted lists
             print("h values:", h_list)
@@ -97,7 +99,7 @@ class ResolutionCalculator:
     def calc_resolution(self):
         refln_data = self.sf_file.getObj("refln")
         if refln_data is not None:
-            h_list, k_list, l_list = self.convert_reflections(refln_data)
+            h_list, k_list, l_list = self.extract_reflection_indices(refln_data)
             rcell = self.calc_cell()
 
             best_resolution = 0.0
@@ -108,7 +110,7 @@ class ResolutionCalculator:
                     best_resolution = resolution
 
             # Print the best resolution
-            print("Best Resolution:", best_resolution)
+            print("Best Resolution: {:.2f} Angstroms".format(best_resolution))
         else:
             print("No refln data found in the mmCIF file.")
 
