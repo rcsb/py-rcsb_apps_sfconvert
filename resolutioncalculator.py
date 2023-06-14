@@ -8,33 +8,43 @@ class ResolutionCalculator:
         self.__CELL = [0.0] * 6
         self.__a = self.__b = self.__c = None
         self.__alpha = self.__beta = self.__gamma = None
-        #self.__sg = self.__nsg = None
-        #self.__wavelength = self.__symm = self.__resh = self.__resl = self.__nobs = None
-        #self.__hmax = self.__kmax = self.__lmax = self.__hmin = self.__kmin = self.__lmin = self.__nall = None
+        self.__sg = self.__nsg = None
+        self.__wavelength = self.__symm = self.__resh = self.__resl = self.__nobs = None
+        self.__hmax = self.__kmax = self.__lmax = self.__hmin = self.__kmin = self.__lmin = self.__nall = None
         self.__H = self.__K = self.__L = self.__Fo = self.__sFo = self.__Fo_au = self.__sFo_au = None
-        #self.__Fc = self.__Fc_au = None
+        #testing
+        self.__H = self.__K = self.__L = [1]*16
+        self.__Fc = self.__Fc_au = None
         self.__Io = self.__sIo = self.__F2o = self.__sF2o = None
-        #self.__Ic = self.__F2c = None
+        self.__Ic = self.__F2c = None
         self.__fom = self.__phase_c = self.__phase_o = self.__status = None
-        #self.__flag = self.__free1 = self.__free2 = None
-        #self.__wave_id = self.__cryst_id = self.__scale_id = self.__diffr_id = None
+        self.__flag = self.__free1 = self.__free2 = None
+        self.__wave_id = self.__cryst_id = self.__scale_id = self.__diffr_id = None
         self.__I_plus = self.__sI_plus = self.__I_minus = self.__sI_minus = None
+        #testing
+        self.__I_plus = ['13.1']*6
         self.__F_plus = self.__sF_plus = self.__F_minus = self.__sF_minus = None
-        #self.__hla = self.__hlb = self.__hlc = self.__hld = None
-        #self.__hla1 = self.__hlb1 = self.__hlc1 = self.__hld1 = self.__anom = self.__anoms = None
-        #self.__aud_id = self.__aud_date = self.__aud_rec = self.__aud_meth = None
-        #self.__dif_id = self.__dif_cid = self.__dif_detail = self.__temp = self.__treat = None
-        #self.__d_spacing = self.__a_calc = self.__b_calc = self.__weighted = self.__fs_uncorrected = None
-        #self.__f_uncorrected = self.__gsas_i100_meas = self.__i_unknown = self.__is_unknown = None
-        #self.__phase_part = self.__F_part_au = self.__phase_with = self.__fcalc_with = None
-        #self.__Fc_all = self.__Fc_all_ph = self.__fwt = self.__phwt = self.__delfwt = self.__delphwt = None
-        #self.__fib_co = self.__fib_fo = self.__fib_ly = self.__wt = None
-        #self.__pow_sc = self.__pow_io = self.__pow_iop = self.__pow_wt = self.__pow_ic = self.__pow_ict = None
+        #testing
+        self.__F_plus = ['1.2']*6
+        self.__hla = self.__hlb = self.__hlc = self.__hld = None
+        self.__hla1 = self.__hlb1 = self.__hlc1 = self.__hld1 = self.__anom = self.__anoms = None
+        self.__aud_id = self.__aud_date = self.__aud_rec = self.__aud_meth = None
+        self.__dif_id = self.__dif_cid = self.__dif_detail = self.__temp = self.__treat = None
+        self.__d_spacing = self.__a_calc = self.__b_calc = self.__weighted = self.__fs_uncorrected = None
+        self.__f_uncorrected = self.__gsas_i100_meas = self.__i_unknown = self.__is_unknown = None
+        self.__phase_part = self.__F_part_au = self.__phase_with = self.__fcalc_with = None
+        self.__Fc_all = self.__Fc_all_ph = self.__fwt = self.__phwt = self.__delfwt = self.__delphwt = None
+        self.__fib_co = self.__fib_fo = self.__fib_ly = self.__wt = None
+        self.__pow_sc = self.__pow_io = self.__pow_iop = self.__pow_wt = self.__pow_ic = self.__pow_ict = None
         self.__dH = self.__dK = self.__dL = self.__unmerge_i = self.__unmerge_si = None
-        #self.__unmerge_angle_phi = None
-        #self.__unmerge_std_code = self.__unmerge_scale_group = None
+        self.__unmerge_angle_phi = None
+        self.__unmerge_std_code = self.__unmerge_scale_group = None
         self.__nref = self.__dnref = None
-        #self.__nwave = self.__nsymm = self.__naud = self.__ndif = self.__npow = None
+        #testing
+        self.__nref = self.__dnref = 35
+        self.__nwave = self.__nsymm = self.__naud = self.__ndif = self.__npow = None
+        self.FTMP1 = open("logfile.txt", "w")  # Open FTMP1 file in write mode
+        self.FTMP2 = open("otherfile.txt", "w")  # Open FTMP2 file in write mode
 
     def get_resolution(self, h, k, l, rcell):
         aa1 = 2 * rcell[0] * rcell[1] * math.cos(math.radians(rcell[5]))
@@ -489,3 +499,150 @@ class ResolutionCalculator:
             self.pinfo(INFO, 1)
 
         return
+    
+
+
+    #def write_hkl_values(self, fout, fname, fobjR, i, nd, pdb_id, key):
+        # blockNames = fobjR.GetBlockNames()
+        # blockId = blockNames[i]
+
+        # bid = "_ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789abcdefghijklmnopqrstuvwxyz"
+        # nblock = i
+
+        # blockId = blockId.replace(" ", "")
+        # if "/" in blockId:
+        #     blockId = blockId.replace("/", "_")
+        # if ")" in blockId:
+        #     blockId = blockId.replace(")", "_")
+        # if "(" in blockId:
+        #     blockId = blockId.replace("(", "_")
+
+        # if len(blockId) == 0:
+        #     blockId = "UNK"
+
+        # parse_sf_values(fobjR, i)
+
+        # hkl = [[None] * 20 for _ in range(self.__nref)]
+
+        # for j in range(self.__nref):
+        #     if self.__status and self.__free1:
+        #         if self.__status[j][0] == "?" and self.__free1[j][0] != "?":
+        #             self.__status[j] = self.__free1[j]
+        #     elif self.__status and self.__free2:
+        #         if self.__status[j][0] == "?" and self.__free2[j][0] != "?":
+        #             self.__status[j] = self.__free2[j]
+
+        #     if i >= 0:
+        #         hkl[j] = f"{self.__H[j]} {self.__K[j]} {self.__L[j]}"
+
+        # if self.__nref > 0:
+        #     ndup = check_hkl_duplicate(self.__nref, i, hkl)
+
+        # if (ndup > 1 and (self.__Io or self.__I_plus)) or self.__unmerge_i:
+        #     if i == 0:
+        #         INFO = f"Warning: Unmerged data in block 1 (pdbid={pdb_id}; blockId={blockId})!"
+        #     else:
+        #         INFO = f"Note: Unmerged data in (pdbid={pdb_id}; blockId={blockId})!"
+        #     pinfo(INFO, 0)
+
+        #     block_name = f"r{pdb_id}{bid[i]}"
+        #     outfile = f"SF_{pdb_id}_{bid[i]}.mmcif"
+        #     try:
+        #         fo = open(outfile, "w")
+        #     except IOError:
+        #         print(f"Error! No permission to write the file {outfile}")
+        #         tmp1 = f"{resol:.3f} {outfile},"
+        #         fname += tmp1
+        #         return
+
+        #     if i > 0:
+        #         write_sf_unmerge(fo, block_name, pdb_id, i, index, key)
+        #         write_sf_tail_identifer(fo, i, nd)
+        #         fo.close()
+        #         tmp1 = f"{resol:.3f} {outfile},"
+        #         fname += tmp1
+        #         return
+
+        # if self.__nref <= 10 and self.__dnref <= 10:
+        #     INFO = f"Error: Number of reflections <10 (pdbid={pdb_id}; blockId={blockId})!"
+        #     pinfo(INFO, 0)
+        #     return
+
+        # get_num_file(self.__cryst_id, self.__wave_id, self.__scale_id, self.__nref, index, nf)
+        # nf = 1
+
+        # if key == 0 and i == 0:
+        #     block_name = f"r{pdb_id}sf"
+        #     sf_related_head(fout, block_name, pdb_id, i)
+        #     write_sf_file(fout, block_name, 1, i, index, key)
+        #     return
+
+        # if key == 1:
+        #     check_sf(i, resol)
+        # if i == 0 and self.__status:
+        #     check_sf_status(self.__status, i, PDBID)
+
+        # if SINGLE == 0:
+        #     outfile = f"SF_TEMP_{nblock}.mmcif"
+        #     try:
+        #         fo = open(outfile, "w")
+        #     except IOError:
+        #         print(f"Error: No permission to write the file {outfile}")
+        #         tmp1 = f"{resol:.3f} {outfile},"
+        #         fname += tmp1
+        #         return
+
+        #     if i == 0:
+        #         block_name = f"r{pdb_id}sf"
+        #     else:
+        #         block_name = f"r{pdb_id}{bid[i]}sf"
+
+        #     sf_related_head(fo, block_name, pdb_id, i)
+        #     write_sf_file(fo, block_name, 1, i, index, key)
+        #     write_sf_tail_identifer(fo, i, nd)
+        #     fo.close()
+
+        #     tmp1 = f"{resol:.3f} {outfile},"
+        #     fname += tmp1
+
+        # else:
+        #     for j in range(nf):
+        #         if j == 0:
+        #             if len(pdb_id) > 0:
+        #                 block_name = f"{pdb_id}_{j}"
+        #                 sf_related_head(fo, block_name, pdb_id, i)
+        #             else:
+        #                 block_name = f"{blockId}_{j}"
+        #                 fo.write(f"data_{block_name}\n")
+        #         else:
+        #             block_name = f"{blockId}_{j}"
+        #             fo.write(f"data_{block_name}\n")
+
+        #         if self.__cryst_id and self.__wave_id:
+        #             print(
+        #                 f"SF extracting (Crystal ID = {self.__cryst_id[index[j]]} ; Wavelength ID = {self.__wave_id[index[j]]}):"
+        #             )
+        #             outfile = f"SF_{self.__cryst_id[index[j]]}_{self.__wave_id[index[j]]}_{blockId}.cif"
+        #         elif self.__cryst_id and not self.__wave_id:
+        #             print(f"SF extracting (Crystal ID = {self.__cryst_id[index[j]]}):")
+        #             outfile = f"SF_{blockId}_{self.__cryst_id[index[j]]}_1.mmcif"
+        #         elif self.__wave_id and not self.__cryst_id:
+        #             print(f"SF extracting (Wavelength ID = {self.__wave_id[index[j]]}):")
+        #             outfile = f"SF_{blockId}_1_{self.__wave_id[index[j]]}.mmcif"
+        #         else:
+        #             outfile = f"SF_{blockId}_1_1.mmcif"
+
+        #         try:
+        #             fo = open(outfile, "w")
+        #         except IOError:
+        #             print(f"Error: No permission to write the file {outfile}")
+        #             return
+
+        #         write_sf_file(fo, block_name, 2, j, index, key)
+        #         fo.write("#END OF REFLECTIONS\n")
+        #         fo.close()
+        #         print(f"The output file = {outfile} {resol:.2f}")
+        #         tmp1 = f"{resol:.3f} {outfile},"
+        #         fname += tmp1
+
+        # return
