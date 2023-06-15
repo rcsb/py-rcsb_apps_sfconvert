@@ -7,7 +7,6 @@ class ResolutionCalculator:
         self._sf_file.readFile(filename)
         self._initialize_data()
 
-
     def _initialize_data(self):
         self._initialize_refln_data()
         self._initialize_diffrn_refln_data()
@@ -25,7 +24,6 @@ class ResolutionCalculator:
     def _initialize_counts(self):
         if(self._refln_data):self._nref = self._refln_data.getRowCount()
         if(self._diffrn_refln_data):self._dnref = self._diffrn_refln_data.getRowCount()
-
 
     def _initialize_columns(self):
 
@@ -111,7 +109,6 @@ class ResolutionCalculator:
 
         return sIo
 
-
     def _initialize_status(self):
         self._status = self._refln_data.getColumn(self._refln_data.getIndex("status"))
         if not self._status:
@@ -128,8 +125,6 @@ class ResolutionCalculator:
                     self._status = self._refln_data.getColumn(self._refln_data.getIndex("status_au"))
                     if self._status:
                         self.cif_token_change("status_au", "status")
-
-
 
     def calc_cell_and_recip(self):
         data = self._sf_file.getObj("cell")
@@ -214,10 +209,7 @@ class ResolutionCalculator:
         print(f"Warning! The mmcif token  _refln.{old_token} is wrong!")
         print(f"It has been corrected as _refln.{new_token}")
 
-
-    
-
-    def validate_data(self, nblock):
+    def check_sf(self, nblock):
 
         temp_nref, nstart, n1, n2, n4, n5, nfpairF, nfpairI, nf_sFo, nf_sIo, key = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
         sum_sigii, ii_sigii, ii_sigii_low, nnii, sum_ii, nnii_low, nfp, nfn, nip, nin, n_obs, n_free = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
@@ -532,13 +524,10 @@ class ResolutionCalculator:
 
 
 
-
-
-
-
-
-
-
 filename = "1o08-sf.cif"  # Specify the mmCIF file you want to read
 calculator = ResolutionCalculator(filename)
-calculator.validate_data(1)
+sf_file = SFFile()
+sf_file.readFile(filename)
+block_name = "r1o08sf"
+block_number, block = sf_file.getBlock(block_name)
+calculator.check_sf(block_number)
