@@ -1,13 +1,21 @@
-from resolutioncalculator import ResolutionCalculator as RC
+from sf_file import SFFile
 
-# Create a new instance of the ResolutionCalculator class
-calculator = RC()
-h = 1
-k = 1
-l = 1
-rcell = [1.23, 1.23, 1.23, 90.0, 90.0, 90.0] # Just an example values
-resol = calculator.get_resolution(h, k, l, rcell)
-print(f"Resolution: {resol}")
+filename = "1o08-sf.cif"
 
-resol = [0]
-calculator.check_sf(0, resol)
+sf_file = SFFile()
+sf_file.readFile(filename)
+
+
+refln_data = sf_file.getObj("refln")
+
+fom = refln_data.getColumn(refln_data.getIndex("fom"))
+
+n = refln_data.getAttributeList()
+print(n)
+# for i in range(len(n)):
+#     print(refln_data.getIndex(n[i]))
+
+print("------------------")
+
+print(refln_data.getIndex("fom"))
+print(refln_data.hasAttribute("fom"))
