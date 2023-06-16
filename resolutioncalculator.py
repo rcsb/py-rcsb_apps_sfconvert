@@ -27,87 +27,88 @@ class ResolutionCalculator:
 
     def _initialize_columns(self):
 
-        self._H = self._refln_data.getColumn(self._refln_data.getIndex("index_h"))
-        self._K = self._refln_data.getColumn(self._refln_data.getIndex("index_k"))
-        self._L = self._refln_data.getColumn(self._refln_data.getIndex("index_l"))
+        attributes = {
+            "index_h": "_H",
+            "index_k": "_K",
+            "index_l": "_L",
+            "F_meas_au": "_Fo_au",
+            "F_meas_sigma_au": "_sFo_au",
+            "F_meas_sigma": "_sFo",
+            "F_squared_sigma": "_sF2o",
+            "pdbx_I_plus_sigma": "_sI_plus",
+            "pdbx_I_minus_sigma": "_sI_minus",
+            "pdbx_F_plus_sigma": "_sF_plus",
+            "pdbx_F_minus_sigma": "_sF_minus",
+            "F_meas": "_Fo",
+            "F_squared_meas": "_F2o",
+            "pdbx_I_plus": "_I_plus",
+            "pdbx_I_minus": "_I_minus",
+            "pdbx_F_plus": "_F_plus",
+            "pdbx_F_minus": "_F_minus",
+            "fom": "_fom",
+            "phase_calc": "_phase_c",
+            "phase_meas": "_phase_o",
+        }
 
-        self._Fo_au = self._refln_data.getColumn(self._refln_data.getIndex("F_meas_au"))
-        self._sFo_au = self._refln_data.getColumn(self._refln_data.getIndex("F_meas_sigma_au"))
-        self._sFo = self._refln_data.getColumn(self._refln_data.getIndex("F_meas_sigma"))
-        self._sF2o = self._refln_data.getColumn(self._refln_data.getIndex("F_squared_sigma"))
-        self._sI_plus = self._refln_data.getColumn(self._refln_data.getIndex("pdbx_I_plus_sigma"))
-        self._sI_minus = self._refln_data.getColumn(self._refln_data.getIndex("pdbx_I_minus_sigma"))
-        self._sF_plus = self._refln_data.getColumn(self._refln_data.getIndex("pdbx_F_plus_sigma"))
-        self._sF_minus = self._refln_data.getColumn(self._refln_data.getIndex("pdbx_F_minus_sigma"))
+        for attr, var in attributes.items():
+            if self._refln_data.hasAttribute(attr):
+                setattr(self, var, self._refln_data.getColumn(self._refln_data.getIndex(attr)))
+            else:
+                setattr(self, var, None)
 
-        self._Fo = self._refln_data.getColumn(self._refln_data.getIndex("F_meas"))
-        self._Io = self._initialize_Io()
-        self._sIo = self._initialize_sIo()
 
-        self._F2o = self._refln_data.getColumn(self._refln_data.getIndex("F_squared_meas"))
-        self._I_plus = self._refln_data.getColumn(self._refln_data.getIndex("pdbx_I_plus"))
-        self._I_minus = self._refln_data.getColumn(self._refln_data.getIndex("pdbx_I_minus"))
-        self._F_plus = self._refln_data.getColumn(self._refln_data.getIndex("pdbx_F_plus"))
-        self._F_minus = self._refln_data.getColumn(self._refln_data.getIndex("pdbx_F_minus"))
+        diffrn_attributes = {
+            "intensity_net": "_unmerge_i",
+            "intensity_sigma": "_unmerge_si",
+            "index_h": "_dH",
+            "index_k": "_dK",
+            "index_l": "_dL"
+        }
 
-        self._fom = self._refln_data.getColumn(self._refln_data.getIndex("fom"))
-        self._phase_c = self._refln_data.getColumn(self._refln_data.getIndex("phase_calc"))
-        self._phase_o = self._refln_data.getColumn(self._refln_data.getIndex("phase_meas"))
+        for attr, var in diffrn_attributes.items():
+            if self._diffrn_refln_data and self._diffrn_refln_data.hasAttribute(attr):
+                setattr(self, var, self._diffrn_refln_data.getColumn(self._diffrn_refln_data.getIndex(attr)))
+            else:
+                setattr(self, var, None)
 
-        if(self._diffrn_refln_data):
-            self._unmerge_i = self._diffrn_refln_data.getColumn(self._diffrn_refln_data.getIndex("intensity_net"))
-            self._unmerge_si = self._diffrn_refln_data.getColumn(self._diffrn_refln_data.getIndex("intensity_sigma"))
-            self._dH = self._diffrn_refln_data.getColumn(self._diffrn_refln_data.getIndex("index_h"))
-            self._dK = self._diffrn_refln_data.getColumn(self._diffrn_refln_data.getIndex("index_k"))
-            self._dL = self._diffrn_refln_data.getColumn(self._diffrn_refln_data.getIndex("index_l"))
-        else:
-            self._unmerge_i = None
-            self._unmerge_si = None
-            self._dH = None
-            self._dK = None
-            self._dL = None
-
+        self._initialize_Io()
+        self._initialize_sIo()
         self._initialize_status()
 
     def _initialize_Io(self):
-        Io = self._refln_data.getColumn(self._refln_data.getIndex("intensity_meas"))
-        if not Io:
-            Io = self._refln_data.getColumn(self._refln_data.getIndex("intensity_meas_au"))
-            if Io:
+        self._Io = self._refln_data.getColumn(self._refln_data.getIndex("intensity_meas")) if self._refln_data.hasAttribute("intensity_meas") else None
+
+        if not self._Io:
+            self._Io = self._refln_data.getColumn(self._refln_data.getIndex("intensity_meas_au")) if self._refln_data.hasAttribute("intensity_meas_au") else None
+            if self._Io:
                 self.cif_token_change("intensity_meas_au", "intensity_meas")
 
-            if not Io:
-                Io = self._refln_data.getColumn(self._refln_data.getIndex("intensity"))
-                if Io:
+            if not self._Io:
+                self._Io = self._refln_data.getColumn(self._refln_data.getIndex("intensity")) if self._refln_data.hasAttribute("intensity") else None
+                if self._Io:
                     self.cif_token_change("intensity", "intensity_meas")
 
-        self._sIo = self._initialize_sIo()
-
-        return Io
-
     def _initialize_sIo(self):
-        sIo = self._refln_data.getColumn(self._refln_data.getIndex("intensity_sigma"))
-        if not sIo:
-            sIo = self._refln_data.getColumn(self._refln_data.getIndex("intensity_sigma_au"))
-            if sIo:
+        self._sIo = self._refln_data.getColumn(self._refln_data.getIndex("intensity_sigma")) if self._refln_data.hasAttribute("intensity_sigma") else None
+        if not self._sIo:
+            self._sIo = self._refln_data.getColumn(self._refln_data.getIndex("intensity_sigma_au")) if self._refln_data.hasAttribute("intensity_sigma_au") else None
+            if self._sIo:
                 self.cif_token_change("intensity_sigma_au", "intensity_sigma")
 
-            if not sIo:
-                sIo = self._refln_data.getColumn(self._refln_data.getIndex("intensity_sigm"))
-                if sIo:
+            if not self._sIo:
+                self._sIo = self._refln_data.getColumn(self._refln_data.getIndex("intensity_sigm")) if self._refln_data.hasAttribute("intensity_sigm") else None
+                if self._sIo:
                     self.cif_token_change("intensity_sigm", "intensity_sigma")
 
-                if not sIo:
-                    sIo = self._refln_data.getColumn(self._refln_data.getIndex("intensity_meas_sigma"))
-                    if sIo:
+                if not self._sIo:
+                    self._sIo = self._refln_data.getColumn(self._refln_data.getIndex("intensity_meas_sigma")) if self._refln_data.hasAttribute("intensity_meas_sigma") else None
+                    if self._sIo:
                         self.cif_token_change("intensity_meas_sigma", "intensity_sigma")
 
-                    if not sIo:
-                        sIo = self._refln_data.getColumn(self._refln_data.getIndex("intensity_meas_sigma_au"))
-                        if sIo:
+                    if not self._sIo:
+                        self._sIo = self._refln_data.getColumn(self._refln_data.getIndex("intensity_meas_sigma_au")) if self._refln_data.hasAttribute("intensity_meas_sigma_au") else None
+                        if self._sIo:
                             self.cif_token_change("intensity_meas_sigma_au", "intensity_sigma")
-
-        return sIo
 
     def _initialize_status(self):
         self._status = self._refln_data.getColumn(self._refln_data.getIndex("status"))
@@ -219,7 +220,6 @@ class ResolutionCalculator:
         ii_sigii_max = -90000
         resolution = 0
 
-        hkl_min, hkl_max = [""] * 80, [""] * 80
         resol = [100]
         RESOH = 0.1
         RESOL = 200
@@ -254,8 +254,16 @@ class ResolutionCalculator:
             print(f"Error: File has no free set (data block={nblock}).")
 
 
+        refln_data = self._sf_file.getObj("refln")
+        if refln_data is not None:
+            rcell, cell = self.calc_cell_and_recip()
+
+        if (cell[0] > 0.01 and cell[1] > 0.01): key = 1
+
+
         
         for i in range(nstart, self._nref):  # check data items
+            #print(f"Checking reflection {i} of {self._nref} (data block={nblock})")
             ah = int(self._H[i])
             ak = int(self._K[i])
             al = int(self._L[i])
@@ -309,11 +317,11 @@ class ResolutionCalculator:
             # Rest of the code would go here
             if key > 0:
                 resolution = self.get_resolution(ah, ak, al, self._rcell)
-                self._min_R = min(self._min_R, resolution)
-                self._max_R = max(self._max_R, resolution)
-                if self._min_R == resolution:
+                min_R = min(min_R, resolution)
+                max_R = max(max_R, resolution)
+                if min_R == resolution:
                     self._hkl_min = f"{ah:4d} {ak:4d} {al:4d}"
-                if self._max_R == resolution:
+                if max_R == resolution:
                     self._hkl_max = f"{ah:4d} {ak:4d} {al:4d}"
 
                 val = 0
@@ -340,10 +348,12 @@ class ResolutionCalculator:
                     if resolution > 7.0:  # low resolution I/sigI
                         ii_sigii_low += ratio
                         nnii_low += 1
-                    if ratio > self._ii_sigii_max:
-                        self._ii_sigii_max = ratio
+                    if ratio > ii_sigii_max:
+                        ii_sigii_max = ratio
                     nnii += 1
 
+            # print("Resolution: ", resolution, " ", "RESOL: ", RESOL, " ", "RESOH: ", RESOH)
+            # print(f"{RESOL} + 0.01 >= {resolution} >= {RESOH} - 0.01")
             if RESOL + 0.01 >= resolution >= RESOH - 0.01:  # for onedep
                 if self._F_plus and not '?' in self._F_plus[i]:
                     nfp += 1
@@ -474,8 +484,8 @@ class ResolutionCalculator:
 
         if key > 0 and self._cell[0] > 0.001:
             print(f"Cell = {self._cell[0]:.2f} {self._cell[1]:.2f} {self._cell[2]:.2f} {self._cell[3]:.2f} {self._cell[4]:.2f} {self._cell[5]:.2f}")
-            print(f"Lowest resolution= {max_R:.2f} ; corresponding HKL={hkl_max}")
-            print(f"Highest resolution={min_R:.2f} ; corresponding HKL={hkl_min}")
+            print(f"Lowest resolution= {max_R:.2f} ; corresponding HKL={self._hkl_max}")
+            print(f"Highest resolution={min_R:.2f} ; corresponding HKL={self._hkl_min}")
             if RESOH > 0.11 and abs(RESOH - min_R) > 0.4 and nblock == 1:
                 print(f"Warning: large difference between reported ({RESOH:.2f}) and calculated({min_R:.2f}) resolution.")
             resol[0] = min_R
