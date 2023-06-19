@@ -4,137 +4,135 @@ from ..sffile.sf_file import SFFile
 
 class ResolutionCalculator:
     def __init__(self, filename, block_number):
-        self._sf_file = SFFile()
-        self._block_number = block_number
-        #self._sf_file.readFile(filename)
-        self._sf_block = self._sf_file.readBlock(filename, block_number)
-        #self._sf_block_num, self._sf_file = self._sf_file.getBlock("r1o08sf")
-        #self._sf_block_num, self._sf_file = self._sf_file.getBlock("r7xvxAsf")
+        self.__sf_file = SFFile()
+        self.__block_number = block_number
+        self.__sf_block = self.__sf_file.readBlock(filename, block_number)
+        self.initialize_data()
 
+    def initialize_data(self):
+        self.initialize_refln_data()
+        self.initialize_diffrn_refln_data()
+        self.initialize_counts()
+        self.initialize_columns()
 
-        self._initialize_data()
+    def initialize_refln_data(self):
+        self.__refln_data = self.__sf_block.getObj("refln")
+        if self.__refln_data is not None:
+            self.__rcell, self.__cell = self.calc_cell_and_recip()
 
-    def _initialize_data(self):
-        self._initialize_refln_data()
-        self._initialize_diffrn_refln_data()
-        self._initialize_counts()
-        self._initialize_columns()
+    def initialize_diffrn_refln_data(self):
+        self.__diffrn_refln_data = self.__sf_block.getObj("diffrn_refln")
 
-    def _initialize_refln_data(self):
-        self._refln_data = self._sf_block.getObj("refln")
-        if self._refln_data is not None:
-            self._rcell, self._cell = self.calc_cell_and_recip()
+    def initialize_counts(self):
+        if self.__refln_data:
+            self.__nref = self.__refln_data.getRowCount()
+        if self.__diffrn_refln_data:
+            self.__dnref = self.__diffrn_refln_data.getRowCount()
 
-    def _initialize_diffrn_refln_data(self):
-        self._diffrn_refln_data = self._sf_block.getObj("diffrn_refln")
-
-    def _initialize_counts(self):
-        if(self._refln_data):self._nref = self._refln_data.getRowCount()
-        if(self._diffrn_refln_data):self._dnref = self._diffrn_refln_data.getRowCount()
-
-    def _initialize_columns(self):
-
+    def initialize_columns(self):
         attributes = {
-            "index_h": "_H",
-            "index_k": "_K",
-            "index_l": "_L",
-            "F_meas_au": "_Fo_au",
-            "F_meas_sigma_au": "_sFo_au",
-            "F_meas_sigma": "_sFo",
-            "F_squared_sigma": "_sF2o",
-            "pdbx_I_plus_sigma": "_sI_plus",
-            "pdbx_I_minus_sigma": "_sI_minus",
-            "pdbx_F_plus_sigma": "_sF_plus",
-            "pdbx_F_minus_sigma": "_sF_minus",
-            "F_meas": "_Fo",
-            "F_squared_meas": "_F2o",
-            "pdbx_I_plus": "_I_plus",
-            "pdbx_I_minus": "_I_minus",
-            "pdbx_F_plus": "_F_plus",
-            "pdbx_F_minus": "_F_minus",
-            "fom": "_fom",
-            "phase_calc": "_phase_c",
-            "phase_meas": "_phase_o",
+            "index_h": "H",
+            "index_k": "K",
+            "index_l": "L",
+            "F_meas_au": "Fo_au",
+            "F_meas_sigma_au": "sFo_au",
+            "F_meas_sigma": "sFo",
+            "F_squared_sigma": "sF2o",
+            "pdbx_I_plus_sigma": "sI_plus",
+            "pdbx_I_minus_sigma": "sI_minus",
+            "pdbx_F_plus_sigma": "sF_plus",
+            "pdbx_F_minus_sigma": "sF_minus",
+            "F_meas": "Fo",
+            "F_squared_meas": "F2o",
+            "pdbx_I_plus": "I_plus",
+            "pdbx_I_minus": "I_minus",
+            "pdbx_F_plus": "F_plus",
+            "pdbx_F_minus": "F_minus",
+            "fom": "fom",
+            "phase_calc": "phase_c",
+            "phase_meas": "phase_o",
         }
 
         for attr, var in attributes.items():
-            if self._refln_data.hasAttribute(attr):
-                setattr(self, var, self._refln_data.getColumn(self._refln_data.getIndex(attr)))
+            if self.__refln_data.hasAttribute(attr):
+                setattr(self, var, self.__refln_data.getColumn(self.__refln_data.getIndex(attr)))
+                setattr(self, "_ResolutionCalculator__"+var, self.__refln_data.getColumn(self.__refln_data.getIndex(attr)))
+
             else:
-                setattr(self, var, None)
+                setattr(self, "_ResolutionCalculator__"+var, None)
 
         diffrn_attributes = {
-            "intensity_net": "_unmerge_i",
-            "intensity_sigma": "_unmerge_si",
-            "index_h": "_dH",
-            "index_k": "_dK",
-            "index_l": "_dL"
+            "intensity_net": "unmerge_i",
+            "intensity_sigma": "unmerge_si",
+            "index_h": "dH",
+            "index_k": "dK",
+            "index_l": "dL"
         }
 
         for attr, var in diffrn_attributes.items():
-            if self._diffrn_refln_data and self._diffrn_refln_data.hasAttribute(attr):
-                setattr(self, var, self._diffrn_refln_data.getColumn(self._diffrn_refln_data.getIndex(attr)))
+            if self.__diffrn_refln_data and self.__diffrn_refln_data.hasAttribute(attr):
+                setattr(self, "_ResolutionCalculator__"+var, self.__diffrn_refln_data.getColumn(self.__diffrn_refln_data.getIndex(attr)))
             else:
-                setattr(self, var, None)
+                setattr(self, "_ResolutionCalculator__"+var, None)
 
-        self._initialize_Io()
-        self._initialize_sIo()
-        self._initialize_status()
+        self.initialize_Io()
+        self.initialize_sIo()
+        self.initialize_status()
 
-    def _initialize_Io(self):
-        self._Io = self._refln_data.getColumn(self._refln_data.getIndex("intensity_meas")) if self._refln_data.hasAttribute("intensity_meas") else None
+    def initialize_Io(self):
+        self.__Io = self.__refln_data.getColumn(self.__refln_data.getIndex("intensity_meas")) if self.__refln_data.hasAttribute("intensity_meas") else None
 
-        if not self._Io:
-            self._Io = self._refln_data.getColumn(self._refln_data.getIndex("intensity_meas_au")) if self._refln_data.hasAttribute("intensity_meas_au") else None
-            if self._Io:
+        if not self.__Io:
+            self.__Io = self.__refln_data.getColumn(self.__refln_data.getIndex("intensity_meas_au")) if self.__refln_data.hasAttribute("intensity_meas_au") else None
+            if self.__Io:
                 self.cif_token_change("intensity_meas_au", "intensity_meas")
 
-            if not self._Io:
-                self._Io = self._refln_data.getColumn(self._refln_data.getIndex("intensity")) if self._refln_data.hasAttribute("intensity") else None
-                if self._Io:
+            if not self.__Io:
+                self.__Io = self.__refln_data.getColumn(self.__refln_data.getIndex("intensity")) if self.__refln_data.hasAttribute("intensity") else None
+                if self.__Io:
                     self.cif_token_change("intensity", "intensity_meas")
 
-    def _initialize_sIo(self):
-        self._sIo = self._refln_data.getColumn(self._refln_data.getIndex("intensity_sigma")) if self._refln_data.hasAttribute("intensity_sigma") else None
-        if not self._sIo:
-            self._sIo = self._refln_data.getColumn(self._refln_data.getIndex("intensity_sigma_au")) if self._refln_data.hasAttribute("intensity_sigma_au") else None
-            if self._sIo:
+    def initialize_sIo(self):
+        self.__sIo = self.__refln_data.getColumn(self.__refln_data.getIndex("intensity_sigma")) if self.__refln_data.hasAttribute("intensity_sigma") else None
+        if not self.__sIo:
+            self.__sIo = self.__refln_data.getColumn(self.__refln_data.getIndex("intensity_sigma_au")) if self.__refln_data.hasAttribute("intensity_sigma_au") else None
+            if self.__sIo:
                 self.cif_token_change("intensity_sigma_au", "intensity_sigma")
 
-            if not self._sIo:
-                self._sIo = self._refln_data.getColumn(self._refln_data.getIndex("intensity_sigm")) if self._refln_data.hasAttribute("intensity_sigm") else None
-                if self._sIo:
+            if not self.__sIo:
+                self.__sIo = self.__refln_data.getColumn(self.__refln_data.getIndex("intensity_sigm")) if self.__refln_data.hasAttribute("intensity_sigm") else None
+                if self.__sIo:
                     self.cif_token_change("intensity_sigm", "intensity_sigma")
 
-                if not self._sIo:
-                    self._sIo = self._refln_data.getColumn(self._refln_data.getIndex("intensity_meas_sigma")) if self._refln_data.hasAttribute("intensity_meas_sigma") else None
-                    if self._sIo:
+                if not self.__sIo:
+                    self.__sIo = self.__refln_data.getColumn(self.__refln_data.getIndex("intensity_meas_sigma")) if self.__refln_data.hasAttribute("intensity_meas_sigma") else None
+                    if self.__sIo:
                         self.cif_token_change("intensity_meas_sigma", "intensity_sigma")
 
-                    if not self._sIo:
-                        self._sIo = self._refln_data.getColumn(self._refln_data.getIndex("intensity_meas_sigma_au")) if self._refln_data.hasAttribute("intensity_meas_sigma_au") else None
-                        if self._sIo:
+                    if not self.__sIo:
+                        self.__sIo = self.__refln_data.getColumn(self.__refln_data.getIndex("intensity_meas_sigma_au")) if self.__refln_data.hasAttribute("intensity_meas_sigma_au") else None
+                        if self.__sIo:
                             self.cif_token_change("intensity_meas_sigma_au", "intensity_sigma")
 
-    def _initialize_status(self):
-        self._status = self._refln_data.getColumn(self._refln_data.getIndex("status"))
-        if not self._status:
-            self._status = self._refln_data.getColumn(self._refln_data.getIndex("R_free_flag"))
-            if self._status:
+    def initialize_status(self):
+        self.__status = self.__refln_data.getColumn(self.__refln_data.getIndex("status"))
+        if not self.__status:
+            self.__status = self.__refln_data.getColumn(self.__refln_data.getIndex("R_free_flag"))
+            if self.__status:
                 self.cif_token_change("R_free_flag", "status")
 
-            if not self._status:
-                self._status = self._refln_data.getColumn(self._refln_data.getIndex("statu"))
-                if self._status:
+            if not self.__status:
+                self.__status = self.__refln_data.getColumn(self.__refln_data.getIndex("statu"))
+                if self.__status:
                     self.cif_token_change("statu", "status")
 
-                if not self._status:
-                    self._status = self._refln_data.getColumn(self._refln_data.getIndex("status_au"))
-                    if self._status:
+                if not self.__status:
+                    self.__status = self.__refln_data.getColumn(self.__refln_data.getIndex("status_au"))
+                    if self.__status:
                         self.cif_token_change("status_au", "status")
 
     def calc_cell_and_recip(self):
-        data = self._sf_block.getObj("cell")
+        data = self.__sf_block.getObj("cell")
         if data is not None:
             a = float(data.getValue("length_a"))
             b = float(data.getValue("length_b"))
@@ -168,10 +166,9 @@ class ResolutionCalculator:
             rcell[4] = math.acos(cosbst) / math.radians(1.0)
             rcell[5] = math.acos(coscst) / math.radians(1.0)
 
-            # Print the reciprocal cell
             return rcell, cell
         else:
-            print("No cell data found in the mmCIF file.")
+            self.pinfo("No cell data found in the mmCIF file.")
 
     def get_resolution(self, h, k, l, rcell):
         aa1 = 2 * rcell[0] * rcell[1] * math.cos(math.radians(rcell[5]))
@@ -207,17 +204,23 @@ class ResolutionCalculator:
                 if resolution > best_resolution:
                     best_resolution = resolution
 
-            # Print the best resolution
-            print("Best Resolution: {:.2f} Angstroms".format(best_resolution))
+            self.pinfo("Best Resolution: {:.2f} Angstroms".format(best_resolution))
         else:
-            print("No refln data found in the mmCIF file.")
+            self.pinfo("No refln data found in the mmCIF file.")
 
     def cif_token_change(self, old_token, new_token):
-        print(f"Warning! The mmcif token  _refln.{old_token} is wrong!")
-        print(f"It has been corrected as _refln.{new_token}")
+        self.pinfo(f"Warning! The mmcif token  _refln.{old_token} is wrong!")
+        self.pinfo(f"It has been corrected as _refln.{new_token}")
+
+    def pinfo(self, str, default=0):
+        if default == 0:
+            print(str)
+        else:
+            # do something
+            pass
 
     def check_sf(self):
-        nblock = self._block_number
+        nblock = self.__block_number
 
         temp_nref, nstart, n1, n2, n4, n5, nfpairF, nfpairI, nf_sFo, nf_sIo, key = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
         sum_sigii, ii_sigii, ii_sigii_low, nnii, sum_ii, nnii_low, nfp, nfn, nip, nin, n_obs, n_free = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
@@ -233,50 +236,45 @@ class ResolutionCalculator:
         resol = [100]
         RESOH = 0.1
         RESOL = 200
-
-
         
-        if not (self._dH or self._dK or self._dL or self._H or self._K or self._L):
-            print(f"Error: File has no 'index_h, index_k, index_l' (data block={nblock}).")
+        if not (self.__dH or self.__dK or self.__dL or self.__H or self.__K or self.__L):
+            self.pinfo(f"Error: File has no 'index_h, index_k, index_l' (data block={nblock}).")
             return
         
-        if not (self._Fo_au or self._Fo or self._Io or self._F2o or self._I_plus or self._I_minus or
-                self._F_plus or self._F_minus or self._unmerge_i or self._unmerge_si):
-            print(f"Error: File has no mandatory items 'F/I/F+/F-/I+/I-' (data block={nblock}). ")
+        if not (self.__Fo_au or self.__Fo or self.__Io or self.__F2o or self.__I_plus or self.__I_minus or
+                self.__F_plus or self.__F_minus or self.__unmerge_i or self.__unmerge_si):
+            self.pinfo(f"Error: File has no mandatory items 'F/I/F+/F-/I+/I-' (data block={nblock}). ")
             return
 
-        if self._nref < 30 and self._dnref > 30:
+        if self.__nref < 30 and self.__dnref > 30:
             return  # do not further check the unmerged data!!
         
-        if self._nref < 30:
-            print(f"Error: File has too few reflections ({self._nref}) (data block={nblock}).")
+        if self.__nref < 30:
+            self.pinfo(f"Error: File has too few reflections ({self.__nref}) (data block={nblock}).")
             return
 
-        if ((self._Fo_au and not self._sFo_au) or (self._Fo and not self._sFo) or
-            (self._Io and not self._sIo) or (self._F2o and not self._sF2o) or
-            (self._I_plus and not self._sI_plus) or (self._I_minus and not self._sI_minus) or
-            (self._F_plus and not self._sF_plus) or (self._F_minus and not self._sF_minus) or
-            (self._unmerge_i and not self._unmerge_si)):
+        if ((self.__Fo_au and not self.__sFo_au) or (self.__Fo and not self.__sFo) or
+            (self.__Io and not self.__sIo) or (self.__F2o and not self.__sF2o) or
+            (self.__I_plus and not self.__sI_plus) or (self.__I_minus and not self.__sI_minus) or
+            (self.__F_plus and not self.__sF_plus) or (self.__F_minus and not self.__sF_minus) or
+            (self.__unmerge_i and not self.__unmerge_si)):
 
-            print(f"Error: Sigma values are missing (data block={nblock})!")
+            self.pinfo(f"Error: Sigma values are missing (data block={nblock})!")
 
-        if self._status is None:
-            print(f"Error: File has no free set (data block={nblock}).")
+        if self.__status is None:
+            self.pinfo(f"Error: File has no free set (data block={nblock}).")
 
-
-        refln_data = self._sf_block.getObj("refln")
+        refln_data = self.__sf_block.getObj("refln")
         if refln_data is not None:
             rcell, cell = self.calc_cell_and_recip()
 
         if (cell[0] > 0.01 and cell[1] > 0.01): key = 1
-
-
         
-        for i in range(nstart, self._nref):  # check data items
-            #print(f"Checking reflection {i} of {self._nref} (data block={nblock})")
-            ah = int(self._H[i])
-            ak = int(self._K[i])
-            al = int(self._L[i])
+        for i in range(nstart, self.__nref):  # check data items
+            #self.pinfo(f"Checking reflection {i} of {self._nref} (data block={nblock})")
+            ah = int(self.__H[i])
+            ak = int(self.__K[i])
+            al = int(self.__L[i])
 
             min_H = min(min_H, ah)
             min_K = min(min_K, ak)
@@ -286,69 +284,66 @@ class ResolutionCalculator:
             max_K = max(max_K, ak)
             max_L = max(max_L, al)
 
-            if not ((self._Fo_au and self._Fo_au[i] != '?') or
-                    (self._Io and self._Io[i] != '?') or
-                    (self._I_plus and self._I_plus[i] != '?') or
-                    (self._I_minus and self._I_minus[i] != '?') or
-                    (self._F_plus and self._F_plus[i] != '?') or
-                    (self._F_minus and self._F_minus[i] != '?') or
-                    (self._unmerge_i and self._unmerge_i[i] != '?') or
-                    (self._F2o and self._F2o[i] != '?') or
-                    (self._Fo and self._Fo[i] != '?')):
+            if not ((self.__Fo_au and self.__Fo_au[i] != '?') or
+                    (self.__Io and self.__Io[i] != '?') or
+                    (self.__I_plus and self.__I_plus[i] != '?') or
+                    (self.__I_minus and self.__I_minus[i] != '?') or
+                    (self.__F_plus and self.__F_plus[i] != '?') or
+                    (self.__F_minus and self.__F_minus[i] != '?') or
+                    (self.__unmerge_i and self.__unmerge_i[i] != '?') or
+                    (self.__F2o and self.__F2o[i] != '?') or
+                    (self.__Fo and self.__Fo[i] != '?')):
                 continue
 
             temp_nref += 1
             hkl = f"HKL={ah:4d} {ak:4d} {al:4d}"
 
-            
-
             if ((ah == 0 and ak == 0 and al == 0) or
                     (abs(ah) > 800 or abs(ak) > 800 or abs(al) > 800)):
                 if n1 == 1:
-                    print(f"Error: File has wrong indices ({hkl}).")
+                    self.pinfo(f"Error: File has wrong indices ({hkl}).")
                     n1 += 1
 
-            if self._sFo_au and i > 0 and float(self._sFo_au[i - 1]) == float(self._sFo_au[i]):
+            if self.__sFo_au and i > 0 and float(self.__sFo_au[i - 1]) == float(self.__sFo_au[i]):
                 nf_sFo += 1
-            if self._sIo and i > 0 and float(self._sIo[i - 1]) == float(self._sIo[i]):
+            if self.__sIo and i > 0 and float(self.__sIo[i - 1]) == float(self.__sIo[i]):
                 nf_sIo += 1
 
-            if self._F_plus:
-                f = float(self._F_plus[i])
+            if self.__F_plus:
+                f = float(self.__F_plus[i])
                 nfpairF += 1
-                if f < 0 and self._n4 == 1:
-                    print(f"Error: File has negative amplitude (F+: {self._F_plus[i]}) for ({hkl}).")
+                if f < 0 and self.__n4 == 1:
+                    self.pinfo(f"Error: File has negative amplitude (F+: {self.__F_plus[i]}) for ({hkl}).")
                     n4 += 1
 
-            if self._I_plus:
+            if self.__I_plus:
                 nfpairI += 1
-                f = float(self._I_plus[i])
+                f = float(self.__I_plus[i])
 
             # Rest of the code would go here
             if key > 0:
-                resolution = self.get_resolution(ah, ak, al, self._rcell)
+                resolution = self.get_resolution(ah, ak, al, self.__rcell)
                 min_R = min(min_R, resolution)
                 max_R = max(max_R, resolution)
                 if min_R == resolution:
-                    self._hkl_min = f"{ah:4d} {ak:4d} {al:4d}"
+                    self.__hkl_min = f"{ah:4d} {ak:4d} {al:4d}"
                 if max_R == resolution:
-                    self._hkl_max = f"{ah:4d} {ak:4d} {al:4d}"
+                    self.__hkl_max = f"{ah:4d} {ak:4d} {al:4d}"
 
                 val = 0
                 sval = 0
-                if self._Io and self._sIo and self._sIo[i] != '?':
-                    val = float(self._Io[i])
-                    sval = float(self._sIo[i])
-                elif self._Fo_au and self._sFo_au and self._sFo_au[i] != '?':
-                    val = float(self._Fo_au[i]) * float(self._Fo_au[i])
-                    sval = 2 * float(self._Fo_au[i]) * float(self._sFo_au[i])
-                elif self._F2o and self._sFo and self._sF2o[i] != '?':
-                    val = float(self._F2o[i])
-                    sval = float(self._sF2o[i])
-                elif self._Fo and self._sFo and self._sFo[i] != '?':
-                    val = float(self._Fo[i]) * float(self._Fo[i])
-                    sval = 2 * float(self._Fo[i]) * float(self._sFo[i])
-
+                if self.__Io and self.__sIo and self.__sIo[i] != '?':
+                    val = float(self.__Io[i])
+                    sval = float(self.__sIo[i])
+                elif self.__Fo_au and self.__sFo_au and self.__sFo_au[i] != '?':
+                    val = float(self.__Fo_au[i]) * float(self.__Fo_au[i])
+                    sval = 2 * float(self.__Fo_au[i]) * float(self.__sFo_au[i])
+                elif self.__F2o and self.__sFo and self.__sF2o[i] != '?':
+                    val = float(self.__F2o[i])
+                    sval = float(self.__sF2o[i])
+                elif self.__Fo and self.__sFo and self.__sFo[i] != '?':
+                    val = float(self.__Fo[i]) * float(self.__Fo[i])
+                    sval = 2 * float(self.__Fo[i]) * float(self.__sFo[i])
 
                 if sval > 0:
                     sum_sigii += sval
@@ -362,61 +357,54 @@ class ResolutionCalculator:
                         ii_sigii_max = ratio
                     nnii += 1
 
-            # print("Resolution: ", resolution, " ", "RESOL: ", RESOL, " ", "RESOH: ", RESOH)
-            # print(f"{RESOL} + 0.01 >= {resolution} >= {RESOH} - 0.01")
             if RESOL + 0.01 >= resolution >= RESOH - 0.01:  # for onedep
-                if self._F_plus and not '?' in self._F_plus[i]:
+                if self.__F_plus and not '?' in self.__F_plus[i]:
                     nfp += 1
-                if self._F_minus and not '?' in self._F_minus[i]:
+                if self.__F_minus and not '?' in self.__F_minus[i]:
                     nfn += 1
-                if self._I_plus and not '?' in self._I_plus[i]:
+                if self.__I_plus and not '?' in self.__I_plus[i]:
                     nip += 1
-                if self._I_minus and not '?' in self._I_minus[i]:
+                if self.__I_minus and not '?' in self.__I_minus[i]:
                     nin += 1
 
-                if ((self._Fo and not '?' in self._Fo[i]) or
-                        (self._Fo_au and not '?' in self._Fo_au[i]) or
-                        (self._Io and not '?' in self._Io[i]) or
-                        (self._F2o and not '?' in self._F2o[i]) or
-                        ((self._F_plus and not '?' in self._F_plus[i]) or
-                        (self._F_minus and not '?' in self._F_minus[i])) or
-                        ((self._I_plus and not '?' in self._I_plus[i]) or
-                        (self._I_minus and not '?' in self._I_minus[i]))):
-                    if self._status and 'o' in self._status[i]:
+                if ((self.__Fo and not '?' in self.__Fo[i]) or
+                        (self.__Fo_au and not '?' in self.__Fo_au[i]) or
+                        (self.__Io and not '?' in self.__Io[i]) or
+                        (self.__F2o and not '?' in self.__F2o[i]) or
+                        ((self.__F_plus and not '?' in self.__F_plus[i]) or
+                        (self.__F_minus and not '?' in self.__F_minus[i])) or
+                        ((self.__I_plus and not '?' in self.__I_plus[i]) or
+                        (self.__I_minus and not '?' in self.__I_minus[i]))):
+                    if self.__status and 'o' in self.__status[i]:
                         n_obs += 1
-                    elif self._status and 'f' in self._status[i]:
+                    elif self.__status and 'f' in self.__status[i]:
                         n_free += 1
-
-
-            # print("the resolution %.2f %.2f %ld\n", RESOH, RESOL, i)
-
         
-            if self._Fo_au:
-                f = float(self._Fo_au[i])
-                if f < 0 and self._n5 == 0:
-                    self._n5 += 1
-                    print(f"Error: File has negative amplitude (Fo: {self._Fo_au[i]}) for ({hkl}).")
-
+            if self.__Fo_au:
+                f = float(self.__Fo_au[i])
+                if f < 0 and self.__n5 == 0:
+                    self.__n5 += 1
+                    self.pinfo(f"Error: File has negative amplitude (Fo: {self.__Fo_au[i]}) for ({hkl}).")
 
                 if f < min_F: min_F = f
                 if f > max_F: max_F = f
 
-                if self._sFo_au:
-                    sigf = float(self._sFo_au[i])
-                    if sigf > 0 and self._sFo_au[i] != '?':
+                if self.__sFo_au:
+                    sigf = float(self.__sFo_au[i])
+                    if sigf > 0 and self.__sFo_au[i] != '?':
                         f_over_sf += f / sigf
                         sum_f += f
                         sum_sf += sigf
                         nf_Fo += 1
 
-            if self._F2o:
-                f = float(self._F2o[i])
+            if self.__F2o:
+                f = float(self.__F2o[i])
                 if f < min_F2: min_F2 = f
                 if f > max_F2: max_F2 = f
 
-                if self._sF2o:
-                    sigf = float(self._sF2o[i])
-                    if sigf > 0 and self._sF2o[i] != '?':
+                if self.__sF2o:
+                    sigf = float(self.__sF2o[i])
+                    if sigf > 0 and self.__sF2o[i] != '?':
                         f2_over_sf2 += f / sigf
                         sum_f2 += f
                         sum_sf2 += sigf
@@ -424,124 +412,110 @@ class ResolutionCalculator:
 
             i_over_si, sum_i, sum_si, nf_Io, n6, n7, n8 = 0, 0, 0, 0, 0, 0, 0
 
-            if self._Io:
-                f = float(self._Io[i])
+            if self.__Io:
+                f = float(self.__Io[i])
                 if f < min_I: min_I = f
                 if f > max_I: max_I = f
 
-                if self._sIo:
-                    sigf = float(self._sIo[i])
-                    if sigf > 0 and self._sIo[i] != '?':
+                if self.__sIo:
+                    sigf = float(self.__sIo[i])
+                    if sigf > 0 and self.__sIo[i] != '?':
                         i_over_si += f / sigf
                         sum_i += f
                         sum_si += sigf
                         nf_Io += 1
 
-            if self._fom and abs(float(self._fom[i])) > 1.01:
+            if self.__fom and abs(float(self.__fom[i])) > 1.01:
                 if n6 == 0:
                     n6 += 1
-                    print(f"Warning: File has wrong values of FOM ({self._fom[i]}) for ({hkl}).")
-            if self._phase_c and abs(float(self._phase_c[i])) > 361.0:
+                    self.pinfo(f"Warning: File has wrong values of FOM ({self.__fom[i]}) for ({hkl}).")
+            if self.__phase_c and abs(float(self.__phase_c[i])) > 361.0:
                 if n7 == 0:
                     n7 += 1
-                    print(f"Warning: File has wrong values of phase ({self._phase_c[i]}) for ({hkl}).")
-            if self._phase_o and abs(float(self._phase_o[i])) > 361.0:
+                    self.pinfo(f"Warning: File has wrong values of phase ({self.__phase_c[i]}) for ({hkl}).")
+            if self.__phase_o and abs(float(self.__phase_o[i])) > 361.0:
                 if n8 == 0:
                     n8 += 1
-                    print(f"Warning: File has wrong values of phase ({self._phase_o[i]}) for ({hkl}).")
-
+                    self.pinfo(f"Warning: File has wrong values of phase ({self.__phase_o[i]}) for ({hkl}).")
 
         if n1 > 0:
-            print(f"Error: File has ({n1}) reflections with wrong indices.")
+            self.pinfo(f"Error: File has ({n1}) reflections with wrong indices.")
 
         if n2 > 0:
-            print(f"Warning: File has ({n2}) reflections with negative SIGMA, (Corrected: given status '<').")
+            self.pinfo(f"Warning: File has ({n2}) reflections with negative SIGMA, (Corrected: given status '<').")
 
         if n4 > 0:
-            print(f"Error: File has ({n4}) reflections with negative amplitude (F+).")
+            self.pinfo(f"Error: File has ({n4}) reflections with negative amplitude (F+).")
 
         if n5 > 0:
-            print(f"Error: File has ({n5}) reflections with negative amplitude (Fo).")
+            self.pinfo(f"Error: File has ({n5}) reflections with negative amplitude (Fo).")
 
         if temp_nref > 10 and ((nf_sFo > 0 and temp_nref - nf_sFo < 3) or (nf_sIo > 0 and temp_nref - nf_sIo < 3)):
-            print(f"Warning! File has Sigma_Fo all the same!")
+            self.pinfo(f"Warning! File has Sigma_Fo all the same!")
 
         # Following are the messages related to total number of reflections
-        print(f"Total number of observed reflections = {(n_obs + n_free)}")
-        print(f"Total number of observed reflections (status='o') = {n_obs}")
-        print(f"Total number of observed reflections (status='f') = {n_free}")
+        self.pinfo(f"Total number of observed reflections = {(n_obs + n_free)}")
+        self.pinfo(f"Total number of observed reflections (status='o') = {n_obs}")
+        self.pinfo(f"Total number of observed reflections (status='f') = {n_free}")
         if n_obs > 0:
             rfree_p = 100 * float(n_free) / float(n_obs)
-            print(f"Percentage for free set = {rfree_p:.2f}")
+            self.pinfo(f"Percentage for free set = {rfree_p:.2f}")
 
         if nfpairF > 10:
-            print(f"Total number of Friedel pairs (F+/F-) = {nfpairF}")
-            print(f"Total number of observed F+ = {nfp}")
-            print(f"Total number of observed F- = {nfn}")
-            print(f"Sum of observed F+ and F-  = {(nfn + nfp)}")
+            self.pinfo(f"Total number of Friedel pairs (F+/F-) = {nfpairF}")
+            self.pinfo(f"Total number of observed F+ = {nfp}")
+            self.pinfo(f"Total number of observed F- = {nfn}")
+            self.pinfo(f"Sum of observed F+ and F-  = {(nfn + nfp)}")
         
         if nfpairI > 10:
-            print(f"Total number of Friedel pairs (I+/I-) = {nfpairI}")
-            print(f"Total number of observed I+ = {nip}")
-            print(f"Total number of observed I- = {nin}")
-            print(f"Sum of observed I+ and I-  = {(nin + nip)}")
-        
- 
+            self.pinfo(f"Total number of Friedel pairs (I+/I-) = {nfpairI}")
+            self.pinfo(f"Total number of observed I+ = {nip}")
+            self.pinfo(f"Total number of observed I- = {nin}")
+            self.pinfo(f"Sum of observed I+ and I-  = {(nin + nip)}")
 
-
-        if key > 0 and self._cell[0] > 0.001:
-            print(f"Cell = {self._cell[0]:.2f} {self._cell[1]:.2f} {self._cell[2]:.2f} {self._cell[3]:.2f} {self._cell[4]:.2f} {self._cell[5]:.2f}")
-            print(f"Lowest resolution= {max_R:.2f} ; corresponding HKL={self._hkl_max}")
-            print(f"Highest resolution={min_R:.2f} ; corresponding HKL={self._hkl_min}")
+        if key > 0 and self.__cell[0] > 0.001:
+            self.pinfo(f"Cell = {self.__cell[0]:.2f} {self.__cell[1]:.2f} {self.__cell[2]:.2f} {self.__cell[3]:.2f} {self.__cell[4]:.2f} {self.__cell[5]:.2f}")
+            self.pinfo(f"Lowest resolution= {max_R:.2f} ; corresponding HKL={self.__hkl_max}")
+            self.pinfo(f"Highest resolution={min_R:.2f} ; corresponding HKL={self.__hkl_min}")
             if RESOH > 0.11 and abs(RESOH - min_R) > 0.4 and nblock == 0:
-                print(f"Warning: large difference between reported ({RESOH:.2f}) and calculated({min_R:.2f}) resolution.")
+                self.pinfo(f"Warning: large difference between reported ({RESOH:.2f}) and calculated({min_R:.2f}) resolution.")
             resol[0] = min_R
         
-        print(f"Max indices (Hmax={max_H:4d}  Kmax={max_K:4d}  Lmax={max_L:4d})")
-        print(f"Min indices (Hmin={min_H:4d}  Kmin={min_K:4d}  Lmin={min_L:4d})")
+        self.pinfo(f"Max indices (Hmax={max_H:4d}  Kmax={max_K:4d}  Lmax={max_L:4d})")
+        self.pinfo(f"Min indices (Hmin={min_H:4d}  Kmin={min_K:4d}  Lmin={min_L:4d})")
 
-        if self._Fo_au:
-            print(f"maximum value of amplitude= {max_F:.2f}")
-            print(f"minimum value of amplitude= {min_F:.2f}")
-            print(f"<F/sigmaF> = {f_over_sf / nf_Fo:.2f};  <F>/<sigmaF> = {sum_f / sum_sf:.2f}")
+        if self.__Fo_au:
+            self.pinfo(f"maximum value of amplitude= {max_F:.2f}")
+            self.pinfo(f"minimum value of amplitude= {min_F:.2f}")
+            self.pinfo(f"<F/sigmaF> = {f_over_sf / nf_Fo:.2f};  <F>/<sigmaF> = {sum_f / sum_sf:.2f}")
             if sum_f / sum_sf > 140 or sum_f / sum_sf < 4:
-                print(f"Warning: Value of (Fo_avg/sigFo_avg = {sum_f / sum_sf:.2f}) is out of range (check Fo or SigFo in SF file).")
+                self.pinfo(f"Warning: Value of (Fo_avg/sigFo_avg = {sum_f / sum_sf:.2f}) is out of range (check Fo or SigFo in SF file).")
 
-        if self._F2o:
-            print(f"maximum value of F square= {max_F2:.2f}")
-            print(f"minimum value of F square= {min_F2:.2f}")
-            print(f"<F2/sigmaF2> = {f2_over_sf2 / nf_F2o:.2f};  <F2>/<sigmaF2> = {sum_f2 / sum_sf2:.2f}")
+        if self.__F2o:
+            self.pinfo(f"maximum value of F square= {max_F2:.2f}")
+            self.pinfo(f"minimum value of F square= {min_F2:.2f}")
+            self.pinfo(f"<F2/sigmaF2> = {f2_over_sf2 / nf_F2o:.2f};  <F2>/<sigmaF2> = {sum_f2 / sum_sf2:.2f}")
 
-        if self._Io:
-            print(f"maximum value of intensity= {max_I:.2f}")
-            print(f"minimum value of intensity= {min_I:.2f}")
-            print(f"<I/sigmaI> = {i_over_si / nf_Io:.2f};  <I>/<sigmaI> = {sum_i / sum_si:.2f}")
+        if self.__Io:
+            self.pinfo(f"maximum value of intensity= {max_I:.2f}")
+            self.pinfo(f"minimum value of intensity= {min_I:.2f}")
+            self.pinfo(f"<I/sigmaI> = {i_over_si / nf_Io:.2f};  <I>/<sigmaI> = {sum_i / sum_si:.2f}")
             if sum_i / sum_si > 80 or sum_i / sum_si < 2:
-                print(f"Warning: Value of (I_avg/sigI_avg = {sum_i / sum_si:.2f}) is out of range (check Io or SigIo in SF file). ")
-            
-            # print("=====================================================================================================")
-            # print("value of nf_Fo:" + str(nf_Fo) + " and value of nf_Io:" + str(nf_Io))
-            # print("=====================================================================================================")
+                self.pinfo(f"Warning: Value of (I_avg/sigI_avg = {sum_i / sum_si:.2f}) is out of range (check Io or SigIo in SF file). ")
 
             if f_over_sf / nf_Fo > 0 and (f_over_sf / nf_Fo > 2.5 * i_over_si / nf_Io or f_over_sf / nf_Fo < 1.0 * i_over_si / nf_Io):
-                print(f"Warning: too much difference Fo/sigFo = {f_over_sf / nf_Fo:.2f};  Io/sigIo = {i_over_si / nf_Io:.2f}")
-
+                self.pinfo(f"Warning: too much difference Fo/sigFo = {f_over_sf / nf_Fo:.2f};  Io/sigIo = {i_over_si / nf_Io:.2f}")
 
         if nnii > 10:
-            print(f"Using all data:  <I/sigI>={ii_sigii / nnii:.2f}")
-            print(f"Using all data:  <I>/<sigI>={sum_ii / sum_sigii:.2f}")
-            print(f"Using all data:  Rsig(<sigI>/<I>)={sum_sigii / sum_ii:.3f}")
-            print(f"The maximum value of <I/sigI>_max={ii_sigii_max:.2f}")
+            self.pinfo(f"Using all data:  <I/sigI>={ii_sigii / nnii:.2f}")
+            self.pinfo(f"Using all data:  <I>/<sigI>={sum_ii / sum_sigii:.2f}")
+            self.pinfo(f"Using all data:  Rsig(<sigI>/<I>)={sum_sigii / sum_ii:.3f}")
+            self.pinfo(f"The maximum value of <I/sigI>_max={ii_sigii_max:.2f}")
 
         if nnii_low > 10:
-            print(f"Use data with resolution >7.0 Angstrom: <I/sigI>_low={ii_sigii_low / nnii_low:.2f}")
+            self.pinfo(f"Use data with resolution >7.0 Angstrom: <I/sigI>_low={ii_sigii_low / nnii_low:.2f}")
 
         return
-
-
-
-
-
 
 
 
