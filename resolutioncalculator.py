@@ -2,9 +2,15 @@ import math
 from sf_file import SFFile
 
 class ResolutionCalculator:
-    def __init__(self, filename):
+    def __init__(self, filename, block_number):
         self._sf_file = SFFile()
-        self._sf_file.readFile(filename)
+        self._block_number = block_number
+        #self._sf_file.readFile(filename)
+        self._sf_block = self._sf_file.readBlock(filename, block_number)
+        #self._sf_block_num, self._sf_file = self._sf_file.getBlock("r1o08sf")
+        #self._sf_block_num, self._sf_file = self._sf_file.getBlock("r7xvxAsf")
+
+
         self._initialize_data()
 
     def _initialize_data(self):
@@ -14,12 +20,12 @@ class ResolutionCalculator:
         self._initialize_columns()
 
     def _initialize_refln_data(self):
-        self._refln_data = self._sf_file.getObj("refln")
+        self._refln_data = self._sf_block.getObj("refln")
         if self._refln_data is not None:
             self._rcell, self._cell = self.calc_cell_and_recip()
 
     def _initialize_diffrn_refln_data(self):
-        self._diffrn_refln_data = self._sf_file.getObj("diffrn_refln")
+        self._diffrn_refln_data = self._sf_block.getObj("diffrn_refln")
 
     def _initialize_counts(self):
         if(self._refln_data):self._nref = self._refln_data.getRowCount()
@@ -55,7 +61,6 @@ class ResolutionCalculator:
                 setattr(self, var, self._refln_data.getColumn(self._refln_data.getIndex(attr)))
             else:
                 setattr(self, var, None)
-
 
         diffrn_attributes = {
             "intensity_net": "_unmerge_i",
@@ -128,7 +133,7 @@ class ResolutionCalculator:
                         self.cif_token_change("status_au", "status")
 
     def calc_cell_and_recip(self):
-        data = self._sf_file.getObj("cell")
+        data = self._sf_block.getObj("cell")
         if data is not None:
             a = float(data.getValue("length_a"))
             b = float(data.getValue("length_b"))
@@ -184,7 +189,7 @@ class ResolutionCalculator:
         return resol
 
     def calc_resolution(self):
-        refln_data = self._sf_file.getObj("refln")
+        refln_data = self._sf_block.getObj("refln")
         if refln_data is not None:
             rcell, cell = self.calc_cell_and_recip()
 
@@ -210,15 +215,19 @@ class ResolutionCalculator:
         print(f"Warning! The mmcif token  _refln.{old_token} is wrong!")
         print(f"It has been corrected as _refln.{new_token}")
 
-    def check_sf(self, nblock):
+    def check_sf(self):
+        nblock = self._block_number
 
         temp_nref, nstart, n1, n2, n4, n5, nfpairF, nfpairI, nf_sFo, nf_sIo, key = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
         sum_sigii, ii_sigii, ii_sigii_low, nnii, sum_ii, nnii_low, nfp, nfn, nip, nin, n_obs, n_free = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-        max_H, min_H, max_K, min_K, max_L, min_L, nblock = -500, 500, -500, 500, -500, 500, None
+        max_H, min_H, max_K, min_K, max_L, min_L = -500, 500, -500, 500, -500, 500
         max_F, min_F, max_I, min_I = -500000.0, 500000.0, -5000000.0, 5000000.0
         max_R, min_R, max_F2, min_F2 = -500.0, 900.0, -500000.0, 500000.0
         ii_sigii_max = -90000
         resolution = 0
+
+        f_over_sf, sum_f, sum_sf, nf_Fo = 0, 0, 0, 0
+        f2_over_sf2, sum_f2, sum_sf2, nf_F2o = 0, 0, 0, 0
 
         resol = [100]
         RESOH = 0.1
@@ -254,7 +263,7 @@ class ResolutionCalculator:
             print(f"Error: File has no free set (data block={nblock}).")
 
 
-        refln_data = self._sf_file.getObj("refln")
+        refln_data = self._sf_block.getObj("refln")
         if refln_data is not None:
             rcell, cell = self.calc_cell_and_recip()
 
@@ -380,9 +389,6 @@ class ResolutionCalculator:
 
             # print("the resolution %.2f %.2f %ld\n", RESOH, RESOL, i)
 
-            f_over_sf, sum_f, sum_sf, nf_Fo = 0, 0, 0, 0
-            f2_over_sf2, sum_f2, sum_sf2, nf_F2o = 0, 0, 0, 0
-
         
             if self._Fo_au:
                 f = float(self._Fo_au[i])
@@ -486,7 +492,7 @@ class ResolutionCalculator:
             print(f"Cell = {self._cell[0]:.2f} {self._cell[1]:.2f} {self._cell[2]:.2f} {self._cell[3]:.2f} {self._cell[4]:.2f} {self._cell[5]:.2f}")
             print(f"Lowest resolution= {max_R:.2f} ; corresponding HKL={self._hkl_max}")
             print(f"Highest resolution={min_R:.2f} ; corresponding HKL={self._hkl_min}")
-            if RESOH > 0.11 and abs(RESOH - min_R) > 0.4 and nblock == 1:
+            if RESOH > 0.11 and abs(RESOH - min_R) > 0.4 and nblock == 0:
                 print(f"Warning: large difference between reported ({RESOH:.2f}) and calculated({min_R:.2f}) resolution.")
             resol[0] = min_R
         
@@ -511,6 +517,11 @@ class ResolutionCalculator:
             print(f"<I/sigmaI> = {i_over_si / nf_Io:.2f};  <I>/<sigmaI> = {sum_i / sum_si:.2f}")
             if sum_i / sum_si > 80 or sum_i / sum_si < 2:
                 print(f"Warning: Value of (I_avg/sigI_avg = {sum_i / sum_si:.2f}) is out of range (check Io or SigIo in SF file). ")
+            
+            # print("=====================================================================================================")
+            # print("value of nf_Fo:" + str(nf_Fo) + " and value of nf_Io:" + str(nf_Io))
+            # print("=====================================================================================================")
+
             if f_over_sf / nf_Fo > 0 and (f_over_sf / nf_Fo > 2.5 * i_over_si / nf_Io or f_over_sf / nf_Fo < 1.0 * i_over_si / nf_Io):
                 print(f"Warning: too much difference Fo/sigFo = {f_over_sf / nf_Fo:.2f};  Io/sigIo = {i_over_si / nf_Io:.2f}")
 
@@ -534,10 +545,7 @@ class ResolutionCalculator:
 
 
 
-filename = "1o08-sf.cif"  # Specify the mmCIF file you want to read
-calculator = ResolutionCalculator(filename)
-sf_file = SFFile()
-sf_file.readFile(filename)
-block_name = "r1o08sf"
-block_number, block = sf_file.getBlock(block_name)
-calculator.check_sf(block_number)
+filename = "7xvx-sf.cif"  # Specify the mmCIF file you want to read
+block_number = 0
+calculator = ResolutionCalculator(filename, block_number)
+calculator.check_sf()

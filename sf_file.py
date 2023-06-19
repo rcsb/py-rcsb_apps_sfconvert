@@ -10,6 +10,14 @@ class SFFile:
     def readFile(self, filename):
         self.__containers = self.__io_core.readFile(filename)
 
+    def readBlock(self, filename, block_number):
+        self.readFile(filename)
+        if 0 <= block_number < len(self.__containers):
+            return self.__containers[block_number]
+        else:
+            print(f"Block number {block_number} is not valid. It should be between 0 and {len(self.__containers) - 1}.")
+            return None
+
     def writeFile(self, filename):
         self.__io_core.writeFile(filename, self.__containers)
 
