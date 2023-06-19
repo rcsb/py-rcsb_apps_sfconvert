@@ -1,5 +1,6 @@
 import math
-from sf_file import SFFile
+import os
+from ..sffile.sf_file import SFFile
 
 class ResolutionCalculator:
     def __init__(self, filename, block_number):
@@ -545,7 +546,13 @@ class ResolutionCalculator:
 
 
 
-filename = "7xvx-sf.cif"  # Specify the mmCIF file you want to read
+# Get the absolute path to the current script
+script_path = os.path.dirname(os.path.abspath(__file__))
+
+# Construct the absolute path to the CIF file
+cif_file_path = os.path.join(script_path, '../cif_files/7xvx-sf.cif')
+
+filename = cif_file_path
 block_number = 0
 calculator = ResolutionCalculator(filename, block_number)
 calculator.check_sf()
