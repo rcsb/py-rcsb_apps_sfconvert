@@ -1,0 +1,17 @@
+Total number of observed reflections = 75322
+Total number of observed reflections (status='o') = 71329
+Total number of observed reflections (status='f') = 3993
+Percentage for free set = 5.60
+Cell = 96.53 96.53 105.60 90.00 90.00 120.00
+Lowest resolution= 44.64 ; corresponding HKL=   1    0    2
+Highest resolution=1.60 ; corresponding HKL=  36   12   37
+Max indices (Hmax=  52  Kmax=  30  Lmax=  65)
+Min indices (Hmin=   0  Kmin=   0  Lmin= -65)
+maximum value of amplitude= 2594.22
+minimum value of amplitude= 4.98
+<F/sigmaF> = 29.42;  <F>/<sigmaF> = 31.57
+Using all data:  <I/sigI>=14.71
+Using all data:  <I>/<sigI>=24.38
+Using all data:  Rsig(<sigI>/<I>)=0.041
+The maximum value of <I/sigI>_max=31.00
+Use data with resolution >7.0 Angstrom: <I/sigI>_low=26.60
