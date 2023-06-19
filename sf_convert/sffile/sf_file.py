@@ -18,6 +18,18 @@ class SFFile:
             print(f"Block number {block_number} is not valid. It should be between 0 and {len(self.__containers) - 1}.")
             return None
 
+    def getBlockByIndex(self, block_number):
+        if 0 <= block_number < len(self.__containers):
+            container = self.__containers[block_number]
+            return container
+        else:
+            print(f"Block number {block_number} is not valid. It should be between 0 and {len(self.__containers) - 1}.")
+            return None 
+        
+    def getBlocksCount(self):
+        return len(self.__containers)
+
+
     def writeFile(self, filename):
         self.__io_core.writeFile(filename, self.__containers)
 
