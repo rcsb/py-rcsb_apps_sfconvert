@@ -1,21 +1,6 @@
-from sf_file import SFFile
+ah = 123
+ak = -456
+al = 789
 
-filename = "1o08-sf.cif"
-
-sf_file = SFFile()
-sf_file.readFile(filename)
-
-
-refln_data = sf_file.getObj("refln")
-
-fom = refln_data.getColumn(refln_data.getIndex("fom"))
-
-n = refln_data.getAttributeList()
-print(n)
-# for i in range(len(n)):
-#     print(refln_data.getIndex(n[i]))
-
-print("------------------")
-
-print(refln_data.getIndex("fom"))
-print(refln_data.hasAttribute("fom"))
+formatted_string = f"{ah: 4d} {ak: 4d} {al: 4d}"
+print(formatted_string)
