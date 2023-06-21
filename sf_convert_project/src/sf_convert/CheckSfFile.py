@@ -341,8 +341,6 @@ class CheckSfFile:
                 except ValueError:
                     return False
 
-            # Then, in your existing code:
-
             if self.__sFo_au and i > 0 and is_float(self.__sFo_au[i - 1]) and is_float(self.__sFo_au[i]):
                 if float(self.__sFo_au[i - 1]) == float(self.__sFo_au[i]):
                     nf_sFo += 1
@@ -367,7 +365,6 @@ class CheckSfFile:
                 nfpairI += 1
                 f = float(self.__I_plus[i])
 
-            # Rest of the code would go here
             if key > 0:
                 resolution = self.get_resolution(ah, ak, al, self.__rcell)
 
@@ -594,6 +591,4 @@ calculator = CheckSfFile(sffile, 0)
 pinfo(f"Total number of data blocks = {n} \n\n", pinfo_value)
 
 for i in range(n):
-    #pinfo(f"=== Block {i+1} ===\n", pinfo_value)
     calculator.check_sf(i)
-    #pinfo("\n=== End of Block ===\n\n", pinfo_value)
