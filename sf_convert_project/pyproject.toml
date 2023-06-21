@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools"] # "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sf_convert"
+authors = [
+    {name = "Vivek Reddy Chithari", email="vivek.chithari@rcsb.org"}
+]
+description = "Package for sf_convert"
+readme = "README.md"
+requires-python = ">=3.6"
+license = {text = "apache-2.0"}
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Programming Language :: Python :: 3",
+    "Intended Audience :: Developers",
+    "Natural Language :: English",
+    "License :: OSI Approved :: Apache Software License",
+]
+dependencies = [
+    "mmcif"
+]
+dynamic = ["version"]
+
+[project.scripts]
+sf_convert = "sf_file:main"
