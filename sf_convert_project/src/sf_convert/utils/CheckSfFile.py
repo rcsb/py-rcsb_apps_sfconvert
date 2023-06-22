@@ -1,7 +1,10 @@
 import math
 import os
-from .sf_file import SFFile
+from ..sffile.sf_file import SFFile
 from .pinfo_file import pinfo
+from mmcif.api.DataCategory import DataCategory
+from mmcif.api.PdbxContainers import DataContainer
+from mmcif.io.PdbxWriter import PdbxWriter
 
 class CheckSfFile:
     def __init__(self, sffile, pinfo_value):
@@ -569,6 +572,216 @@ class CheckSfFile:
 
         return
 
+    #def write_sf_4_validation(self, SFFile, fout_path, info):
+    def write_sf_4_validation(self, nblock=0):
+        """Test case -  write data file"""
+
+        self.__sf_block = self.__sf_file.getBlockByIndex(nblock)
+        self.initialize_data()
+
+        myDataList = []
+        curContainer = DataContainer("cif2cif")
+
+        n, nf, i, ah, ak, al = 0, 0, 0, 0, 0, 0
+        F, Fs, sig = 0.0, 0.0, 0.01
+        cell, rcell = [0.0] * 6, [0.0] * 6
+        resol, i_sigi, af, afs = 0.0, 0.0, 0.0, 0.0
+        fout = None
+        n = self.__nref
+
+        rcell, CELL = self.calc_cell_and_recip()
+
+        if(CELL[0] > 2 and CELL[4] > 2):
+            data = self.__sf_block.getObj("symmetry")
+            SYMM = data.getValue("space_group_name_H-M")
+            aCat = DataCategory("symmetry")
+
+            if(nblock > 0):
+                aCat.appendAttribute("Int_Tables_number")
+                aCat.append((nblock))
+
+            if(len(SYMM)>1):
+                aCat.appendAttribute("space_group_name_H-M")
+                aCat.append((SYMM))
+            
+            if(CELL[0] > 0.5 and CELL[2] > 0.5):
+                bCat = DataCategory("cell")
+                bCat.appendAttribute("length_a")
+                bCat.appendAttribute("length_b")
+                bCat.appendAttribute("length_c")
+                bCat.appendAttribute("angle_alpha")
+                bCat.appendAttribute("angle_beta")
+                bCat.appendAttribute("angle_gamma")
+                bCat.append((CELL[0], CELL[1], CELL[2], CELL[3], CELL[4], CELL[5]))
+
+
+        cCat = DataCategory("refln")
+        cCat.appendAttribute("index_h")
+        cCat.appendAttribute("index_k")
+        cCat.appendAttribute("index_l")
+        cCat.appendAttribute("status")
+        cCat.appendAttribute("F_meas_au")
+        cCat.appendAttribute("F_meas_sigma_au")
+        cCat.appendAttribute("d_spacing")
+        cCat.appendAttribute("I_over_sigI")
+
+        if(self.__Io and self.__sIo):
+            cCat.appendAttribute("intensity_meas")
+            cCat.appendAttribute("intensity_sigma")
+
+        if(self.__F_plus and self.__sF_plus and self.__F_minus and self.__sF_minus):
+            cCat.appendAttribute("pdbx_F_plus")
+            cCat.appendAttribute("pdbx_F_plus_sigma")
+            cCat.appendAttribute("pdbx_F_minus")
+            cCat.appendAttribute("pdbx_F_minus_sigma")
+
+        if(self.__I_plus and self.__sI_plus and self.__I_minus and self.__sI_minus):
+            cCat.appendAttribute("pdbx_I_plus")
+            cCat.appendAttribute("pdbx_I_plus_sigma")
+            cCat.appendAttribute("pdbx_I_minus")
+            cCat.appendAttribute("pdbx_I_minus_sigma")
+
+        fp = "?"
+        sigfp = "?"
+
+        for i in range(n):
+
+            if(self.__status):
+                if(self.__status[i] != "o" and self.__status[i] != "f"):
+                    continue
+                flag = self.__status[i]
+            else:
+                flag = "o"
+
+            if(self.__Fo_au):
+                fp = self.__Fo_au[i]
+                if(self.__sFo_au):
+                    if(self.__sFo_au[i] != "?"):
+                        sigfp = self.__sFo_au[i]
+                    else:
+                        sigfp = f"{sig:.4f}"
+                else:
+                    sigfp = f"{sig:.4f}"
+
+            #elif(self.__Io):
+            elif(self.__Io):
+                # Need to provide implementation of i_to_f() function
+                fp, sigfp = self.i_to_f(i, self.__Io[i], self.__sIo, sig)
+
+            elif(self.__I_plus or self.__F_plus):
+                # Need to provide implementation of other_to_f() function
+                F, Fs = self.other_to_f(i)
+                fp = f"{F:.4f}"
+                sigfp = f"{Fs:.4f}"
+
+            elif(self.__Fo):
+                fp = self.__Fo[i]
+                if(self.__sFo):
+                    if(float(self.__sFo[i]) > sig):
+                        sigfp = self.__sFo[i]
+                    else:
+                        sigfp = f"{sig:.4f}"
+                else:
+                    sigfp = f"{sig:.4f}"
+
+            elif(self.__F2o):
+                # Need to provide implementation of i_to_f() function
+                fp, sigfp = self.i_to_f(i, self.__F2o[i], self.__sF2o, sig)
+
+            ah = int(self.__H[i])
+            ak = int(self.__K[i])
+            al = int(self.__L[i])
+            resol = self.get_resolution(ah, ak, al, rcell)
+
+            i_sigi = 0.0
+            if (self.__Io and self.__sIo and float(self.__sIo[i])>0):
+                i_sigi = float(self.__Io[i])/float(self.__sIo[i])
+            else:
+                af = float(fp)
+                afs = float(sigfp)
+                if (afs>0): 
+                    i_sigi = af/(2*afs)
+
+            if(RESCUT > 0.0001 and resol < RESCUT and resol > 0.0001): continue
+            if(abs(SIGCUT) > 0.0001 and i_sigi < SIGCUT): continue
+
+            # Here the exact list of attributes to append depends on the condition checks in the loop.
+            # have to check here also
+            cCat.append((self.__H[i], self.__K[i], self.__L[i], flag, fp, sigfp, resol, i_sigi))
+            cCat.append((self.__H[i], self.__K[i], self.__L[i], flag, fp, sigfp, resol, i_sigi))
+            
+            if self.__Io and self.__sIo:
+                cCat.append((self.__Io[i], self.__sIo[i]))
+
+            if self.__F_plus and self.__sF_plus and self.__F_minus and self.__sF_minus:
+                cCat.append((self.__F_plus[i], self.__sF_plus[i], self.__F_minus[i], self.__sF_minus[i]))
+
+            if self.__I_plus and self.__sI_plus and self.__I_minus and self.__sI_minus:
+                cCat.append((self.__I_plus[i], self.__sI_plus[i], self.__I_minus[i], self.__sI_minus[i]))
+
+            nf += 1
+
+        curContainer.append(cCat)
+        myDataList.append(curContainer)
+
+        with open('SF_4_validate.cif', 'w') as outfile:
+            self.__sf_file.writeFile(outfile, myDataList, blockPrintOrder=['cif2cif'])
+
+        print("\nNumber of reflections for validation set = %d" % nf)
+            
+#------------------------
+
+
+                
+
+
+
+        # try:
+        #     #
+        #     myDataList = []
+
+        #     curContainer = DataContainer("cif2cif")
+        #     aCat = DataCategory("refln")
+        #     aCat.appendAttribute("index_h")
+        #     aCat.appendAttribute("index_k")
+        #     aCat.appendAttribute("index_l")
+        #     aCat.appendAttribute("status")
+        #     aCat.appendAttribute("F_meas_au")
+        #     aCat.appendAttribute("F_meas_sigma_au")
+        #     aCat.appendAttribute("d_spacing")
+        #     aCat.appendAttribute("I_over_sigI")
+
+        #     if(self.__Io and self.__sIo):
+        #         aCat.appendAttribute("intensity_meas")
+        #         aCat.appendAttribute("intensity_sigma")
+
+        #     if(self.__F_plus and self.__sF_plus and self.__F_minus and self.__sF_minus):
+        #         aCat.appendAttribute("pdbx_F_plus")
+        #         aCat.appendAttribute("pdbx_F_plus_sigma")
+        #         aCat.appendAttribute("pdbx_F_minus")
+        #         aCat.appendAttribute("pdbx_F_minus_sigma")
+
+        #     if(self.__I_plus and self.__sI_plus and self.__I_minus and self.__sI_minus):
+        #         aCat.appendAttribute("pdbx_I_plus")
+        #         aCat.appendAttribute("pdbx_I_plus_sigma")
+        #         aCat.appendAttribute("pdbx_I_minus")
+        #         aCat.appendAttribute("pdbx_I_minus_sigma")
+
+        #     aCat.append((1, 2, 3, 4, "55555555555555555555555555555555555555555555", 6, 7))
+        #     aCat.append((1, 2, 3, 4, "5555", 6, 7))
+        #     aCat.append((1, 2, 3, 4, "5555555555", 6, 7))
+        #     aCat.append((1, 2, 3, 4, "5", 6, 7))
+        #     curContainer.append(aCat)
+        #     myDataList.append(curContainer)
+        #     with open("tests/delete2.cif", "w") as ofh:
+        #         pdbxW = PdbxWriter(ofh)
+        #         pdbxW.setAlignmentFlag(flag=True)
+        #         pdbxW.write(myDataList)
+        # except Exception as e:
+        #     print("Failing with %s" % str(e))
+
+
+
 
 
 
@@ -577,7 +790,7 @@ script_path = os.path.dirname(os.path.abspath(__file__))
 
 # Construct the absolute path to the CIF file
 #cif_file_path = os.path.join(script_path, '../cif_files/7xvx-sf.cif')
-cif_file_path = os.path.join(script_path, '../cif_files/5pny-sf.cif')
+cif_file_path = os.path.join(script_path, '../cif_files/1o08-sf.cif')
 
 #sffile = cif_file_path
 
@@ -588,7 +801,9 @@ n = sffile.getBlocksCount()
 pinfo_value = 0
 calculator = CheckSfFile(sffile, 0)
 
-pinfo(f"Total number of data blocks = {n} \n\n", pinfo_value)
+calculator.write_sf_4_validation()
 
-for i in range(n):
-    calculator.check_sf(i)
+# pinfo(f"Total number of data blocks = {n} \n\n", pinfo_value)
+
+# for i in range(n):
+#     calculator.check_sf(i)

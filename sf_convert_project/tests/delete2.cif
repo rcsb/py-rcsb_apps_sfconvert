@@ -1,0 +1,9 @@
+data_cif2cif
+
+_cell.length_a     36.939
+_cell.length_b     54.297
+_cell.length_c     104.68
+_cell.angle_alpha  90.0
+_cell.angle_beta   90.0
+_cell.angle_gamma  90.0
+##
