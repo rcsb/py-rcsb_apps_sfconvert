@@ -816,34 +816,6 @@ class CheckSfFile:
 
         #print("\nNumber of reflections for validation set = %d" % nf)
             
-
-
-# ---------------------------------------------------------------------------------------------------------------------------- #
-
-
-# # Get the absolute path to the current script
-# script_path = os.path.dirname(os.path.abspath(__file__))
-
-# # Construct the absolute path to the CIF file
-# #cif_file_path = os.path.join(script_path, '../cif_files/7xvx-sf.cif')
-# cif_file_path = os.path.join(script_path, '../cif_files/1o08-sf.cif')
-
-# #sffile = cif_file_path
-
-# sffile = SFFile()
-# sffile.readFile(cif_file_path)
-# n = sffile.getBlocksCount()
-
-# pinfo_value = 0
-# calculator = CheckSfFile(sffile)
-
-# calculator.write_sf_4_validation()
-
-# pinfo(f"Total number of data blocks = {n} \n\n", pinfo_value)
-
-# for i in range(n):
-#     calculator.check_sf(i)
-
 # -------------------------------------------------- MAIN FUNCTION ----------------------------------------------------------- #
 
 def check_sf_all_blocks(calculator, n):
@@ -879,5 +851,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
