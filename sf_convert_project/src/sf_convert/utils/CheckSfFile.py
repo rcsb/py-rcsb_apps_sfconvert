@@ -1,5 +1,6 @@
 import math
 import os
+import argparse
 from ..sffile.sf_file import SFFile
 from .pinfo_file import pinfo
 from mmcif.api.DataCategory import DataCategory
@@ -7,9 +8,10 @@ from mmcif.api.PdbxContainers import DataContainer
 from mmcif.io.PdbxWriter import PdbxWriter
 
 class CheckSfFile:
-    def __init__(self, sffile, pinfo_value):
+    def __init__(self, sffile, fout_path, pinfo_value = 0):
         self.__sf_file = sffile
         self.__pinfo_value = pinfo_value
+        self.__fout_path = fout_path
 
     def initialize_data(self):
         self.initialize_refln_data()
@@ -572,9 +574,93 @@ class CheckSfFile:
 
         return
 
-    #def write_sf_4_validation(self, SFFile, fout_path, info):
+    def float_or_zero(self, value):
+        try:
+            float(value)
+            return float(value)
+        except ValueError:
+            return 0
+
+    def other_to_f(self, i):
+        sp1 = 0
+        sp2 = 0
+        I = 0
+        Is = 0
+
+        F = 0
+        Fs = 0.01
+
+        if self.__Io:  # Io
+            if self.__Io[i] != '?':
+                I = float(self.__Io[i])
+
+                if I > 0 and self.__sIo:
+                    F = math.sqrt(I)
+                    Fs = float(self.__sIo[i]) / (2.0 * F)
+
+        elif self.__sI_plus and self.__sI_minus:  # I_plus
+            sp1 = -1 if self.__sI_plus[i] == '?' else float(self.__sI_plus[i])
+            sp2 = -1 if self.__sI_minus[i] == '?' else float(self.__sI_minus[i])
+
+            I = 0
+            Is = 0
+
+            if sp1 < 0 and sp2 < 0:
+                pass
+            elif sp1 > 0 and sp2 < 0:
+                I = float(self.__I_plus[i])
+                Is = float(self.__sI_plus[i])
+            elif sp1 < 0 and sp2 > 0:
+                I = float(self.__I_minus[i])
+                Is = float(self.__sI_minus[i])
+            elif sp1 > 0 and sp2 > 0:
+                I = (float(self.__I_plus[i]) + float(self.__I_minus[i])) / 2.0
+                Is = (float(self.__sI_plus[i]) + float(self.__sI_minus[i])) / 2.0
+
+            if I > 0:
+                F = math.sqrt(I)
+                Fs = Is / (2.0 * F)
+
+        elif self.__F_plus and self.__F_minus:  # F_plus
+            if self.__F_plus[i] == '?' and self.__F_minus[i] == '?':
+                F = 0
+                Fs = 0
+            elif self.__F_plus[i] != '?' and self.__F_minus[i] == '?':
+                F = float(self.__F_plus[i])
+                if self.__sF_plus:
+                    Fs = float(self.__sF_plus[i])
+            elif self.__F_plus[i] == '?' and self.__F_minus[i] != '?':
+                F = float(self.__F_minus[i])
+                if self.__sF_minus:
+                    Fs = float(self.__sF_minus[i])
+            elif self.__F_plus[i] != '?' and self.__F_minus[i] != '?':
+                F = (float(self.__F_plus[i]) + float(self.__F_minus[i])) / 2.0
+                if self.__sF_plus and self.__sF_minus:
+                    Fs = (float(self.__sF_plus[i]) + float(self.__sF_minus[i])) / 2.0
+
+        return F, Fs
+
+    def i_to_f(self, i, I, sI, sf_default):
+        f = 0.0
+        sf = 0.0
+
+        if float(I) > 0:
+            f = math.sqrt(float(I))
+            if sI and float(sI[i]) > 0:
+                sf = float(sI[i]) / (2.0 * f)
+            else:
+                sf = sf_default
+
+        fp = "{:.2f}".format(f)
+        sigfp = "{:.2f}".format(sf)
+
+        return fp, sigfp
+
     def write_sf_4_validation(self, nblock=0):
-        """Test case -  write data file"""
+    
+        file_name = 'sf_4_validate.cif'
+        file_path = os.path.join(self.__fout_path, file_name)
+
 
         self.__sf_block = self.__sf_file.getBlockByIndex(nblock)
         self.initialize_data()
@@ -582,11 +668,12 @@ class CheckSfFile:
         myDataList = []
         curContainer = DataContainer("cif2cif")
 
-        n, nf, i, ah, ak, al = 0, 0, 0, 0, 0, 0
+        nf, i, ah, ak, al = 0, 0, 0, 0, 0
         F, Fs, sig = 0.0, 0.0, 0.01
-        cell, rcell = [0.0] * 6, [0.0] * 6
         resol, i_sigi, af, afs = 0.0, 0.0, 0.0, 0.0
         fout = None
+        # Need to ask Ezra about this
+        RESCUT, SIGCUT = 0.0, 0.0
         n = self.__nref
 
         rcell, CELL = self.calc_cell_and_recip()
@@ -598,11 +685,13 @@ class CheckSfFile:
 
             if(nblock > 0):
                 aCat.appendAttribute("Int_Tables_number")
-                aCat.append((nblock))
+                aCat.append((nblock,))
 
             if(len(SYMM)>1):
                 aCat.appendAttribute("space_group_name_H-M")
-                aCat.append((SYMM))
+                aCat.append((SYMM,))
+
+            curContainer.append(aCat)
             
             if(CELL[0] > 0.5 and CELL[2] > 0.5):
                 bCat = DataCategory("cell")
@@ -613,6 +702,7 @@ class CheckSfFile:
                 bCat.appendAttribute("angle_beta")
                 bCat.appendAttribute("angle_gamma")
                 bCat.append((CELL[0], CELL[1], CELL[2], CELL[3], CELL[4], CELL[5]))
+                curContainer.append(bCat)
 
 
         cCat = DataCategory("refln")
@@ -663,13 +753,10 @@ class CheckSfFile:
                 else:
                     sigfp = f"{sig:.4f}"
 
-            #elif(self.__Io):
             elif(self.__Io):
-                # Need to provide implementation of i_to_f() function
                 fp, sigfp = self.i_to_f(i, self.__Io[i], self.__sIo, sig)
 
             elif(self.__I_plus or self.__F_plus):
-                # Need to provide implementation of other_to_f() function
                 F, Fs = self.other_to_f(i)
                 fp = f"{F:.4f}"
                 sigfp = f"{Fs:.4f}"
@@ -685,7 +772,6 @@ class CheckSfFile:
                     sigfp = f"{sig:.4f}"
 
             elif(self.__F2o):
-                # Need to provide implementation of i_to_f() function
                 fp, sigfp = self.i_to_f(i, self.__F2o[i], self.__sF2o, sig)
 
             ah = int(self.__H[i])
@@ -697,113 +783,101 @@ class CheckSfFile:
             if (self.__Io and self.__sIo and float(self.__sIo[i])>0):
                 i_sigi = float(self.__Io[i])/float(self.__sIo[i])
             else:
-                af = float(fp)
-                afs = float(sigfp)
+                af = self.float_or_zero(fp)
+                afs = self.float_or_zero(sigfp)
                 if (afs>0): 
                     i_sigi = af/(2*afs)
 
             if(RESCUT > 0.0001 and resol < RESCUT and resol > 0.0001): continue
             if(abs(SIGCUT) > 0.0001 and i_sigi < SIGCUT): continue
 
-            # Here the exact list of attributes to append depends on the condition checks in the loop.
-            # have to check here also
-            cCat.append((self.__H[i], self.__K[i], self.__L[i], flag, fp, sigfp, resol, i_sigi))
-            cCat.append((self.__H[i], self.__K[i], self.__L[i], flag, fp, sigfp, resol, i_sigi))
-            
+            values_to_append = (self.__H[i], self.__K[i], self.__L[i], flag, fp, sigfp, resol, i_sigi)
+
             if self.__Io and self.__sIo:
-                cCat.append((self.__Io[i], self.__sIo[i]))
+                values_to_append += (self.__Io[i], self.__sIo[i])
 
             if self.__F_plus and self.__sF_plus and self.__F_minus and self.__sF_minus:
-                cCat.append((self.__F_plus[i], self.__sF_plus[i], self.__F_minus[i], self.__sF_minus[i]))
+                values_to_append += (self.__F_plus[i], self.__sF_plus[i], self.__F_minus[i], self.__sF_minus[i])
 
             if self.__I_plus and self.__sI_plus and self.__I_minus and self.__sI_minus:
-                cCat.append((self.__I_plus[i], self.__sI_plus[i], self.__I_minus[i], self.__sI_minus[i]))
+                values_to_append += (self.__I_plus[i], self.__sI_plus[i], self.__I_minus[i], self.__sI_minus[i])
+
+            cCat.append(values_to_append)
 
             nf += 1
 
         curContainer.append(cCat)
         myDataList.append(curContainer)
 
-        with open('SF_4_validate.cif', 'w') as outfile:
-            self.__sf_file.writeFile(outfile, myDataList, blockPrintOrder=['cif2cif'])
+        with open(file_path, "w") as ofh:
+                pdbxW = PdbxWriter(ofh)
+                pdbxW.setAlignmentFlag(flag=True)
+                pdbxW.write(myDataList)
 
-        print("\nNumber of reflections for validation set = %d" % nf)
+        #print("\nNumber of reflections for validation set = %d" % nf)
             
-#------------------------
 
 
-                
+# ---------------------------------------------------------------------------------------------------------------------------- #
 
 
+# # Get the absolute path to the current script
+# script_path = os.path.dirname(os.path.abspath(__file__))
 
-        # try:
-        #     #
-        #     myDataList = []
+# # Construct the absolute path to the CIF file
+# #cif_file_path = os.path.join(script_path, '../cif_files/7xvx-sf.cif')
+# cif_file_path = os.path.join(script_path, '../cif_files/1o08-sf.cif')
 
-        #     curContainer = DataContainer("cif2cif")
-        #     aCat = DataCategory("refln")
-        #     aCat.appendAttribute("index_h")
-        #     aCat.appendAttribute("index_k")
-        #     aCat.appendAttribute("index_l")
-        #     aCat.appendAttribute("status")
-        #     aCat.appendAttribute("F_meas_au")
-        #     aCat.appendAttribute("F_meas_sigma_au")
-        #     aCat.appendAttribute("d_spacing")
-        #     aCat.appendAttribute("I_over_sigI")
+# #sffile = cif_file_path
 
-        #     if(self.__Io and self.__sIo):
-        #         aCat.appendAttribute("intensity_meas")
-        #         aCat.appendAttribute("intensity_sigma")
+# sffile = SFFile()
+# sffile.readFile(cif_file_path)
+# n = sffile.getBlocksCount()
 
-        #     if(self.__F_plus and self.__sF_plus and self.__F_minus and self.__sF_minus):
-        #         aCat.appendAttribute("pdbx_F_plus")
-        #         aCat.appendAttribute("pdbx_F_plus_sigma")
-        #         aCat.appendAttribute("pdbx_F_minus")
-        #         aCat.appendAttribute("pdbx_F_minus_sigma")
+# pinfo_value = 0
+# calculator = CheckSfFile(sffile)
 
-        #     if(self.__I_plus and self.__sI_plus and self.__I_minus and self.__sI_minus):
-        #         aCat.appendAttribute("pdbx_I_plus")
-        #         aCat.appendAttribute("pdbx_I_plus_sigma")
-        #         aCat.appendAttribute("pdbx_I_minus")
-        #         aCat.appendAttribute("pdbx_I_minus_sigma")
-
-        #     aCat.append((1, 2, 3, 4, "55555555555555555555555555555555555555555555", 6, 7))
-        #     aCat.append((1, 2, 3, 4, "5555", 6, 7))
-        #     aCat.append((1, 2, 3, 4, "5555555555", 6, 7))
-        #     aCat.append((1, 2, 3, 4, "5", 6, 7))
-        #     curContainer.append(aCat)
-        #     myDataList.append(curContainer)
-        #     with open("tests/delete2.cif", "w") as ofh:
-        #         pdbxW = PdbxWriter(ofh)
-        #         pdbxW.setAlignmentFlag(flag=True)
-        #         pdbxW.write(myDataList)
-        # except Exception as e:
-        #     print("Failing with %s" % str(e))
-
-
-
-
-
-
-# Get the absolute path to the current script
-script_path = os.path.dirname(os.path.abspath(__file__))
-
-# Construct the absolute path to the CIF file
-#cif_file_path = os.path.join(script_path, '../cif_files/7xvx-sf.cif')
-cif_file_path = os.path.join(script_path, '../cif_files/1o08-sf.cif')
-
-#sffile = cif_file_path
-
-sffile = SFFile()
-sffile.readFile(cif_file_path)
-n = sffile.getBlocksCount()
-
-pinfo_value = 0
-calculator = CheckSfFile(sffile, 0)
-
-calculator.write_sf_4_validation()
+# calculator.write_sf_4_validation()
 
 # pinfo(f"Total number of data blocks = {n} \n\n", pinfo_value)
 
 # for i in range(n):
 #     calculator.check_sf(i)
+
+# -------------------------------------------------- MAIN FUNCTION ----------------------------------------------------------- #
+
+def check_sf_all_blocks(calculator, n):
+    for i in range(n):
+        calculator.check_sf(i)
+
+def main():
+    parser = argparse.ArgumentParser(description='Process some integers.')
+    parser.add_argument('--sffile', type=str, required=True, help='Path to the SF file')
+    parser.add_argument('--pinfo_value', type=int, default=0, help='Value for pinfo')
+    parser.add_argument('--fout_path', type=str, default=os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))), 'output'), help='Optional path to the output file for write_sf_4_validation')
+    parser.add_argument('--nblock', type=int, default=0, help='Optional nblock value for write_sf_4_validation')
+    parser.add_argument('--check_all', action='store_true', help='Check all SF blocks if this flag is set')
+    parser.add_argument('--write_validation', action='store_true', help='Write SF for validation if this flag is set')
+
+    args = parser.parse_args()
+
+    sffile = SFFile()
+    sffile.readFile(args.sffile)
+    n = sffile.getBlocksCount()
+
+
+    pinfo("", 2)
+    pinfo(f"Total number of data blocks = {n} \n\n", args.pinfo_value)
+
+    calculator = CheckSfFile(sffile, args.fout_path, args.pinfo_value)
+
+    if args.write_validation:
+        calculator.write_sf_4_validation(args.nblock)
+
+    if args.check_all:
+        check_sf_all_blocks(calculator, n)
+
+if __name__ == "__main__":
+    main()
+
+
