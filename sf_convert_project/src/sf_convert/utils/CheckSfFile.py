@@ -851,3 +851,8 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# -------------------------------------------------- END OF MAIN FUNCTION ----------------------------------------------------------- #
+
+#python -m src.sf_convert.utils.checksffile --sffile src/sf_convert/cif_files/5pny-sf.cif --write_validation --pinfo_value 1 --check_all
+#python your_script.py --sffile path/to/your/file --pinfo_value 1 --check_all --write_validation --fout_path path/to/your/output/file --nblock 5
