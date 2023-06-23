@@ -1,12 +1,17 @@
 import math
 import os
-from .sf_file import SFFile
+import argparse
+from ..sffile.sf_file import SFFile
 from .pinfo_file import pinfo
+from mmcif.api.DataCategory import DataCategory
+from mmcif.api.PdbxContainers import DataContainer
+from mmcif.io.PdbxWriter import PdbxWriter
 
 class CheckSfFile:
-    def __init__(self, sffile, pinfo_value):
+    def __init__(self, sffile, fout_path, pinfo_value = 0):
         self.__sf_file = sffile
         self.__pinfo_value = pinfo_value
+        self.__fout_path = fout_path
 
     def initialize_data(self):
         self.initialize_refln_data()
@@ -569,26 +574,280 @@ class CheckSfFile:
 
         return
 
+    def float_or_zero(self, value):
+        try:
+            float(value)
+            return float(value)
+        except ValueError:
+            return 0
+
+    def other_to_f(self, i):
+        sp1 = 0
+        sp2 = 0
+        I = 0
+        Is = 0
+
+        F = 0
+        Fs = 0.01
+
+        if self.__Io:  # Io
+            if self.__Io[i] != '?':
+                I = float(self.__Io[i])
+
+                if I > 0 and self.__sIo:
+                    F = math.sqrt(I)
+                    Fs = float(self.__sIo[i]) / (2.0 * F)
+
+        elif self.__sI_plus and self.__sI_minus:  # I_plus
+            sp1 = -1 if self.__sI_plus[i] == '?' else float(self.__sI_plus[i])
+            sp2 = -1 if self.__sI_minus[i] == '?' else float(self.__sI_minus[i])
+
+            I = 0
+            Is = 0
+
+            if sp1 < 0 and sp2 < 0:
+                pass
+            elif sp1 > 0 and sp2 < 0:
+                I = float(self.__I_plus[i])
+                Is = float(self.__sI_plus[i])
+            elif sp1 < 0 and sp2 > 0:
+                I = float(self.__I_minus[i])
+                Is = float(self.__sI_minus[i])
+            elif sp1 > 0 and sp2 > 0:
+                I = (float(self.__I_plus[i]) + float(self.__I_minus[i])) / 2.0
+                Is = (float(self.__sI_plus[i]) + float(self.__sI_minus[i])) / 2.0
+
+            if I > 0:
+                F = math.sqrt(I)
+                Fs = Is / (2.0 * F)
+
+        elif self.__F_plus and self.__F_minus:  # F_plus
+            if self.__F_plus[i] == '?' and self.__F_minus[i] == '?':
+                F = 0
+                Fs = 0
+            elif self.__F_plus[i] != '?' and self.__F_minus[i] == '?':
+                F = float(self.__F_plus[i])
+                if self.__sF_plus:
+                    Fs = float(self.__sF_plus[i])
+            elif self.__F_plus[i] == '?' and self.__F_minus[i] != '?':
+                F = float(self.__F_minus[i])
+                if self.__sF_minus:
+                    Fs = float(self.__sF_minus[i])
+            elif self.__F_plus[i] != '?' and self.__F_minus[i] != '?':
+                F = (float(self.__F_plus[i]) + float(self.__F_minus[i])) / 2.0
+                if self.__sF_plus and self.__sF_minus:
+                    Fs = (float(self.__sF_plus[i]) + float(self.__sF_minus[i])) / 2.0
+
+        return F, Fs
+
+    def i_to_f(self, i, I, sI, sf_default):
+        f = 0.0
+        sf = 0.0
+
+        if float(I) > 0:
+            f = math.sqrt(float(I))
+            if sI and float(sI[i]) > 0:
+                sf = float(sI[i]) / (2.0 * f)
+            else:
+                sf = sf_default
+
+        fp = "{:.2f}".format(f)
+        sigfp = "{:.2f}".format(sf)
+
+        return fp, sigfp
+
+    def write_sf_4_validation(self, nblock=0):
+    
+        file_name = 'sf_4_validate.cif'
+        file_path = os.path.join(self.__fout_path, file_name)
 
 
+        self.__sf_block = self.__sf_file.getBlockByIndex(nblock)
+        self.initialize_data()
 
-# Get the absolute path to the current script
-script_path = os.path.dirname(os.path.abspath(__file__))
+        myDataList = []
+        curContainer = DataContainer("cif2cif")
 
-# Construct the absolute path to the CIF file
-#cif_file_path = os.path.join(script_path, '../cif_files/7xvx-sf.cif')
-cif_file_path = os.path.join(script_path, '../cif_files/5pny-sf.cif')
+        nf, i, ah, ak, al = 0, 0, 0, 0, 0
+        F, Fs, sig = 0.0, 0.0, 0.01
+        resol, i_sigi, af, afs = 0.0, 0.0, 0.0, 0.0
+        fout = None
+        # Need to ask Ezra about this
+        RESCUT, SIGCUT = 0.0, 0.0
+        n = self.__nref
 
-#sffile = cif_file_path
+        rcell, CELL = self.calc_cell_and_recip()
 
-sffile = SFFile()
-sffile.readFile(cif_file_path)
-n = sffile.getBlocksCount()
+        if(CELL[0] > 2 and CELL[4] > 2):
+            data = self.__sf_block.getObj("symmetry")
+            SYMM = data.getValue("space_group_name_H-M")
+            aCat = DataCategory("symmetry")
 
-pinfo_value = 0
-calculator = CheckSfFile(sffile, 0)
+            if(nblock > 0):
+                aCat.appendAttribute("Int_Tables_number")
+                aCat.append((nblock,))
 
-pinfo(f"Total number of data blocks = {n} \n\n", pinfo_value)
+            if(len(SYMM)>1):
+                aCat.appendAttribute("space_group_name_H-M")
+                aCat.append((SYMM,))
 
-for i in range(n):
-    calculator.check_sf(i)
+            curContainer.append(aCat)
+            
+            if(CELL[0] > 0.5 and CELL[2] > 0.5):
+                bCat = DataCategory("cell")
+                bCat.appendAttribute("length_a")
+                bCat.appendAttribute("length_b")
+                bCat.appendAttribute("length_c")
+                bCat.appendAttribute("angle_alpha")
+                bCat.appendAttribute("angle_beta")
+                bCat.appendAttribute("angle_gamma")
+                bCat.append((CELL[0], CELL[1], CELL[2], CELL[3], CELL[4], CELL[5]))
+                curContainer.append(bCat)
+
+
+        cCat = DataCategory("refln")
+        cCat.appendAttribute("index_h")
+        cCat.appendAttribute("index_k")
+        cCat.appendAttribute("index_l")
+        cCat.appendAttribute("status")
+        cCat.appendAttribute("F_meas_au")
+        cCat.appendAttribute("F_meas_sigma_au")
+        cCat.appendAttribute("d_spacing")
+        cCat.appendAttribute("I_over_sigI")
+
+        if(self.__Io and self.__sIo):
+            cCat.appendAttribute("intensity_meas")
+            cCat.appendAttribute("intensity_sigma")
+
+        if(self.__F_plus and self.__sF_plus and self.__F_minus and self.__sF_minus):
+            cCat.appendAttribute("pdbx_F_plus")
+            cCat.appendAttribute("pdbx_F_plus_sigma")
+            cCat.appendAttribute("pdbx_F_minus")
+            cCat.appendAttribute("pdbx_F_minus_sigma")
+
+        if(self.__I_plus and self.__sI_plus and self.__I_minus and self.__sI_minus):
+            cCat.appendAttribute("pdbx_I_plus")
+            cCat.appendAttribute("pdbx_I_plus_sigma")
+            cCat.appendAttribute("pdbx_I_minus")
+            cCat.appendAttribute("pdbx_I_minus_sigma")
+
+        fp = "?"
+        sigfp = "?"
+
+        for i in range(n):
+
+            if(self.__status):
+                if(self.__status[i] != "o" and self.__status[i] != "f"):
+                    continue
+                flag = self.__status[i]
+            else:
+                flag = "o"
+
+            if(self.__Fo_au):
+                fp = self.__Fo_au[i]
+                if(self.__sFo_au):
+                    if(self.__sFo_au[i] != "?"):
+                        sigfp = self.__sFo_au[i]
+                    else:
+                        sigfp = f"{sig:.4f}"
+                else:
+                    sigfp = f"{sig:.4f}"
+
+            elif(self.__Io):
+                fp, sigfp = self.i_to_f(i, self.__Io[i], self.__sIo, sig)
+
+            elif(self.__I_plus or self.__F_plus):
+                F, Fs = self.other_to_f(i)
+                fp = f"{F:.4f}"
+                sigfp = f"{Fs:.4f}"
+
+            elif(self.__Fo):
+                fp = self.__Fo[i]
+                if(self.__sFo):
+                    if(float(self.__sFo[i]) > sig):
+                        sigfp = self.__sFo[i]
+                    else:
+                        sigfp = f"{sig:.4f}"
+                else:
+                    sigfp = f"{sig:.4f}"
+
+            elif(self.__F2o):
+                fp, sigfp = self.i_to_f(i, self.__F2o[i], self.__sF2o, sig)
+
+            ah = int(self.__H[i])
+            ak = int(self.__K[i])
+            al = int(self.__L[i])
+            resol = self.get_resolution(ah, ak, al, rcell)
+
+            i_sigi = 0.0
+            if (self.__Io and self.__sIo and float(self.__sIo[i])>0):
+                i_sigi = float(self.__Io[i])/float(self.__sIo[i])
+            else:
+                af = self.float_or_zero(fp)
+                afs = self.float_or_zero(sigfp)
+                if (afs>0): 
+                    i_sigi = af/(2*afs)
+
+            if(RESCUT > 0.0001 and resol < RESCUT and resol > 0.0001): continue
+            if(abs(SIGCUT) > 0.0001 and i_sigi < SIGCUT): continue
+
+            values_to_append = (self.__H[i], self.__K[i], self.__L[i], flag, fp, sigfp, resol, i_sigi)
+
+            if self.__Io and self.__sIo:
+                values_to_append += (self.__Io[i], self.__sIo[i])
+
+            if self.__F_plus and self.__sF_plus and self.__F_minus and self.__sF_minus:
+                values_to_append += (self.__F_plus[i], self.__sF_plus[i], self.__F_minus[i], self.__sF_minus[i])
+
+            if self.__I_plus and self.__sI_plus and self.__I_minus and self.__sI_minus:
+                values_to_append += (self.__I_plus[i], self.__sI_plus[i], self.__I_minus[i], self.__sI_minus[i])
+
+            cCat.append(values_to_append)
+
+            nf += 1
+
+        curContainer.append(cCat)
+        myDataList.append(curContainer)
+
+        with open(file_path, "w") as ofh:
+                pdbxW = PdbxWriter(ofh)
+                pdbxW.setAlignmentFlag(flag=True)
+                pdbxW.write(myDataList)
+
+        #print("\nNumber of reflections for validation set = %d" % nf)
+            
+# -------------------------------------------------- MAIN FUNCTION ----------------------------------------------------------- #
+
+def check_sf_all_blocks(calculator, n):
+    for i in range(n):
+        calculator.check_sf(i)
+
+def main():
+    parser = argparse.ArgumentParser(description='Process some integers.')
+    parser.add_argument('--sffile', type=str, required=True, help='Path to the SF file')
+    parser.add_argument('--pinfo_value', type=int, default=0, help='Value for pinfo')
+    parser.add_argument('--fout_path', type=str, default=os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))), 'output'), help='Optional path to the output file for write_sf_4_validation')
+    parser.add_argument('--nblock', type=int, default=0, help='Optional nblock value for write_sf_4_validation')
+    parser.add_argument('--check_all', action='store_true', help='Check all SF blocks if this flag is set')
+    parser.add_argument('--write_validation', action='store_true', help='Write SF for validation if this flag is set')
+
+    args = parser.parse_args()
+
+    sffile = SFFile()
+    sffile.readFile(args.sffile)
+    n = sffile.getBlocksCount()
+
+
+    pinfo("", 2)
+    pinfo(f"Total number of data blocks = {n} \n\n", args.pinfo_value)
+
+    calculator = CheckSfFile(sffile, args.fout_path, args.pinfo_value)
+
+    if args.write_validation:
+        calculator.write_sf_4_validation(args.nblock)
+
+    if args.check_all:
+        check_sf_all_blocks(calculator, n)
+
+if __name__ == "__main__":
+    main()
