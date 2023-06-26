@@ -817,12 +817,13 @@ class CheckSfFile:
                 pdbxW.write(myDataList)
 
         #print("\nNumber of reflections for validation set = %d" % nf)
-            
+    
+    def check_sf_all_blocks(self, n):
+        for i in range(n):
+            self.check_sf(i)   
 # -------------------------------------------------- MAIN FUNCTION ----------------------------------------------------------- #
 
-def check_sf_all_blocks(calculator, n):
-    for i in range(n):
-        calculator.check_sf(i)
+
 
 # def main():
 #     parser = argparse.ArgumentParser(description='Process some integers.')
