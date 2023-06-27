@@ -20,9 +20,9 @@ class SF_Guesser:
         return len(string) - string.count(' ')
 
     def get_non_empty_lines(self):
-        if not os.path.isfile(self.input_file):
-            print(f"Cannot open file ({self.input_file}) in get_non_empty_lines")
-            return None, 0
+        # if not os.path.isfile(self.input_file):
+        #     print(f"Cannot open file ({self.input_file}) in get_non_empty_lines")
+        #     return None, 0
 
         with open(self.input_file, 'r') as fp:
             lines = [line for line in fp.readlines() if self.is_not_empty_line(line) > 0]
@@ -319,7 +319,8 @@ class SF_Guesser:
 
 def main():
     input_file = 'input.txt'
-    input_file = '/Users/vivek/Library/CloudStorage/OneDrive-RutgersUniversity/Desktop files/Summer/py-rcsb_apps_sfconvert/sf_convert_project/src/sf_convert/cif_files/5pny-sf.cif'
+    input_file = 'sf_convert_project/src/sf_convert/cif_files/cns-sf6.cv'
+    input_file = 'cns-sf6.cv'
     guesser = SF_Guesser(input_file)
     format_value = guesser.guess_sf_format()
     print(f"Guessed format: {format_value}")
