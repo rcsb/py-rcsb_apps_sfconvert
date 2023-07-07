@@ -1,0 +1,17 @@
+mappings = {
+    'index_h': [['H', 'H', 0]],
+    'index_k': [['K', 'H', 0]],
+    'index_l': [['L', 'H', 0]],
+    'status': [['status', 'FREE', 'I', 0], ['pdbx_r_free_flag', 'FREE', 'I', 0], ['another_tag', 'FREE', 'I', 0], /*add more tags if needed*/],
+    'F_meas_au': [['F_meas', 'FP', 'F']],
+    'F_meas_sigma_au': [['F_meas_sigma', 'SIGFP', 'Q']]
+}
+
+mappings = {
+    'name1' : [['index_h', 'H', 'H', 0]]
+    'name2' : [['index_k', 'K', 'H', 0]]
+    'name3' : [['index_l', 'L', 'H', 0]]
+    'name4' : [['status', 'FREE', 'I', 0], ['pdbx_r_free_flag', 'FREE', 'I', 0], ['another_tag', 'FREE', 'I', 0], /*add more tags if needed*/]
+    'name5' : [['F_meas_au', 'FP', 'F'], ['F_meas', 'FP', 'F']],
+    'name6' : [['F_meas_sigma_au', 'SIGFP', 'Q'], ['F_meas_sigma', 'SIGFP', 'Q']]
+}
