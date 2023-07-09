@@ -1,5 +1,5 @@
 import random
-from sffile.sf_file import SFFile
+from sf_convert.sffile.sf_file import SFFile
 #from sf_convert.sffile.sf_file import SFFile
 from pathlib import Path
 
