@@ -1,5 +1,5 @@
 import argparse
-from sf_convert_project.src.sf_convert.sffile.sf_file import SFFile
+from sf_convert_project.src.sf_convert.sffile.sf_convert import sf_convert
 from sf_convert_project.src.sf_convert.utils.pinfo_file import pinfo
 from sf_convert_project.src.sf_convert.utils.checksffile import CheckSfFile
 import os
@@ -48,7 +48,7 @@ def main():
     #parser.add_argument('--pdb'
     args = parser.parse_args()
 
-    sffile = SFFile()
+    sffile = sf_convert()
     sffile.readFile(args.sffile)
     n = sffile.getBlocksCount()
 
