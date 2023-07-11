@@ -7,7 +7,7 @@ import sys
 path_to_append = Path('/Users/vivek/Library/CloudStorage/OneDrive-RutgersUniversity/Desktop files/Summer/py-rcsb_apps_sfconvert/sf_convert_project/src/sf_convert/export')
 sys.path.append(str(path_to_append))
 from cns_export import CNSConverter
-from mtz_export2 import MTZConverter
+from mtz_export import MTZConverter
 
 class sf_convert:
     def __init__(self):
