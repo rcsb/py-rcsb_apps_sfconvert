@@ -8,7 +8,11 @@ class SFFile:
         self.__default_block_number = 0  # Initializing default block number to 0
 
     def readFile(self, filename):
-        self.__containers = self.__io_core.readFile(filename)
+        try:
+            self.__containers = self.__io_core.readFile(filename)
+        except Exception as e:
+            raise RuntimeError(f"Failed to read file {filename}") from e
+
 
     def readBlock(self, filename, block_number):
         self.readFile(filename)
