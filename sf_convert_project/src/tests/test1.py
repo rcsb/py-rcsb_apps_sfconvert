@@ -1,36 +1,36 @@
-# import gemmi
+import gemmi
 
-# # Load the MTZ file
-# mtz_object = gemmi.read_mtz_file('1N9F.mtz')
+# Load the MTZ file
+mtz_object = gemmi.read_mtz_file('1N9F.mtz')
 
-# # Get the column information
-# column_list = mtz_object.columns
-# labels = mtz_object.column_labels()
+# Get the column information
+column_list = mtz_object.columns
+labels = mtz_object.column_labels()
 
-# # Get the dataset information
-# dataset_list = mtz_object.datasets
+# Get the dataset information
+dataset_list = mtz_object.datasets
 
-# # Open the output file
-# with open('output.txt', 'w') as f:
-#     # Print the column list
-#     f.write("Columns:\n")
-#     for column in column_list:
-#         f.write(f"{column.label}\n")
+# Open the output file
+with open('output.txt', 'w') as f:
+    # Print the column list
+    f.write("Columns:\n")
+    for column in column_list:
+        f.write(f"{column.label}\n")
 
-#     # Print the column labels
-#     f.write("\nColumn Labels:\n")
-#     for label in labels:
-#         f.write(f"{label}\n")
+    # Print the column labels
+    f.write("\nColumn Labels:\n")
+    for label in labels:
+        f.write(f"{label}\n")
 
-#     # Print the columns with their types
-#     f.write("\nColumns with types:\n")
-#     for column in column_list:
-#         f.write(f"{column.label}, {column.type}\n")
+    # Print the columns with their types
+    f.write("\nColumns with types:\n")
+    for column in column_list:
+        f.write(f"{column.label}, {column.type}\n")
 
-#     # Print the datasets
-#     f.write("\nDatasets:\n")
-#     for dataset in dataset_list:
-#         f.write(f"{dataset.id}\n")
+    # Print the datasets
+    f.write("\nDatasets:\n")
+    for dataset in dataset_list:
+        f.write(f"{dataset.id}\n")
 
 
 # import gemmi
