@@ -44,9 +44,9 @@ class MtzToCifConverter:
         self.convert_mtz_to_mmcif(mtz_file, temp_file)
         self.read_cif_file(temp_file)
         self.add_data(category_name, data_dict)
-        print(self.sffile.getCategories())
-        self.sffile.reorderCategories()
-        print(self.sffile.getCategories())
+        #print(self.sffile.getCategories())
+        #self.sffile.reorderCategories()
+        #print(self.sffile.getCategories())
         self.write_cif_file(output_cif_file)
         os.remove(temp_file)
 
@@ -54,9 +54,9 @@ class MtzToCifConverter:
         temp_file = "temp_file.cif"
         self.convert_mtz_to_mmcif(mtz_file, temp_file)
         self.read_cif_file(temp_file)
-        print(self.sffile.getCategories())
+        #print(self.sffile.getCategories())
         self.add_data_to_block(block_name, category_name, data_dict)
-        print(self.sffile.getCategories())
+        #print(self.sffile.getCategories())
         self.write_cif_file(output_cif_file)
         os.remove(temp_file)
 
