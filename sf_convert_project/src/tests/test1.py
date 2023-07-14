@@ -5,6 +5,8 @@ mtz_object = gemmi.read_mtz_file('1N9F.mtz')
 
 # Get the column information
 column_list = mtz_object.columns
+print(column_list)
+print("------")
 labels = mtz_object.column_labels()
 
 # Get the dataset information
