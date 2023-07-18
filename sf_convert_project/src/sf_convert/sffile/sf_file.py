@@ -1,7 +1,8 @@
 import argparse
 from mmcif.io.IoAdapterCore import IoAdapterCore
-#from mmcif.api.PdbxContainers import ContainerBase
-from mmcif.api.DataCategoryBase import DataCategoryBase as ContainerBase
+from mmcif.api.PdbxContainers import ContainerBase
+from mmcif.api.DataCategoryBase import DataCategoryBase
+# mmcif.api.PdbxContainers
 
 from pathlib import Path
 #from export.cns_export import CNSConverter
@@ -210,7 +211,7 @@ class SFFile:
         None
         """
         default_block = self.__containers[self.__default_block_number]
-        new_category = ContainerBase(category_name)
+        new_category = DataCategoryBase(category_name)
         for attribute in data_dict.keys():
             new_category.appendAttribute(attribute)
         new_category.append(list(data_dict.values()))
@@ -232,7 +233,7 @@ class SFFile:
         if block is None:
             print(f"Block {block_name} does not exist.")
             return
-        new_category = ContainerBase(category_name)
+        new_category = DataCategoryBase(category_name)
         for attribute in data_dict.keys():
             new_category.appendAttribute(attribute)
         new_category.append(list(data_dict.values()))
@@ -319,27 +320,69 @@ class SFFile:
     #         new_block.append(category)
     #     self.__containers[self.__default_block_number] = new_block
 
-    def reorderCategories(self):
-        """
-        Reorder the categories in the default block based on self.__ordered_categories.
+    # def reorderCategories(self):
+    #     """
+    #     Reorder the categories in the default block based on self.__ordered_categories.
 
-        Returns:
-        None
-        """
-        default_block = self.__containers[self.__default_block_number]
-        categories_names = default_block.getObjNameList()
-        category_dict = {name: default_block.getObj(name) for name in categories_names}
-        ordered_categories_list = []
-        for category_name in self.__ordered_categories:
-            if category_name in category_dict:
-                ordered_categories_list.append(category_dict[category_name])
-            else:
-                print(f"Category {category_name} not found in block.")
-        remaining_categories = [category_dict[name] for name in categories_names if name not in self.__ordered_categories]
-        new_block = ContainerBase(default_block.getName())
-        for category in ordered_categories_list + remaining_categories:
-            new_block.append(category)
-        self.__containers[self.__default_block_number] = new_block
+    #     Returns:
+    #     None
+    #     """
+    #     default_block = self.__containers[self.__default_block_number]
+    #     categories_names = default_block.getObjNameList()
+    #     category_dict = {name: default_block.getObj(name) for name in categories_names}
+    #     ordered_categories_list = []
+    #     for category_name in self.__ordered_categories:
+    #         if category_name in category_dict:
+    #             ordered_categories_list.append(category_dict[category_name])
+    #         else:
+    #             print(f"Category {category_name} not found in block.")
+    #     remaining_categories = [category_dict[name] for name in categories_names if name not in self.__ordered_categories]
+    #     new_block = ContainerBase(default_block.getName())
+    #     for category in ordered_categories_list + remaining_categories:
+    #         new_block.append(category)
+    #     self.__containers[self.__default_block_number] = new_block
+
+    def reorder_objects(self, new_order, block_name=None):
+
+        if block_name == "Default" or block_name == None:
+            block_number = self.__default_block_number
+            old_container = self.__containers[block_number]
+        else:
+            block_number, block_res = self.getBlock(block_name)
+            if block_res is None:
+                return None
+            old_container = block_res
+
+
+        new_container = ContainerBase(old_container.getName())
+        new_container.setType(old_container.getType())
+        
+        # Copy properties
+        for prop_name in old_container.getPropCatalog():
+            new_container.setProp(prop_name, old_container.getProp(prop_name))
+        
+        # Add objects in new order
+        for name in new_order:
+            if old_container.exists(name):
+                new_container.append(old_container.getObj(name))
+
+        # Add any remaining objects not included in new_order
+        for name in old_container.getObjNameList():
+            if name not in new_order:
+                new_container.append(old_container.getObj(name))
+
+        # Replace old container with new container
+        if block_name == "Default" or block_name == None:
+            block_number = self.__default_block_number
+            self.__containers[block_number] = new_container
+        else:
+            block_number, block_res = self.getBlock(block_name)
+            if block_res is None:
+                return None
+            elif(not block_number):self.__containers[int(block_number)] = new_container
+
+        print("#################################################################################################")
+
 
 
 

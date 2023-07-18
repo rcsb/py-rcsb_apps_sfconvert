@@ -44,6 +44,9 @@ class MtzToCifConverter:
         self.convert_mtz_to_mmcif(mtz_file, temp_file)
         self.read_cif_file(temp_file)
         self.add_data(category_name, data_dict)
+
+        self.sffile.reorder_objects(['entry', 'cell', 'symmetry', 'audit', 'refln'])
+        print(self.sffile.getCategories())
         #print(self.sffile.getCategories())
         #self.sffile.reorderCategories()
         #print(self.sffile.getCategories())
