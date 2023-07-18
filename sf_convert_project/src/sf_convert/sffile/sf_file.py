@@ -1,6 +1,7 @@
 import argparse
 from mmcif.io.IoAdapterCore import IoAdapterCore
 from mmcif.api.PdbxContainers import ContainerBase
+from mmcif.api.PdbxContainers import DataContainer
 from mmcif.api.DataCategoryBase import DataCategoryBase
 # mmcif.api.PdbxContainers
 
@@ -19,8 +20,6 @@ class SFFile:
         self.__io_core = IoAdapterCore()  # Also using name mangling for the io_core instance
         self.__default_block_number = 0  # Initializing default block number to 0
         #self.__ordered_containers = ['entry', 'cell', 'symmetry', 'audit', 'refln']  # Add this line
-        self.__ordered_categories = ['entry', 'cell', 'symmetry', 'audit', 'refln']  # Add this line
-
 
 
     def readFile(self, filename):
@@ -37,6 +36,7 @@ class SFFile:
         else:
             print(f"Block number {block_number} is not valid. It should be between 0 and {len(self.__containers) - 1}.")
             return None
+        
 
     def getBlockByIndex(self, block_number):
         if 0 <= block_number < len(self.__containers):
@@ -197,6 +197,22 @@ class SFFile:
     #         new_category.appendAttribute(attribute)
     #     new_category.append(list(data_dict.values()))
     #     block.append(new_category)
+
+
+    def add_category(self, category, block_name=None):
+        if block_name is None:
+            # Add the category to a new DataContainer
+            container = self.__containers[self.__default_block_number]
+            container.append(category)
+            #self.containerList.append(container)
+        else:
+            # Add the category to the specified block
+            _, block = self.getBlock(block_name)
+            if block is None:
+                print(f"Block {block_name} does not exist.")
+                return
+            
+            block.append(category)
 
 
     def addData(self, category_name, data_dict):

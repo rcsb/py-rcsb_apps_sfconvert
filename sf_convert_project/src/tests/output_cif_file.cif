@@ -14,10 +14,6 @@ _symmetry.entry_id               xxxx
 _symmetry.space_group_name_H-M   'P 6' 
 _symmetry.Int_Tables_number      168 
 # 
-_audit.revision_id     1_0 
-_audit.creation_date   ? 
-_audit.update_record   'Initial release' 
-# 
 loop_
 _refln.index_h 
 _refln.index_k 
@@ -18170,4 +18166,8 @@ _refln.pdbx_DELPHWT
 41 2  0  o 87.8114 11.0184  141.318   180          0.999999    48.9049     180.000 38.9065    360.000 
 41 2  1  o 135.798 8.65257  157.756   -136.878     0.979452    124.563     223.122 8.44446    43.122  
 41 2  2  o 107.976 8.79421  111.082   -161.908     0.962793    108.326     198.092 4.36716    198.092 
+# 
+_audit.revision_id     1_0 
+_audit.creation_date   ? 
+_audit.update_record   'Initial release' 
 # 
