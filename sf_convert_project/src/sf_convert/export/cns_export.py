@@ -130,19 +130,13 @@ class CNSConverter:
                 self.__sIo = self.__refln_data.getValue("intensity_meas_sigma_au", i)
 
     def initialize_status_at_index(self, i):
-        if self.__refln_data.hasAttribute("status"):
-            self.__status = self.__refln_data.getValue("status", i)
-        else:
-            self.__status = None
+        attL = self.__refln_data.getAttributeList()
 
-        if not self.__status and self.__refln_data.hasAttribute("R_free_flag"):
-            self.__status = self.__refln_data.getValue("R_free_flag", i)
-
-        if not self.__status and self.__refln_data.hasAttribute("statu"):
-            self.__status = self.__refln_data.getValue("statu", i)
-
-        if not self.__status and self.__refln_data.hasAttribute("status_au"):
-            self.__status = self.__refln_data.getValue("status_au", i)
+        self.__status = None
+        for att in ["status", "R_free_flag", "statu", "status_au"]:
+            if att in attL:
+                self._status = self.__refln_data.getValue(att, i)
+                break
 
     def get_F_I(self, j):
         """
