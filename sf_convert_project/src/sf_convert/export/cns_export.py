@@ -71,8 +71,9 @@ class CNSConverter:
             self.__attr_existence[attribute] = any(self.__refln_data.hasAttribute(alternative) for alternative in alternatives)
 
     def __initialize_columns_at_index(self, i):
+        attL = self.__refln_data.getAttributeList()
         for attr, var in self.attributes.items():
-            if self.__refln_data.hasAttribute(attr):
+            if attr in attL:
                 value = self.__refln_data.getValue(attr, i)
                 setattr(self, var, value)
                 setattr(self, "_CNSConverter__"+var, value)
@@ -115,9 +116,10 @@ class CNSConverter:
         Method to get H, K, L, F o& I from SF
         """
         self.__initialize_columns_at_index(j)
-        self.__initialize_Io_at_index(j)
-        self.__initialize_sIo_at_index(j)
-        self.__initialize_status_at_index(j)
+        # These are handled by __inialize_columns_at_index()
+        # self.__initialize_Io_at_index(j)
+        # self.__initialize_sIo_at_index(j)
+        # self.__initialize_status_at_index(j)
 
         # Parse values to integers
         h = int(self.__H)
