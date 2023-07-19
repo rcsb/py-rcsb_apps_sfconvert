@@ -19,7 +19,8 @@ classifiers = [
     "License :: OSI Approved :: Apache Software License",
 ]
 dependencies = [
-    "mmcif"
+    "mmcif",
+    "gemmi"
 ]
 dynamic = ["version"]
 
