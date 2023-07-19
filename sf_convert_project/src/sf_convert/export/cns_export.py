@@ -72,15 +72,19 @@ class CNSConverter:
 
     def __initialize_columns_at_index(self, i):
         attL = self.__refln_data.getAttributeList()
+
+        # First row - set attribute for columns that do not exist
+        if i == 0:
+            for attr, var in self.attributes.items():
+                if attr not in attL:
+                    setattr(self, "_CNSConverter__"+var, None)
+                
         for attr, var in self.attributes.items():
             if attr in attL:
                 value = self.__refln_data.getValue(attr, i)
-                setattr(self, var, value)
+                # setattr(self, var, value)
                 setattr(self, "_CNSConverter__"+var, value)
                 #print(f'Attribute: {attr}, Variable: {var}, Value at index {i}: {value}')  # Print the value
-
-            else:
-                setattr(self, "_CNSConverter__"+var, None)
 
         self.__initialize_Io_at_index(i)
         self.__initialize_sIo_at_index(i)
