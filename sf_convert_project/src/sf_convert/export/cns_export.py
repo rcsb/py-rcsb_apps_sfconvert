@@ -40,22 +40,22 @@ class CNSConverter:
             "pdbx_HL_D_iso": "hld"
         }
 
-        self.initialize_data()
+        self.__initialize_data()
 
-    def initialize_data(self):
-        self.initialize_refln_data()
-        self.initialize_counts()
-        self.check_attributes_exist()
+    def __initialize_data(self):
+        self.__initialize_refln_data()
+        self.__initialize_counts()
+        self.__check_attributes_exist()
 
-    def initialize_refln_data(self):
+    def __initialize_refln_data(self):
         self.__sf_block = self.__sf_file.getBlockByIndex(0)
         self.__refln_data = self.__sf_block.getObj("refln")
 
-    def initialize_counts(self):
+    def __initialize_counts(self):
         if self.__refln_data:
             self.__nref = self.__refln_data.getRowCount()
 
-    def check_attributes_exist(self):
+    def __check_attributes_exist(self):
         
         for attr, value in self.attributes.items():
             self.__attr_existence[value] = self.__refln_data.hasAttribute(attr)
@@ -70,7 +70,7 @@ class CNSConverter:
         for attribute, alternatives in check_attributes.items():
             self.__attr_existence[attribute] = any(self.__refln_data.hasAttribute(alternative) for alternative in alternatives)
 
-    def initialize_columns_at_index(self, i):
+    def __initialize_columns_at_index(self, i):
         for attr, var in self.attributes.items():
             if self.__refln_data.hasAttribute(attr):
                 value = self.__refln_data.getValue(attr, i)
@@ -81,71 +81,43 @@ class CNSConverter:
             else:
                 setattr(self, "_CNSConverter__"+var, None)
 
-        self.initialize_Io_at_index(i)
-        self.initialize_sIo_at_index(i)
-        self.initialize_status_at_index(i)
+        self.__initialize_Io_at_index(i)
+        self.__initialize_sIo_at_index(i)
+        self.__initialize_status_at_index(i)
 
-    def initialize_Io_at_index(self, i):
-        # Check if attribute "intensity_meas" is present
-        if self.__refln_data.hasAttribute("intensity_meas"):
-            self.__Io = self.__refln_data.getValue("intensity_meas", i)
-        else:
-            self.__Io = None
+    def __initialize_Io_at_index(self, i):
+        self.__Io = self.__get_first_refln_value(["intensity_meas", "intensity_meas_au", "intensity"],
+                                                 i)
 
-        # If self.__Io is still None, check for attribute "intensity_meas_au"
-        if not self.__Io:
-            if self.__refln_data.hasAttribute("intensity_meas_au"):
-                self.__Io = self.__refln_data.getValue("intensity_meas_au", i)
+    def __initialize_sIo_at_index(self, i):
+        self.__sIo = self.__get_first_refln_value(["intensity_sigma", "intensity_sigma_au",
+                                                   "intensity_sigm", "intensity_meas_sigma",
+                                                   "intensity_meas_sigma_au"],
+                                                  i)
 
-        # If self.__Io is still None, check for attribute "intensity"
-        if not self.__Io:
-            if self.__refln_data.hasAttribute("intensity"):
-                self.__Io = self.__refln_data.getValue("intensity", i)
+    def __initialize_status_at_index(self, i):
+        self.__status = self.__get_first_refln_value(["status", "R_free_flag", "statu", "status_au"], i)
 
-    def initialize_sIo_at_index(self, i):
-        # Check if attribute "intensity_sigma" is present
-        if self.__refln_data.hasAttribute("intensity_sigma"):
-            self.__sIo = self.__refln_data.getValue("intensity_sigma", i)
-        else:
-            self.__sIo = None
-
-        # If self.__sIo is still None, check for attribute "intensity_sigma_au"
-        if not self.__sIo:
-            if self.__refln_data.hasAttribute("intensity_sigma_au"):
-                self.__sIo = self.__refln_data.getValue("intensity_sigma_au", i)
-
-        # If self.__sIo is still None, check for attribute "intensity_sigm"
-        if not self.__sIo:
-            if self.__refln_data.hasAttribute("intensity_sigm"):
-                self.__sIo = self.__refln_data.getValue("intensity_sigm", i)
-
-        # If self.__sIo is still None, check for attribute "intensity_meas_sigma"
-        if not self.__sIo:
-            if self.__refln_data.hasAttribute("intensity_meas_sigma"):
-                self.__sIo = self.__refln_data.getValue("intensity_meas_sigma", i)
-
-        # If self.__sIo is still None, check for attribute "intensity_meas_sigma_au"
-        if not self.__sIo:
-            if self.__refln_data.hasAttribute("intensity_meas_sigma_au"):
-                self.__sIo = self.__refln_data.getValue("intensity_meas_sigma_au", i)
-
-    def initialize_status_at_index(self, i):
+    def __get_first_refln_value(self, attrList, row):
         attL = self.__refln_data.getAttributeList()
 
-        self.__status = None
-        for att in ["status", "R_free_flag", "statu", "status_au"]:
+        ret = None
+        for att in attrList:
             if att in attL:
-                self._status = self.__refln_data.getValue(att, i)
+                ret = self.__refln_data.getValue(att, row)
                 break
 
+        return ret
+
+        
     def get_F_I(self, j):
         """
         Method to get H, K, L, F o& I from SF
         """
-        self.initialize_columns_at_index(j)
-        self.initialize_Io_at_index(j)
-        self.initialize_sIo_at_index(j)
-        self.initialize_status_at_index(j)
+        self.__initialize_columns_at_index(j)
+        self.__initialize_Io_at_index(j)
+        self.__initialize_sIo_at_index(j)
+        self.__initialize_status_at_index(j)
 
         # Parse values to integers
         h = int(self.__H)
@@ -273,7 +245,7 @@ class CNSConverter:
             # Loop over all the data points
             for i in range(self.__nref):
 
-                self.initialize_columns_at_index(i)
+                self.__initialize_columns_at_index(i)
 
                 h, k, l, ff, sff, ii, sii = self.get_F_I(i)
 
