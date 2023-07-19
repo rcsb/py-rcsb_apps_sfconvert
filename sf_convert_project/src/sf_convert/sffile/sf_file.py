@@ -11,8 +11,8 @@ from pathlib import Path
 import sys
 path_to_append = Path('/Users/vivek/Library/CloudStorage/OneDrive-RutgersUniversity/Desktop files/Summer/py-rcsb_apps_sfconvert/sf_convert_project/src/sf_convert/export')
 sys.path.append(str(path_to_append))
-from ..export.cns_export import CNSConverter
-from ..export.mtz_export import MTZConverter
+from cns_export import CNSConverter
+from mtz_export import MTZConverter
 
 class SFFile:
     def __init__(self):
@@ -54,11 +54,6 @@ class SFFile:
         self.__io_core.writeFile(filename, self.__containers)
 
     def getBlocksNames(self):
-        # print("###################")
-        # print(type(self.__containers))
-        # print(type(self.__containers[self.__default_block_number]))
-        # print("###################")
-
         return [container.getName() for container in self.__containers]
 
     def getBlock(self, name):
@@ -91,122 +86,12 @@ class SFFile:
             if block_res is None:
                 return None
             return block_res.getObjNameList()
-        
-
-    # def addCategory(self, category_name, attributes_values):
-    #     default_block = self.getBlockByIndex(self.__default_block_number)
-    #     if default_block is not None:
-    #         # If the category exists in the block, append attributes and values
-    #         if default_block.hasAttribute(category_name):
-    #             category = default_block.getCategory(category_name)
-    #             for attr, val in attributes_values.items():
-    #                 category.appendAttribute(attr)
-    #                 category.append(val)
-    #         # If the category doesn't exist in the block, create it and add attributes and values
-    #         else:
-    #             default_block.appendCategory(category_name, attributes_values)
-    #     else:
-    #         print("Failed to add category. Default block not found.")
-
-    # def addCategoryToBlock(self, block_name, category_name, attributes_values):
-    #     block_number, block = self.getBlock(block_name)
-    #     if block is not None:
-    #         # If the category exists in the block, append attributes and values
-    #         if block.hasAttribute(category_name):
-    #             category = block.getCategory(category_name)
-    #             for attr, val in attributes_values.items():
-    #                 category.appendAttribute(attr)
-    #                 category.append(val)
-    #         # If the category doesn't exist in the block, create it and add attributes and values
-    #         else:
-    #             block.appendCategory(category_name, attributes_values)
-    #     else:
-    #         print(f"Failed to add category. Block '{block_name}' not found.")
-
-
-    # def addData(self, block_name, category, attributes, values):
-    #     """
-    #     Adds data to the specified block in the CIF file.
-
-    #     Parameters:
-    #     block_name (str): The name of the block to which data is to be added.
-    #     category (str): The category of the data to be added.
-    #     attributes (list[str]): The attributes of the data to be added.
-    #     values (list[str]): The corresponding values of the attributes.
-
-    #     Returns:
-    #     None
-    #     """
-    #     block_number, block = self.getBlock(block_name)
-
-    #     if block is None:
-    #         print(f"Block '{block_name}' not found.")
-    #         return
-
-    #     # Create a new category
-    #     new_category = DataContainer(category)
-
-    #     # Add attributes and their respective values to the category
-    #     for attribute, value in zip(attributes, values):
-    #         new_category.appendAttribute(CifName(attribute))
-    #         new_category.append([value])
-
-    #     # Add the category to the block
-    #     block.append(new_category)
-
-    # def addData(self, block_name, category_name, data_dict):
-    #     """
-    #     This function adds a category with its data to a specific block.
-        
-    #     Parameters:
-    #     block_name (str): The name of the block to which the category should be added.
-    #     category_name (str): The name of the category to be added.
-    #     data_dict (dict): A dictionary where the keys are the attribute names and the values are their respective values.
-        
-    #     Returns:
-    #     None
-    #     """
-    #     block_number, block = self.getBlock(block_name)
-    #     if block is None:
-    #         print(f"Block {block_name} does not exist.")
-    #         return
-    #     new_category = ContainerBase(category_name)
-    #     for attribute, value in data_dict.items():
-    #         new_category.appendAttribute(attribute)
-    #         new_category.append([value])
-    #     block.append(new_category)
-
-    # def addData(self, block_name, category_name, data_dict):
-    #     """
-    #     This function adds a category with its data to a specific block.
-        
-    #     Parameters:
-    #     block_name (str): The name of the block to which the category should be added.
-    #     category_name (str): The name of the category to be added.
-    #     data_dict (dict): A dictionary where the keys are the attribute names and the values are their respective values.
-        
-    #     Returns:
-    #     None
-    #     """
-    #     block_number, block = self.getBlock(block_name)
-    #     if block is None:
-    #         print(f"Block {block_name} does not exist.")
-    #         return
-    #     new_category = ContainerBase(category_name)
-    #     for attribute in data_dict.keys():
-    #         new_category.appendAttribute(attribute)
-    #     new_category.append(list(data_dict.values()))
-    #     block.append(new_category)
-
 
     def add_category(self, category, block_name=None):
         if block_name is None:
-            # Add the category to a new DataContainer
             container = self.__containers[self.__default_block_number]
             container.append(category)
-            #self.containerList.append(container)
         else:
-            # Add the category to the specified block
             _, block = self.getBlock(block_name)
             if block is None:
                 print(f"Block {block_name} does not exist.")
@@ -255,109 +140,6 @@ class SFFile:
         new_category.append(list(data_dict.values()))
         block.append(new_category)
 
-    # def reorderBlocks(self):
-    #     """
-    #     Reorder the blocks in the containers list based on self.__ordered_containers.
-
-    #     Returns:
-    #     None
-    #     """
-    #     container_dict = {container.getName(): container for container in self.__containers}
-    #     ordered_containers = []
-    #     for block_name in self.__ordered_containers:
-    #         if block_name in container_dict:
-    #             ordered_containers.append(container_dict[block_name])
-    #     remaining_blocks = [container for container in self.__containers if container not in ordered_containers]
-    #     self.__containers = ordered_containers + remaining_blocks
-
-    # def reorderBlocks(self):
-    #     """
-    #     Reorder the blocks in the containers list based on self.__ordered_containers.
-
-    #     Returns:
-    #     None
-    #     """
-    #     print("#################################################################################################")
-    #     print("Existing block names:", self.getBlocksNames())  # For debugging
-
-    #     container_dict = {container.getName(): container for container in self.__containers}
-    #     ordered_containers = []
-    #     for block_name in self.__ordered_containers:
-    #         if block_name in container_dict:
-    #             ordered_containers.append(container_dict[block_name])
-    #         else:
-    #             print(f"Block {block_name} not found in containers.")  # For debugging
-    #     remaining_blocks = [container for container in self.__containers if container not in ordered_containers]
-    #     self.__containers = ordered_containers + remaining_blocks
-    #     print("Final block names:", self.getBlocksNames())
-    #     print("#################################################################################################")
-
-    # def reorderCategories(self):
-    #     """
-    #     Reorder the categories in the default block based on self.__ordered_categories.
-
-    #     Returns:
-    #     None
-    #     """
-    #     default_block = self.__containers[self.__default_block_number]
-    #     #category_dict = {category.getName(): category for category in default_block}
-    #     category_dict = self.getCategories()
-    #     ordered_categories_list = []
-    #     for category_name in self.__ordered_categories:
-    #         if category_name in category_dict:
-    #             ordered_categories_list.append(category_dict[category_name])
-    #         else:
-    #             print(f"Category {category_name} not found in block.")
-    #     remaining_categories = [category for category in default_block if category not in ordered_categories_list]
-    #     new_block = ContainerBase(default_block.getName())
-    #     for category in ordered_categories_list + remaining_categories:
-    #         new_block.append(category)
-    #     self.__containers[self.__default_block_number] = new_block
-
-    # def reorderCategories(self):
-    #     """
-    #     Reorder the categories in the default block based on self.__ordered_categories.
-
-    #     Returns:
-    #     None
-    #     """
-    #     default_block = self.__containers[self.__default_block_number]
-    #     categories_names = default_block.getObjNameList()
-    #     category_dict = {name: default_block.getObj(name) for name in categories_names}
-    #     ordered_categories_list = []
-    #     for category_name in self.__ordered_categories:
-    #         if category_name in category_dict:
-    #             ordered_categories_list.append(category_dict[category_name])
-    #         else:
-    #             print(f"Category {category_name} not found in block.")
-    #     remaining_categories = [category_dict[name] for name in categories_names if name not in self.__ordered_categories]
-    #     new_block = ContainerBase(default_block.getName())
-    #     for category in ordered_categories_list + remaining_categories:
-    #         new_block.append(category)
-    #     self.__containers[self.__default_block_number] = new_block
-
-    # def reorderCategories(self):
-    #     """
-    #     Reorder the categories in the default block based on self.__ordered_categories.
-
-    #     Returns:
-    #     None
-    #     """
-    #     default_block = self.__containers[self.__default_block_number]
-    #     categories_names = default_block.getObjNameList()
-    #     category_dict = {name: default_block.getObj(name) for name in categories_names}
-    #     ordered_categories_list = []
-    #     for category_name in self.__ordered_categories:
-    #         if category_name in category_dict:
-    #             ordered_categories_list.append(category_dict[category_name])
-    #         else:
-    #             print(f"Category {category_name} not found in block.")
-    #     remaining_categories = [category_dict[name] for name in categories_names if name not in self.__ordered_categories]
-    #     new_block = ContainerBase(default_block.getName())
-    #     for category in ordered_categories_list + remaining_categories:
-    #         new_block.append(category)
-    #     self.__containers[self.__default_block_number] = new_block
-
     def reorder_objects(self, new_order, block_name=None):
 
         if block_name == "Default" or block_name == None:
@@ -396,9 +178,6 @@ class SFFile:
             if block_res is None:
                 return None
             elif(not block_number):self.__containers[int(block_number)] = new_container
-
-        print("#################################################################################################")
-
 
 
 
