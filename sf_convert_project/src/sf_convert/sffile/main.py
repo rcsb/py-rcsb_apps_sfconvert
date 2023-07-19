@@ -1,6 +1,9 @@
 import argparse
 import sys
 from pathlib import Path
+# import cProfile
+# import re
+
 
 # Append necessary paths to sys path for module imports
 project_paths = [
@@ -49,4 +52,7 @@ def main():
         converter.convert_to_mtz('output.mtz')
 
 if __name__ == "__main__":
+    #main()
+    #cProfile.run('main()')
+    #cProfile.run('re.compile("foo|bar")')
     main()
