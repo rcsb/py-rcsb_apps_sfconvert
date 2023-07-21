@@ -159,3 +159,5 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 .DS_Store
+sf_convert_project/.DS_Store
+.DS_Store sf_convert_project/.DS_Store sf_convert_project/src/.DS_Store sf_convert_project/src/sf_convert/.DS_Store sf_convert_project/src/sf_convert/cif_files/.DS_Store sf_convert_project/src/tests/.DS_Store sf_convert_project/src/tests/data/.DS_Store

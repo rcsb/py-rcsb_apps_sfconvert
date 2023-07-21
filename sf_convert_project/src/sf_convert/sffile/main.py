@@ -1,6 +1,9 @@
 import argparse
 import sys
 from pathlib import Path
+# import cProfile
+# import re
+
 
 # Append necessary paths to sys path for module imports
 project_paths = [
@@ -15,6 +18,7 @@ from sf_file import SFFile
 from cns_export import CNSConverter
 from mtz_export import MTZConverter
 from get_items_pdb import ProteinDataBank
+from mtz2cif import MtzToCifConverter
 
 def main():
     parser = argparse.ArgumentParser(description='This script allows various operations on files.')
@@ -48,5 +52,12 @@ def main():
         converter.determine_mappings()
         converter.convert_to_mtz('output.mtz')
 
+    elif args.o == 'mmcif':
+        converter = MtzToCifConverter(str(Path(args.sf)), 'output.mmcif')
+        converter.convert_and_write()
+
 if __name__ == "__main__":
+    #main()
+    #cProfile.run('main()')
+    #cProfile.run('re.compile("foo|bar")')
     main()
