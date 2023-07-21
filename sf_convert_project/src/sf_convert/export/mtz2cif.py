@@ -82,7 +82,7 @@ class MtzToCifConverter:
             self.sffile.add_category(category)
 
     def convert_and_write(self):
-        temp_file = "temp_file.cif"
+        temp_file = "temp_file.mmcif"
         self.set_spec()
         cif_doc = self.convert_mtz_to_cif()
         with open(temp_file, 'w') as f:
