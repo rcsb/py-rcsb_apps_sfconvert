@@ -194,6 +194,31 @@ class MtzToCifConverter:
         self.convert_and_write()
         #return replaced_and_formatted_labels
 
+    def process_labels(self, input_string):
+        key_value_pairs = input_string.split(', ')
+        key_value_dict = {pair.split('=')[0]: pair.split('=')[1] for pair in key_value_pairs}
+
+        processed_labels = []
+
+        for label in self.labels:
+            if label[0] in ["?", "&"] and label[1] in key_value_dict.keys():
+                replaced_label = (label[0], key_value_dict[label[1]], label[2], label[3])
+                processed_label = (f"{replaced_label[0]} {replaced_label[1]}", *replaced_label[2:]) if replaced_label[0] in ["?", "&"] else replaced_label
+                processed_labels.append(processed_label)
+            elif label[0] in key_value_dict.keys():
+                replaced_label = (key_value_dict[label[0]], label[1], *label[2:])
+                processed_label = replaced_label
+                processed_labels.append(processed_label)
+
+        #return processed_labels
+        #print(processed_labels)
+        self.spec_file_content = processed_labels
+        # print(processed_labels)
+        # print("-------------------")
+        # print(self.spec_file_content)
+        # print("-------------------")
+        self.convert_and_write()
+
     def convert_and_write(self):
         temp_file = "temp_file.mmcif"
         self.set_spec()
@@ -211,4 +236,4 @@ class MtzToCifConverter:
 # Use the class to convert MTZ to CIF
 converter = MtzToCifConverter('/Users/vivek/Library/CloudStorage/OneDrive-RutgersUniversity/Desktop files/Summer/py-rcsb_apps_sfconvert/sf_convert_project/src/tests/data/cif_files/Ras_NAD.mtz', 'output.cif')
 #converter.convert_and_write()
-converter.match_replace_and_format_labels("FP=F_meas_au,SIGFP=F_meas_sigma_au")
+converter.process_labels("FP=DELFWT, SIGFP=SIGF_XDSdataset")

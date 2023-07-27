@@ -94,11 +94,15 @@ def match_and_replace_labels_v4(labels, input_string):
 
     replaced_labels = []
 
+    #test_labels = []
+
     for label in labels:
         if label[0] in ["?", "&"] and label[1] in key_value_dict.keys():
-            replaced_labels.append((label[0], label[1], label[2], key_value_dict[label[1]]))
+            #replaced_labels.append((label[0], label[1], label[2], key_value_dict[label[1]]))
+            replaced_labels.append((label[0], key_value_dict[label[1]], label[2], label[3]))
         elif label[0] in key_value_dict.keys():
-            replaced_labels.append((label[0], label[1], key_value_dict[label[0]], *label[3:]))
+            #replaced_labels.append((label[0], label[1], key_value_dict[label[0]], *label[3:]))
+            replaced_labels.append((key_value_dict[label[0]], label[1], *label[2:]))
 
     return replaced_labels
 
@@ -107,7 +111,38 @@ def match_and_replace_labels_v4(labels, input_string):
 
 input_string = "FP=FP_XDS, SIGFP=SIGFP_XDS, H=H_XDS"
 
+input_string = "FP=F_meas_au, SIGFP=F_meas_sigma_au"
+
 replaced_labels = match_and_replace_labels_v4(labels, input_string)
+
+def process_labels(labels, input_string):
+    key_value_pairs = input_string.split(', ')
+    key_value_dict = {pair.split('=')[0]: pair.split('=')[1] for pair in key_value_pairs}
+
+    processed_labels = []
+
+    for label in labels:
+        if label[0] in ["?", "&"] and label[1] in key_value_dict.keys():
+            replaced_label = (label[0], key_value_dict[label[1]], label[2], label[3])
+            processed_label = (f"{replaced_label[0]} {replaced_label[1]}", *replaced_label[2:]) if replaced_label[0] in ["?", "&"] else replaced_label
+            processed_labels.append(processed_label)
+        elif label[0] in key_value_dict.keys():
+            replaced_label = (key_value_dict[label[0]], label[1], *label[2:])
+            processed_label = replaced_label
+            processed_labels.append(processed_label)
+
+    return processed_labels
+
+
+print("==================================")
+print(process_labels(labels, input_string))
+print("==================================")
+
+# print(replaced_labels)
+
+# print("----------------------------------")
+
+# print("==================================")
 
 def format_labels(replaced_labels):
     """
@@ -130,12 +165,14 @@ def format_labels(replaced_labels):
     return formatted_labels
 
 # Let's use the function with the replaced_labels we have.
-formatted_labels = format_labels(replaced_labels)
+#formatted_labels = format_labels(test_labels)
 
 
 # print(replaced_labels)
 
-# print(formatted_labels)
+#print(formatted_labels)
+
+#print("**********************************")
 
 def match_replace_and_format_labels(labels, input_string):
     """
