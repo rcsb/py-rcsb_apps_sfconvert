@@ -1,33 +1,36 @@
-import gemmi
-import os
-from pathlib import Path
-import sys
-from mmcif.api.DataCategory import DataCategory
-path_to_append = Path('/Users/vivek/Library/CloudStorage/OneDrive-RutgersUniversity/Desktop files/Summer/py-rcsb_apps_sfconvert/sf_convert_project/src/sf_convert/sffile')
-sys.path.append(str(path_to_append))
+# Redefining the write_labels_to_file and read_labels_from_file functions
 
-from sf_file import SFFile
+def write_labels_to_file(labels, filename):
+    """
+    Write the labels to a file. Each label is written on a separate line.
 
-class MtzToCifConverter:
-    def __init__(self, mtz_file_path, output_file_path):
-        self.mtz_file_path = mtz_file_path
-        self.output_file_path = output_file_path
-        self.mtz2cif = gemmi.MtzToCif()
-        self.sffile = SFFile()
-        self.categories = {
-            "audit": {
-                "revision_id": "1_0",
-                "creation_date": "?",
-                "update_record": "Initial release"
-            },
-            "exptl_crystal": {
-                "id": "1"
-            },
-            "reflns_scale": {
-                "group_code": "1"
-            }
-        }
-        self.spec_file_content = [
+    Args:
+        labels (list of tuples): The labels to write to the file.
+        filename (str): The name of the file to write to.
+    """
+    with open(filename, "w") as file:
+        for label in labels:
+            file.write(','.join(map(str, label)) + "\n")
+
+
+def read_labels_from_file(filename):
+    """
+    Read the labels from a file. Each label is expected to be on a separate line.
+
+    Args:
+        filename (str): The name of the file to read from.
+
+    Returns:
+        list of tuples: The labels read from the file.
+    """
+    labels = []
+    with open(filename, "r") as file:
+        for line in file:
+            labels.append(tuple(line.strip().split(',')))
+    return labels
+
+# Now let's write the spec_file_content to a file and then read it back
+spec_file_content = [
             ('H', 'H', 'index_h'),
             ('K', 'H', 'index_k'),
             ('L', 'H', 'index_l'),
@@ -62,7 +65,17 @@ class MtzToCifConverter:
             ('& HLC', 'A', 'pdbx_HL_C_iso'),
             ('& HLD', 'A', 'pdbx_HL_D_iso')
         ]
-        self.labels = [
+# Write these labels to a file
+# write_labels_to_file(spec_file_content, "spec_file_content.txt")
+
+# # Now we'll read the labels back from the file
+# read_labels = read_labels_from_file("spec_file_content.txt")
+
+# print(read_labels)
+
+
+
+spec_file_content_test = [
             ('H', 'H', 'index_h'),
             ('K', 'H', 'index_k'),
             ('L', 'H', 'index_l'),
@@ -136,79 +149,43 @@ class MtzToCifConverter:
             ('&', 'HLD', 'A', 'pdbx_HL_D_iso')
         ]
 
-    def set_spec(self):
-        spec_lines = ['\t'.join(line) for line in self.spec_file_content]
-        self.mtz2cif.spec_lines = spec_lines
-
-    def convert_mtz_to_cif(self):
-        mtz = gemmi.read_mtz_file(self.mtz_file_path)
-        return self.mtz2cif.write_cif_to_string(mtz)
-
-    def read_cif_file(self, cif_file):
-        self.sffile.readFile(cif_file)
-
-    def add_category(self, categories):
-        for category_name, data_dict in categories.items():
-            category = DataCategory(category_name)
-            for key in data_dict.keys():
-                category.appendAttribute(key)
-            category.append(tuple(data_dict.values()))
-            self.sffile.add_category(category)
 
 
-    def match_replace_and_format_labels(self, input_string):
-        """
-        Matches the labels from a list of tuples based on a provided string of keys and values,
-        replaces the matched labels with the corresponding values, and formats the replaced labels.
+write_labels_to_file(spec_file_content_test, "spec_file_content.txt")
 
-        Args:
-            labels (list of tuples): The labels to be matched and replaced.
-            input_string (str): The string of keys and values for matching and replacing in the format "key1=value1, key2=value2, ...".
+# Now we'll read the labels back from the file
+read_labels = read_labels_from_file("spec_file_content.txt")
 
-        Returns:
-            list of tuples: The matched, replaced and formatted labels.
-        """
-        # Split the input_string by comma and space to get the key-value pairs
-        key_value_pairs = input_string.split(', ')
-        # Create the dictionary from the key-value pairs
-        key_value_dict = {pair.split('=')[0]: pair.split('=')[1] for pair in key_value_pairs}
-
-        replaced_and_formatted_labels = []
-
-        for label in self.labels:
-            if label[0] in ["?", "&"] and label[1] in key_value_dict.keys():
-                replaced_label = (label[0], label[1], label[2], key_value_dict[label[1]])
-                if replaced_label[0] in ["?", "&"]:
-                    replaced_and_formatted_labels.append((f"{replaced_label[0]} {replaced_label[1]}", *replaced_label[2:]))
-                else:
-                    replaced_and_formatted_labels.append(replaced_label)
-            elif label[0] in key_value_dict.keys():
-                replaced_label = (label[0], label[1], key_value_dict[label[0]], *label[3:])
-                if replaced_label[0] in ["?", "&"]:
-                    replaced_and_formatted_labels.append((f"{replaced_label[0]} {replaced_label[1]}", *replaced_label[2:]))
-                else:
-                    replaced_and_formatted_labels.append(replaced_label)
-
-        self.spec_file_content = replaced_and_formatted_labels
-        print(self.spec_file_content)
-        self.convert_and_write()
-        #return replaced_and_formatted_labels
-
-    def convert_and_write(self):
-        temp_file = "temp_file.mmcif"
-        self.set_spec()
-        cif_doc = self.convert_mtz_to_cif()
-        with open(temp_file, 'w') as f:
-            f.write(cif_doc)
-        self.read_cif_file(temp_file)
-        self.add_category(self.categories)
-        #self.sffile.reorder_objects(['entry', 'cell', 'symmetry', 'audit', 'refln'])
-        self.sffile.reorder_objects(['audit', 'cell', 'diffrn_radiation_wavelength', 'entry', 'exptl_crystal', 'reflns_scale', 'symmetry', 'refln'])
-        self.sffile.writeFile(self.output_file_path)
-        os.remove(temp_file)
+print(read_labels)
 
 
-# Use the class to convert MTZ to CIF
-converter = MtzToCifConverter('/Users/vivek/Library/CloudStorage/OneDrive-RutgersUniversity/Desktop files/Summer/py-rcsb_apps_sfconvert/sf_convert_project/src/tests/data/cif_files/Ras_NAD.mtz', 'output.cif')
-#converter.convert_and_write()
-converter.match_replace_and_format_labels("FP=F_meas_au,SIGFP=F_meas_sigma_au")
+mapping_dic = {
+    'FP': 'F_meas_au',
+    'SIGFP': 'F_meas_sigma_au',
+    'I': 'intensity_meas',
+    'SIGI': 'intensity_sigma',
+    'FC': 'F_calc_au',
+    'PHIC': 'phase_calc',
+    'PHIB': 'phase_meas',
+    'FOM': 'fom',
+    'FWT': 'pdbx_FWT',
+    'PHWT': 'pdbx_PHWT',
+    'DELFWT': 'pdbx_DELFWT',
+    'DELPHWT': 'pdbx_DELPHWT',
+    'HLA': 'pdbx_HL_A_iso',
+    'HLB': 'pdbx_HL_B_iso',
+    'HLC': 'pdbx_HL_C_iso',
+    'HLD': 'pdbx_HL_D_iso',
+    'F(+)': 'pdbx_F_plus',
+    'SIGF(+)': 'pdbx_F_plus_sigma',
+    'F(-)': 'pdbx_F_minus',
+    'SIGF(-)': 'pdbx_F_minus_sigma',
+    'DP': 'pdbx_anom_difference',
+    'SIGDP': 'pdbx_anom_difference_sigma',
+    'I(+)': 'pdbx_I_plus',
+    'SIGI(+)': 'pdbx_I_plus_sigma',
+    'I(-)': 'pdbx_I_minus',
+    'SIGI(-)': 'pdbx_I_minus_sigma',
+    'FREE': 'status',
+    'FLAG': 'pdbx_r_free_flag'
+}
