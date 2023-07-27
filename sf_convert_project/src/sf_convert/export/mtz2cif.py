@@ -234,6 +234,7 @@ class MtzToCifConverter:
 
 
 # Use the class to convert MTZ to CIF
-converter = MtzToCifConverter('/Users/vivek/Library/CloudStorage/OneDrive-RutgersUniversity/Desktop files/Summer/py-rcsb_apps_sfconvert/sf_convert_project/src/tests/data/cif_files/Ras_NAD.mtz', 'output.cif')
-#converter.convert_and_write()
-converter.process_labels("FP=DELFWT, SIGFP=SIGF_XDSdataset")
+#converter = MtzToCifConverter('/Users/vivek/Library/CloudStorage/OneDrive-RutgersUniversity/Desktop files/Summer/py-rcsb_apps_sfconvert/sf_convert_project/src/tests/data/cif_files/Ras_NAD.mtz', 'output.cif')
+converter = MtzToCifConverter(str(Path('/Users/vivek/Library/CloudStorage/OneDrive-RutgersUniversity/Desktop files/Summer/RCSB/complex.mtz')), 'output_comp.cif')
+converter.convert_and_write()
+#converter.process_labels("FP=DELFWT, SIGFP=SIGF_XDSdataset")
