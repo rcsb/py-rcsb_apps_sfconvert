@@ -25,6 +25,8 @@ def main():
     parser.add_argument('-o', type=str, help='Output format')
     parser.add_argument('-sf', type=str, help='Source file')
     parser.add_argument('-pdb', type=str, default='xxxx', help='PDBx/mmcif file name or mmcif file name')
+    parser.add_argument('-freer', type=int, help='free test number in the reflection (SF) file')
+
     args = parser.parse_args()
 
     protein_data = ProteinDataBank()
@@ -34,11 +36,15 @@ def main():
         data = protein_data.extract_attributes_from_cif(sffile)
         print(data)
     elif args.pdb.endswith(".pdb"):
-        pdb_id = protein_data.extract_pdb_id_from_pdb(args.pdb)
+        #pdb_id = protein_data.extract_pdb_id_from_pdb(args.pdb)
+        pdb_id = protein_data.extract_attributes_from_pdb(args.pdb)
         print(pdb_id)
     else:
         pdb_id = args.pdb
         print(pdb_id)
+
+    if args.freer:
+        protein_data.update_FREERV(args.freer)
 
     if args.o == 'CNS':
         sffile = SFFile()
