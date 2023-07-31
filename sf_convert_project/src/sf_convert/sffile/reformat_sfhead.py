@@ -1,5 +1,5 @@
-def reformat_sfhead():
-    myContainerList = []
+def reformat_sfhead(sf_file):
+    # myContainerList = []
     changes_made = False
 
     remove_list = ["citation"]
@@ -131,71 +131,66 @@ def reformat_sfhead():
         "symmetry": symmetry
     }
 
-    myContainerList, changes_made = rename_sfhead(myContainerList, mapping_dicts)
+    # Perform the renaming of attributes
+    changes_made |= rename_sfhead(sf_file, mapping_dicts)
 
-    myContainerList, changes_made = remove_sfhead(myContainerList, remove_list)
+    # Perform the removal of categories
+    changes_made |= remove_sfhead(sf_file, remove_list)
 
-    return myContainerList, changes_made
+    # Perform the removal of duplicate reflections
+    changes_made |= remove_duplicate_reflections(sf_file)
 
+    return changes_made
 
-
-
-def rename_sfhead(myContainerList, mapping_dicts):
-
-
-    # Initialize a container list
-    #myContainerList = []
-
-    # Initialize a flag to track if changes have been made
+def rename_sfhead(sf_file, mapping_dicts):
     changes_made = False
-
-    # Loop through each dictionary in the mapping_dicts
     for dict_name, mapping_dict in mapping_dicts.items():
-
-        # Loop through each container in the container list
-        for container in myContainerList:
-
-            # Get the object from the container based on current dict_name
-            cobj = container.getObj(dict_name)
-
-            # If the object exists
-            if cobj:
-
-                # Get the attribute list from the object
-                attributeList = cobj.getAttributeList()
-
-                # Initialize an empty dictionary to store the renamed attributes
+        for block_index in range(sf_file.get_number_of_blocks()):
+            block = sf_file.get_block_by_index(block_index)
+            category_object = sf_file.get_category_object(dict_name, block.getName())
+            if category_object:
+                attributeList = category_object.getAttributeList()
                 renameDict = {}
-
-                # Loop through each attribute in the attribute list
                 for attr in attributeList:
-                    # If the attribute is in the mapping_dict
                     if attr in mapping_dict:
-                        # Add the attribute and its corresponding value from mapping_dict to the rename dictionary
                         renameDict[attr] = mapping_dict[attr]
-
-                # If the rename dictionary is not empty, changes have been made
                 if renameDict:
                     changes_made = True
+                category_object.renameAttributes(renameDict)
+    return changes_made
 
-                # Rename the attributes in the object using the rename dictionary
-                cobj.renameAttributes(renameDict)
-
-            # Attempt to remove the 'citation' category from the container
-            citation_removed = container.remove("citation")
-
-            # If the 'citation' category was removed, changes have been made
-            if citation_removed:
-                changes_made = True
-
-    return myContainerList, changes_made
-
-
-def remove_sfhead(myContainerList, remove_list):
+def remove_sfhead(sf_file, remove_list):
     changes_made = False
-    for i in remove_list:
-        removed_flag = myContainerList.remove(i)
-        if removed_flag:
-            changes_made = True
+    for item in remove_list:
+        for block_index in range(sf_file.get_number_of_blocks()):
+            block = sf_file.get_block_by_index(block_index)
+            removed_flag = sf_file.remove_category_by_name(item, block.getName())
+            if removed_flag:
+                changes_made = True
+    return changes_made
 
-    return myContainerList, changes_made
+def remove_duplicate_reflections(sf_file):
+    changes_made = False
+    total_blocks = sf_file.get_number_of_blocks()
+    for block_index in range(total_blocks):
+        block = sf_file.get_block_by_index(block_index)
+        print(f"Checking duplicates from block {block_index + 1}/{total_blocks}")
+        changes_made |= sf_file.remove_duplicates_in_category('refln', block.getName())
+    return changes_made
+
+
+from sf_file import StructureFactorFile
+
+# Initialize a StructureFactorFile object and read data from a file
+sf_file = StructureFactorFile()
+sf_file.read_file('5pny-sf.cif')
+
+# Perform the reformatting
+changes_made = reformat_sfhead(sf_file)
+
+# Check if any changes were made
+if changes_made:
+    # Write the modified data back to a file
+    sf_file.write_file('example_modified.cif')
+else:
+    print("No changes were made to the structure factor file.")
