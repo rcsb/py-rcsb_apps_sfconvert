@@ -137,6 +137,9 @@ def reformat_sfhead(sf_file):
     # Perform the removal of categories
     changes_made |= remove_sfhead(sf_file, remove_list)
 
+    # Perform the removal of duplicate reflections
+    changes_made |= remove_duplicate_reflections(sf_file)
+
     return changes_made
 
 def rename_sfhead(sf_file, mapping_dicts):
@@ -164,6 +167,15 @@ def remove_sfhead(sf_file, remove_list):
             removed_flag = sf_file.remove_category_by_name(item, block.getName())
             if removed_flag:
                 changes_made = True
+    return changes_made
+
+def remove_duplicate_reflections(sf_file):
+    changes_made = False
+    total_blocks = sf_file.get_number_of_blocks()
+    for block_index in range(total_blocks):
+        block = sf_file.get_block_by_index(block_index)
+        print(f"Removing duplicates from block {block_index + 1}/{total_blocks}")
+        changes_made |= sf_file.remove_duplicates_in_category('refln', block.getName())
     return changes_made
 
 
