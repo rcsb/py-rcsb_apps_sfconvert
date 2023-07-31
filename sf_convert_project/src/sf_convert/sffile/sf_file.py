@@ -28,7 +28,6 @@ class SFFile:
         except Exception as e:
             raise RuntimeError(f"Failed to read file {filename}") from e
 
-
     def readBlock(self, filename, block_number):
         self.readFile(filename)
         if 0 <= block_number < len(self.__containers):
@@ -36,7 +35,6 @@ class SFFile:
         else:
             print(f"Block number {block_number} is not valid. It should be between 0 and {len(self.__containers) - 1}.")
             return None
-        
 
     def getBlockByIndex(self, block_number):
         if 0 <= block_number < len(self.__containers):
@@ -140,44 +138,44 @@ class SFFile:
         new_category.append(list(data_dict.values()))
         block.append(new_category)
 
-    def reorder_objects(self, new_order, block_name=None):
+    # def reorder_objects(self, new_order, block_name=None):
 
-        if block_name == "Default" or block_name == None:
-            block_number = self.__default_block_number
-            old_container = self.__containers[block_number]
-        else:
-            block_number, block_res = self.getBlock(block_name)
-            if block_res is None:
-                return None
-            old_container = block_res
+    #     if block_name == "Default" or block_name == None:
+    #         block_number = self.__default_block_number
+    #         old_container = self.__containers[block_number]
+    #     else:
+    #         block_number, block_res = self.getBlock(block_name)
+    #         if block_res is None:
+    #             return None
+    #         old_container = block_res
 
 
-        new_container = ContainerBase(old_container.getName())
-        new_container.setType(old_container.getType())
+    #     new_container = ContainerBase(old_container.getName())
+    #     new_container.setType(old_container.getType())
         
-        # Copy properties
-        for prop_name in old_container.getPropCatalog():
-            new_container.setProp(prop_name, old_container.getProp(prop_name))
+    #     # Copy properties
+    #     for prop_name in old_container.getPropCatalog():
+    #         new_container.setProp(prop_name, old_container.getProp(prop_name))
         
-        # Add objects in new order
-        for name in new_order:
-            if old_container.exists(name):
-                new_container.append(old_container.getObj(name))
+    #     # Add objects in new order
+    #     for name in new_order:
+    #         if old_container.exists(name):
+    #             new_container.append(old_container.getObj(name))
 
-        # Add any remaining objects not included in new_order
-        for name in old_container.getObjNameList():
-            if name not in new_order:
-                new_container.append(old_container.getObj(name))
+    #     # Add any remaining objects not included in new_order
+    #     for name in old_container.getObjNameList():
+    #         if name not in new_order:
+    #             new_container.append(old_container.getObj(name))
 
-        # Replace old container with new container
-        if block_name == "Default" or block_name == None:
-            block_number = self.__default_block_number
-            self.__containers[block_number] = new_container
-        else:
-            block_number, block_res = self.getBlock(block_name)
-            if block_res is None:
-                return None
-            elif(not block_number):self.__containers[int(block_number)] = new_container
+    #     # Replace old container with new container
+    #     if block_name == "Default" or block_name == None:
+    #         block_number = self.__default_block_number
+    #         self.__containers[block_number] = new_container
+    #     else:
+    #         block_number, block_res = self.getBlock(block_name)
+    #         if block_res is None:
+    #             return None
+    #         elif(not block_number):self.__containers[int(block_number)] = new_container
 
 
 

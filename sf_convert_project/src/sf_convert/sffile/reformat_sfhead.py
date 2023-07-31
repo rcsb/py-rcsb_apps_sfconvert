@@ -1,5 +1,5 @@
-def reformat_sfhead():
-    myContainerList = []
+def reformat_sfhead(myContainerList):
+    # myContainerList = []
     changes_made = False
 
     remove_list = ["citation"]
@@ -199,3 +199,32 @@ def remove_sfhead(myContainerList, remove_list):
             changes_made = True
 
     return myContainerList, changes_made
+
+
+# from sf_file import SFFile
+
+# sf = SFFile()
+# sf.readFile("5pny-sf.cif")
+# myContainerList = sf.getContainerList()
+# myContainerList, changes_made = reformat_sfhead(myContainerList)
+# print(changes_made)
+# # print(sf.myreadBlock(myContainerList))
+# # print(sf.getBlocksNames())
+# #print(sf.mygetCateg(0, myContainerList))
+# # if changes_made:
+# #     sf.setContainerList(myContainerList)
+# #     sf.write("test.cif")
+
+# sf.writeFilemy("test.cif", myContainerList)
+
+from sf_file2 import StructureFactorFile
+
+sf_file = StructureFactorFile()
+sf_file.read_file('5pny-sf.cif')
+
+entry_object = sf_file.get_category_object('audit')
+print(entry_object)
+
+category_names = sf_file.get_category_names()
+print(category_names)
+
