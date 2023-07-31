@@ -118,22 +118,31 @@ class StructureFactorFile:
         block.append(new_category)
 
     def remove_duplicates_in_category(self, category_name, block_name=None):
-            if block_name is None:
-                block = self.get_block_by_index(self.default_block_index)
-            else:
-                _, block = self.get_block_by_name(block_name)
-                if block is None:
-                    print(f"Block {block_name} does not exist.")
-                    return False
-
-            category = block.getObj(category_name)
-            if category is None:
-                print(f"Category {category_name} does not exist in block {block.getName()}.")
+        if block_name is None:
+            block = self.get_block_by_index(self.default_block_index)
+        else:
+            _, block = self.get_block_by_name(block_name)
+            if block is None:
+                print(f"Block {block_name} does not exist.")
                 return False
 
-            initial_row_count = category.getRowCount()
-            seen = set()
-            category.data[:] = [x for x in category.data if tuple(x) not in seen and not seen.add(tuple(x))]
-            final_row_count = category.getRowCount()
+        category = block.getObj(category_name)
+        if category is None:
+            print(f"Category {category_name} does not exist in block {block.getName()}.")
+            return False
 
-            return initial_row_count != final_row_count
+        initial_row_count = category.getRowCount()
+        seen = set()
+        new_data = []
+        for row in category.data:
+            row_tuple = tuple(row)
+            if row_tuple in seen:
+                print(f"Warning: Duplicated row {row} (data block={block.getName()}).")
+            else:
+                seen.add(row_tuple)
+                new_data.append(row)
+        category.data = new_data
+        final_row_count = category.getRowCount()
+
+        return initial_row_count != final_row_count
+

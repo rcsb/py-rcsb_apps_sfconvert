@@ -174,7 +174,7 @@ def remove_duplicate_reflections(sf_file):
     total_blocks = sf_file.get_number_of_blocks()
     for block_index in range(total_blocks):
         block = sf_file.get_block_by_index(block_index)
-        print(f"Removing duplicates from block {block_index + 1}/{total_blocks}")
+        print(f"Checking duplicates from block {block_index + 1}/{total_blocks}")
         changes_made |= sf_file.remove_duplicates_in_category('refln', block.getName())
     return changes_made
 
