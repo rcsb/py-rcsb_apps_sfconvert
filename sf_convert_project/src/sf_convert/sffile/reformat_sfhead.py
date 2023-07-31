@@ -167,7 +167,7 @@ def remove_sfhead(sf_file, remove_list):
     return changes_made
 
 
-from sf_file2 import StructureFactorFile
+from sf_file import StructureFactorFile
 
 # Initialize a StructureFactorFile object and read data from a file
 sf_file = StructureFactorFile()

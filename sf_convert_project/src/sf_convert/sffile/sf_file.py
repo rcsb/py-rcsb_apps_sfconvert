@@ -22,10 +22,6 @@ class StructureFactorFile:
         except Exception as e:
             raise RuntimeError(f"Failed to read file {filename}") from e
 
-    def read_block(self, filename, block_index):
-        self.read_file(filename)
-        return self.get_block_by_index(block_index)
-
     def get_block_by_index(self, block_index):
         if 0 <= block_index < len(self.__data_blocks):
             return self.__data_blocks[block_index]
@@ -94,7 +90,6 @@ class StructureFactorFile:
         removed_category = block.remove(category_name)
         #print(removed_category)
         return removed_category #is not None
-
 
     def add_data_to_block(self, category_name, data_dict, block_name=None):
         """
