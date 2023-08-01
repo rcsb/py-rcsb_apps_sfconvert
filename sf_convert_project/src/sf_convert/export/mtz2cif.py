@@ -9,7 +9,8 @@ sys.path.append(str(path_to_append))
 from sf_file import SFFile
 
 class MtzToCifConverter:
-    def __init__(self, mtz_file_path, output_file_path):
+    def __init__(self, mtz_file_path, output_file_path, pdb_id):
+        self.pdb_id = pdb_id
         self.mtz_file_path = mtz_file_path
         self.output_file_path = output_file_path
         self.mtz2cif = gemmi.MtzToCif()
@@ -142,7 +143,13 @@ class MtzToCifConverter:
 
     def convert_mtz_to_cif(self):
         mtz = gemmi.read_mtz_file(self.mtz_file_path)
-        return self.mtz2cif.write_cif_to_string(mtz)
+        cif_doc_string = self.mtz2cif.write_cif_to_string(mtz)
+        # Parse the CIF document string into a gemmi.Document object
+        cif_doc = gemmi.cif.read_string(cif_doc_string)
+        # Change the name of the first data block
+        cif_doc[0].name = self.pdb_id
+        # Convert the modified Document back into a string
+        return str(cif_doc)
 
     def read_cif_file(self, cif_file):
         self.sffile.readFile(cif_file)
@@ -154,7 +161,6 @@ class MtzToCifConverter:
                 category.appendAttribute(key)
             category.append(tuple(data_dict.values()))
             self.sffile.add_category(category)
-
 
     def match_replace_and_format_labels(self, input_string):
         """

@@ -146,3 +146,28 @@ class StructureFactorFile:
 
         return initial_row_count != final_row_count
 
+    def replace_value_in_category(self, category_name, attribute_name, new_value, old_value=None, block_name=None):
+            if block_name is None:
+                block = self.get_block_by_index(self.__default_block_index)
+            else:
+                _, block = self.get_block_by_name(block_name)
+                if block is None:
+                    print(f"Block {block_name} does not exist.")
+                    return 0
+
+            category = block.getObj(category_name)
+            if category is None:
+                print(f"Category {category_name} does not exist in block {block.getName()}.")
+                return 0
+
+            num_replaced = 0
+            for row in category.data:
+                index = category.getAttributeIndex(attribute_name)
+                if index is None:
+                    print(f"Attribute {attribute_name} does not exist in category {category_name}.")
+                    return 0
+                if old_value is None or row[index] == old_value:
+                    row[index] = new_value
+                    num_replaced += 1
+
+            return num_replaced

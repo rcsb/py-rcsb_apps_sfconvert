@@ -5,13 +5,17 @@ from mmcif.io.IoAdapterCore import IoAdapterCore
 
 class CNSToCifConverter:
 
-    def __init__(self, file_path):
+    def __init__(self, file_path, pdb_id, FREERV):
+        self.__FREERV = FREERV
+        self.__pdb_id = pdb_id
         self.__file_path = file_path
         self.__h_values = []
         self.__k_values = []
         self.__l_values = []
         self.__values = defaultdict(list)
-        self.__curContainer = DataContainer("cif2cif")
+        #self.__curContainer = DataContainer("cif2cif")
+        self.__curContainer = DataContainer(self.__pdb_id)
+
 
     def __process_line(self, line):
         words = line.split()
@@ -36,6 +40,25 @@ class CNSToCifConverter:
                 except ValueError:
                     self.__values[current_key].append(word)
                 current_key = None
+
+                    
+    def __process_status_line(self, line):
+        if 'INDE' in line:
+            ffg = 0
+            if 'TEST' in line or 'FREE' in line:
+                if 'TEST=' in line:
+                    ffg = int(line.split('TEST=')[1].split()[0])
+                elif 'TEST' in line:
+                    ffg = int(line.split('TEST')[1].split()[0])
+                elif 'FREE=' in line:
+                    ffg = int(line.split('FREE=')[1].split()[0])
+                elif 'FREE ' in line:
+                    ffg = int(line.split('FREE ')[1].split()[0])
+                if self.__FREERV:
+                    self.__values['status'].append('f' if ffg == self.__FREERV else 'o')
+                else:
+                    self.__values['status'].append('f' if ffg == 1 else 'o')
+                
 
     def __rename_keys_complete(self):
         rename_dict = {
@@ -67,10 +90,19 @@ class CNSToCifConverter:
         with open(self.__file_path, 'r') as file:
             for line in file:
                 self.__process_line(line)
+                self.__process_status_line(line)
+
+
+
+    def process_file(self):
+        with open(self.__file_path, 'r') as file:
+            for line in file:
+                self.__process_line(line)
+
 
     def rename_keys(self):
         self.__values = self.__rename_keys_complete()
-        self.__values['status'] = ['o' if v == 0 else 'f' for v in self.__values['status']]
+        #self.__values['status'] = ['o' if v == 0 else 'f' for v in self.__values['status']]
 
     def create_data_categories(self):
         aCat = DataCategory("audit")

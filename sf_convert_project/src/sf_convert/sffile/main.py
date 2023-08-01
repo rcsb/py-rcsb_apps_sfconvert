@@ -49,7 +49,7 @@ def main():
     if args.o == 'CNS':
         sffile = SFFile()
         sffile.readFile(str(Path(args.sf)))
-        CNSexport = CNSConverter(sffile, str(Path("your_output_file.txt")))
+        CNSexport = CNSConverter(sffile, str(Path("your_output_file.txt")), pdb_id)
         CNSexport.convert()
 
     elif args.o == 'MTZ':
