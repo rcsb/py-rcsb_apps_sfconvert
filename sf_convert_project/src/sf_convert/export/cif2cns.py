@@ -4,7 +4,7 @@ import random
 from pathlib import Path
 
 
-class CNSConverter:
+class CifToCNSConverter:
     def __init__(self, sffile, fout_path):
         self.__sf_file = sffile
         self.__fout_path = fout_path
@@ -289,11 +289,11 @@ class CNSConverter:
     def convert(self):
         self.write_cns_file(test=0)
 
-def main():
-    sffile = sf_convert()
-    sffile.readFile(str(Path("/Users/vivek/Library/CloudStorage/OneDrive-RutgersUniversity/Desktop files/Summer/py-rcsb_apps_sfconvert/sf_convert_project/src/sf_convert/cif_files/5pny-sf.cif")))
-    CNSexport = CNSConverter(sffile, str(Path("your_output_file.txt")))
-    CNSexport.convert()
+# def main():
+#     sffile = sf_convert()
+#     sffile.readFile(str(Path("/Users/vivek/Library/CloudStorage/OneDrive-RutgersUniversity/Desktop files/Summer/py-rcsb_apps_sfconvert/sf_convert_project/src/sf_convert/cif_files/5pny-sf.cif")))
+#     CNSexport = CNSConverter(sffile, str(Path("your_output_file.txt")))
+#     CNSexport.convert()
 
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()

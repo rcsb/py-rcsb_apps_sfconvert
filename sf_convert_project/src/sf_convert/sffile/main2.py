@@ -1,4 +1,14 @@
 import argparse
+import re
+from pathlib import Path
+from get_items_pdb import ProteinDataBank
+from sf_file import StructureFactorFile
+from ..export.mtz2cif import MtzToCifConverter
+from ..export.cif2cns import CNSToCifConverter
+from ..export.cif2mtz import CifToMTZConverter
+from ..export.cif2mtz import CifToMTZConverter
+from guess_sf_format import guess_sf_format
+
 
 class CustomHelpParser(argparse.ArgumentParser):
     def print_help(self):
@@ -124,7 +134,7 @@ def main():
     parser.add_argument('-i', type=str, help='Input format')
     parser.add_argument('-o', type=str, help='Output format. Accepted values are mmCIF, CNS, MTZ')
     parser.add_argument('-sf', type=str, help='Source file')
-    parser.add_argument('-out', type=str, default='output.mtz', help='Output file name (if not given, default by program)')
+    parser.add_argument('-out', type=str, default='output.mmcif', help='Output file name (if not given, default by program)')
     parser.add_argument('-label', type=str, help='Label name for CNS & MTZ')
     parser.add_argument('-pdb', type=str, help='PDB file (add items to the converted SF file if missing)')
     parser.add_argument('-freer', type=int, help='free test number in the reflection (SF) file')
@@ -140,6 +150,8 @@ def main():
 
     valid_formats = ["CNS", "MTZ", "mmCIF"]
 
+    pdb = ProteinDataBank()
+
     # If -i argument is provided, validate it
     if args.i is not None:
         if args.i not in valid_formats:
@@ -152,6 +164,78 @@ def main():
         if args.i not in valid_formats:
             print(f"Guessed input format ({args.i}) is invalid. Please use one of the following formats: {valid_formats}")
             return
+        
+    # Check if -o argument is provided
+    if args.o is None:
+        print(f"Output format (-o) must be provided. Please use one of the following formats: {valid_formats}")
+        return
+
+    # Validate the output format
+    if args.o not in valid_formats:
+        print(f"Invalid output format: {args.o}. Please use one of the following formats: {valid_formats}")
+        return
+    
+    # Check the extension of the file specified by the -pdb argument
+    if args.pdb.endswith(".cif"):
+        sffile = StructureFactorFile()
+        sffile.readFile(str(Path(args.pdb)))
+        data = pdb.extract_attributes_from_cif(sffile)
+    elif args.pdb.endswith(".pdb"):
+        pdb_id = pdb.extract_attributes_from_pdb(args.pdb)
+    else:
+        print("Invalid file format for -pdb argument. Please use either a PDBx/mmCIF Format (.cif) or PDB Format (.pdb) file.")
+        return
+    
+    # Validate the -label argument
+    if args.label:
+        # Check if label is in the format "key=value, key=value, ..."
+        pattern = re.compile(r'^([^=]+=[^=]+)(,\s*[^=]+=[^=]+)*$')
+        if not pattern.match(args.label):
+            print("Invalid format for -label argument. Please use the format 'key1=value1, key2=value2, ...'")
+            return
+        
+    if args.freer:
+        pdb.update_FREERV(args.freer)
+
+    if args.wave:
+        pdb.update_WAVE(args.wave)
+
+    # Handle the -i and -o arguments
+    input_format = args.i
+    output_format = args.o
+
+    if input_format == "CNS" and output_format == "mmCIF":
+        # Process input as CNS format and export output as mmcif format
+        processor = CNSToCifConverter(args.sf)  # Use the source file provided by the user
+        processor.process_file()
+        processor.rename_keys()
+        processor.create_data_categories()
+        processor.write_to_file(args.out)  # Use the output file name provided by the user
+
+    elif input_format == "MTZ" and output_format == "mmCIF":
+        # Process input as MTZ format and export output as mmcif format
+        converter = MtzToCifConverter(args.sf, args.out)  # Use the source file and output file provided by the user
+        if args.label:
+            # If labels are provided, process them
+            converter.process_labels(args.label)
+        converter.convert_and_write()
+
+    elif input_format == "mmcif" and output_format == "MTZ":
+        # Process input as mmcif format and export output as MTZ format
+        converter = CifToMTZConverter(args.sf)  # Use the source file provided by the user
+        converter.load_cif()
+        converter.determine_mappings()
+        converter.convert_to_mtz(args.out)  # Use the output file name provided by the user
+
+    elif input_format == "mmcif" and output_format == "CNS":
+        # Process input as mmcif format and export output as CNS format
+        sffile = StructureFactorFile()
+        sffile.readFile(args.sf)  # Use the source file provided by the user
+        CNSexport = CNSToCifConverter(sffile, args.out, pdb_id)  # Use the output file name provided by the user
+        CNSexport.convert()
+
+
+
 
 if __name__ == "__main__":
     main()

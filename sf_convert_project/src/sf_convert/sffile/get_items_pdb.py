@@ -102,6 +102,9 @@ class ProteinDataBank:
     def update_FREERV(self, new_freerv):
         self.FREERV = new_freerv
 
+    def update_WAVE(self, new_wave):
+        self.WAVE = new_wave
+
 # testing
 # pdb = ProteinDataBank()
 # from sf_file import SFFile

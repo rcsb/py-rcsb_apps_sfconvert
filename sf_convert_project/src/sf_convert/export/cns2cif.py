@@ -158,8 +158,8 @@ class CNSToCifConverter:
         myIo = IoAdapterCore()
         myIo.writeFile(output_file_path, [self.__curContainer])
 
-processor = CNSToCifConverter('/Users/vivek/Library/CloudStorage/OneDrive-RutgersUniversity/Desktop files/Summer/RCSB/5pny-sf.cif.CNS')
-processor.process_file()
-processor.rename_keys()
-processor.create_data_categories()
-processor.write_to_file("cns2cif_output.cif")
+# processor = CNSToCifConverter('/Users/vivek/Library/CloudStorage/OneDrive-RutgersUniversity/Desktop files/Summer/RCSB/5pny-sf.cif.CNS')
+# processor.process_file()
+# processor.rename_keys()
+# processor.create_data_categories()
+# processor.write_to_file("cns2cif_output.cif")

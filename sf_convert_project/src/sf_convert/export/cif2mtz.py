@@ -1,6 +1,6 @@
 import gemmi
 
-class MTZConverter:
+class CifToMTZConverter:
     def __init__(self, cif_path):
         self.cif_path = cif_path
         self.mappings = {
