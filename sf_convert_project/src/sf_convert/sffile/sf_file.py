@@ -183,3 +183,40 @@ class StructureFactorFile:
     #     # Replace the existing category with the reordered one
     #     self.remove_category_by_name(category_name, block_name)
     #     self.append_category_to_block(reordered_category, block_name)
+
+
+    def reorder_categories_in_block(self, new_order, block_name=None):
+        # Get the block
+        if block_name is None:
+            block = self.__data_blocks[self.__default_block_index]
+        else:
+            block_index, block = self.get_block_by_name(block_name)
+            if block is None:
+                print(f"Block {block_name} does not exist.")
+                return
+
+        # Create a new block with the same name and type
+        new_block = DataContainer(block.getName())
+        new_block.setType(block.getType())
+        
+        # Copy properties from the old block to the new one
+        for prop_name in block.getPropCatalog():
+            new_block.setProp(prop_name, block.getProp(prop_name))
+
+        # Add categories to the new block in the desired order
+        for category_name in new_order:
+            category = block.getObj(category_name)
+            if category is not None:
+                new_block.append(category)
+
+        # Add any remaining categories that were not in new_order
+        for category_name in block.getObjNameList():
+            if category_name not in new_order:
+                category = block.getObj(category_name)
+                new_block.append(category)
+
+        # Replace the original block with the new one
+        if block_name is None:
+            self.__data_blocks[self.__default_block_index] = new_block
+        else:
+            self.__data_blocks[block_index] = new_block

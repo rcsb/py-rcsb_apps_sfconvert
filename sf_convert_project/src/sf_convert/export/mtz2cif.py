@@ -241,8 +241,8 @@ class MtzToCifConverter:
         #self.sffile.reorder_objects(['entry', 'cell', 'symmetry', 'audit', 'refln'])
         #self.sffile.reorder_objects(['audit', 'cell', 'diffrn_radiation_wavelength', 'entry', 'exptl_crystal', 'reflns_scale', 'symmetry', 'refln'])
         #reorderCategoryAttr()
-        # new_order = ['audit', 'cell', 'diffrn_radiation_wavelength', 'entry', 'exptl_crystal', 'reflns_scale', 'symmetry', 'refln']
-        # self.sffile.reorder_category_attributes('your_category_name', new_order)
+        new_order = ['audit', 'cell', 'diffrn_radiation_wavelength', 'entry', 'exptl_crystal', 'reflns_scale', 'symmetry', 'refln']
+        self.sffile.reorder_categories_in_block(new_order)
 
 
         self.sffile.write_file(self.output_file_path)

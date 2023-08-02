@@ -236,7 +236,7 @@ def main():
             processor.write_to_file(args.out+".mmcif")
 
         elif input_format == "MTZ" and output_format == "mmCIF":
-            converter = MtzToCifConverter(args.sf, args.out, pdb.pdb_id)
+            converter = MtzToCifConverter(args.sf, args.out+".mmcif", pdb.pdb_id)
             if args.label:
                 converter.process_labels(args.label)
             converter.convert_and_write()
