@@ -102,7 +102,7 @@ class CNSToCifConverter:
 
     def rename_keys(self):
         self.__values = self.__rename_keys_complete()
-        #self.__values['status'] = ['o' if v == 0 else 'f' for v in self.__values['status']]
+        self.__values['status'] = ['o' if v == 0 else 'f' for v in self.__values['status']]
 
     def create_data_categories(self):
         aCat = DataCategory("audit")

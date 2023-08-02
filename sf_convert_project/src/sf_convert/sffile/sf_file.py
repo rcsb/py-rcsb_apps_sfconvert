@@ -5,10 +5,10 @@ from mmcif.api.DataCategoryBase import DataCategoryBase
 from pathlib import Path
 
 import sys
-export_path = Path('/Users/vivek/Library/CloudStorage/OneDrive-RutgersUniversity/Desktop files/Summer/py-rcsb_apps_sfconvert/sf_convert_project/src/sf_convert/export')
-sys.path.append(str(export_path))
-from cns_export import CNSConverter
-from mtz_export import MTZConverter
+# export_path = Path('/Users/vivek/Library/CloudStorage/OneDrive-RutgersUniversity/Desktop files/Summer/py-rcsb_apps_sfconvert/sf_convert_project/src/sf_convert/export')
+# sys.path.append(str(export_path))
+# from cns_export import CNSConverter
+# from mtz_export import MTZConverter
 
 class StructureFactorFile:
     def __init__(self):

@@ -3,9 +3,14 @@ import random
 #from sf_convert.sffile.sf_file import SFFile
 from pathlib import Path
 
+import sys
+sys.path.append("/Users/vivek/OneDrive - Rutgers University/Desktop files/Summer/py-rcsb_apps_sfconvert/sf_convert_project/src")
+from sf_convert.sffile.sf_file import StructureFactorFile as sf_convert
+
 
 class CifToCNSConverter:
-    def __init__(self, sffile, fout_path):
+    def __init__(self, sffile, fout_path, pdb_id):
+        self.__pdb_id = pdb_id
         self.__sf_file = sffile
         self.__fout_path = fout_path
         self.__attr_existence = {}
@@ -48,8 +53,9 @@ class CifToCNSConverter:
         self.__check_attributes_exist()
 
     def __initialize_refln_data(self):
-        self.__sf_block = self.__sf_file.getBlockByIndex(0)
+        self.__sf_block = self.__sf_file.get_block_by_index(0)
         self.__refln_data = self.__sf_block.getObj("refln")
+        #print(self.__refln_data)
 
     def __initialize_counts(self):
         if self.__refln_data:
@@ -77,13 +83,13 @@ class CifToCNSConverter:
         if i == 0:
             for attr, var in self.attributes.items():
                 if attr not in attL:
-                    setattr(self, "_CNSConverter__"+var, None)
+                    setattr(self, "_CifToCNSConverter__"+var, None)
                 
         for attr, var in self.attributes.items():
             if attr in attL:
                 value = self.__refln_data.getValue(attr, i)
                 # setattr(self, var, value)
-                setattr(self, "_CNSConverter__"+var, value)
+                setattr(self, "_CifToCNSConverter__"+var, value)
                 #print(f'Attribute: {attr}, Variable: {var}, Value at index {i}: {value}')  # Print the value
 
         self.__initialize_Io_at_index(i)
@@ -291,8 +297,8 @@ class CifToCNSConverter:
 
 # def main():
 #     sffile = sf_convert()
-#     sffile.readFile(str(Path("/Users/vivek/Library/CloudStorage/OneDrive-RutgersUniversity/Desktop files/Summer/py-rcsb_apps_sfconvert/sf_convert_project/src/sf_convert/cif_files/5pny-sf.cif")))
-#     CNSexport = CNSConverter(sffile, str(Path("your_output_file.txt")))
+#     sffile.read_file(str(Path("/Users/vivek/Library/CloudStorage/OneDrive-RutgersUniversity/Desktop files/Summer/py-rcsb_apps_sfconvert/sf_convert_project/src/sf_convert/sffile/5pny-sf.cif")))
+#     CNSexport = CifToCNSConverter(sffile, str(Path("your_output_file.txt")), 'xxxx')
 #     CNSexport.convert()
 
 # if __name__ == "__main__":
