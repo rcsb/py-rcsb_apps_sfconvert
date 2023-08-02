@@ -4,8 +4,8 @@ from pathlib import Path
 from get_items_pdb import ProteinDataBank
 from sf_file import StructureFactorFile
 from ..export.mtz2cif import MtzToCifConverter
-from ..export.cif2cns import CNSToCifConverter
-from ..export.cif2mtz import CifToMTZConverter
+from ..export.cns2cif import CNSToCifConverter
+from ..export.cif2cns import CifToCNSConverter
 from ..export.cif2mtz import CifToMTZConverter
 from guess_sf_format import guess_sf_format
 
@@ -231,7 +231,7 @@ def main():
         # Process input as mmcif format and export output as CNS format
         sffile = StructureFactorFile()
         sffile.readFile(args.sf)  # Use the source file provided by the user
-        CNSexport = CNSToCifConverter(sffile, args.out, pdb_id)  # Use the output file name provided by the user
+        CNSexport = CifToCNSConverter(sffile, args.out, pdb_id)  # Use the output file name provided by the user
         CNSexport.convert()
 
 
