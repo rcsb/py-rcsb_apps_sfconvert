@@ -1,3 +1,6 @@
+from sf_convert.utils.pinfo_file import pinfo
+
+
 def reformat_sfhead(sf_file):
     # myContainerList = []
     changes_made = False
@@ -156,6 +159,8 @@ def rename_sfhead(sf_file, mapping_dicts):
                         renameDict[attr] = mapping_dict[attr]
                 if renameDict:
                     changes_made = True
+                    for old_name, new_name in renameDict.items():
+                        pinfo(f"Renaming {old_name} to {new_name} in {dict_name} category of block {block.getName()}", 0)
                 category_object.renameAttributes(renameDict)
     return changes_made
 
@@ -167,6 +172,7 @@ def remove_sfhead(sf_file, remove_list):
             removed_flag = sf_file.remove_category_by_name(item, block.getName())
             if removed_flag:
                 changes_made = True
+                pinfo(f"Removing {item} category from block {block.getName()}", 0)
     return changes_made
 
 def remove_duplicate_reflections(sf_file):
@@ -174,23 +180,23 @@ def remove_duplicate_reflections(sf_file):
     total_blocks = sf_file.get_number_of_blocks()
     for block_index in range(total_blocks):
         block = sf_file.get_block_by_index(block_index)
-        print(f"Checking duplicates from block {block_index + 1}/{total_blocks}")
+        #print(f"Checking duplicates from block {block_index + 1}/{total_blocks}")
         changes_made |= sf_file.remove_duplicates_in_category('refln', block.getName())
     return changes_made
 
 
-from sf_file import StructureFactorFile
+# from sf_file import StructureFactorFile
 
-# Initialize a StructureFactorFile object and read data from a file
-sf_file = StructureFactorFile()
-sf_file.read_file('5pny-sf.cif')
+# # Initialize a StructureFactorFile object and read data from a file
+# sf_file = StructureFactorFile()
+# sf_file.read_file('5pny-sf.cif')
 
-# Perform the reformatting
-changes_made = reformat_sfhead(sf_file)
+# # Perform the reformatting
+# changes_made = reformat_sfhead(sf_file)
 
-# Check if any changes were made
-if changes_made:
-    # Write the modified data back to a file
-    sf_file.write_file('example_modified.cif')
-else:
-    print("No changes were made to the structure factor file.")
+# # Check if any changes were made
+# if changes_made:
+#     # Write the modified data back to a file
+#     sf_file.write_file('example_modified.cif')
+# else:
+#     print("No changes were made to the structure factor file.")

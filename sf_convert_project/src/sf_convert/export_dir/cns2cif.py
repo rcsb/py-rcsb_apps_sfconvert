@@ -2,6 +2,7 @@ from collections import defaultdict
 from mmcif.api.DataCategory import DataCategory
 from mmcif.api.PdbxContainers import DataContainer
 from mmcif.io.IoAdapterCore import IoAdapterCore
+from sf_convert.utils.pinfo_file import pinfo
 
 class CNSToCifConverter:
 
@@ -15,6 +16,7 @@ class CNSToCifConverter:
         self.__values = defaultdict(list)
         #self.__curContainer = DataContainer("cif2cif")
         self.__curContainer = DataContainer(self.__pdb_id)
+        self.__pinfo_value = 0
 
 
     def __process_line(self, line):
@@ -111,12 +113,16 @@ class CNSToCifConverter:
         aCat.appendAttribute("update_record")
         aCat.append(["1_0", "?", "Initial release"])
         self.__curContainer.append(aCat)
+        pinfo(f'Note: file {self.__file_path} has no _audit. (auto added)',self.__pinfo_value)
+
 
         bCat = DataCategory("diffrn_radiation_wavelength")
         bCat.appendAttribute("id")
         bCat.appendAttribute("wavelength")
         bCat.append(["1", "."])
         self.__curContainer.append(bCat)
+        pinfo("Warning: No wavelength value was found in SF file", self.__pinfo_value)
+
 
         cCat = DataCategory("entry")
         cCat.appendAttribute("id")

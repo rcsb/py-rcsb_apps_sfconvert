@@ -1,16 +1,16 @@
 import math
 import os
 import argparse
-from sf_convert_project.src.sf_convert.sffile.sf_file import SFFile
+from sf_convert.sffile.sf_file import SFFile
 #from ..sffile.sf_file import SFFile
-from sf_convert_project.src.sf_convert.utils.pinfo_file import pinfo
+from sf_convert.utils.pinfo_file import pinfo
 #from .pinfo_file import pinfo
 from mmcif.api.DataCategory import DataCategory
 from mmcif.api.PdbxContainers import DataContainer
 from mmcif.io.PdbxWriter import PdbxWriter
 
 class CheckSfFile:
-    def __init__(self, sffile, fout_path, pinfo_value = 0):
+    def __init__(self, sffile, fout_path, pinfo_value = 1):
         self.__sf_file = sffile
         self.__pinfo_value = pinfo_value
         self.__fout_path = fout_path
@@ -207,7 +207,7 @@ class CheckSfFile:
 
             return rcell, cell
         else:
-            pinfo("No cell data found in the mmCIF file.")
+            pinfo("Warning: No cell data found in the mmCIF file.", self.__pinfo_value)
 
     def get_resolution(self, h, k, l, rcell):
         aa1 = 2 * rcell[0] * rcell[1] * math.cos(math.radians(rcell[5]))
@@ -245,7 +245,7 @@ class CheckSfFile:
 
             pinfo("Best Resolution: {:.2f} Angstroms".format(best_resolution), self.__pinfo_value)
         else:
-            pinfo("No refln data found in the mmCIF file.", self.__pinfo_value)
+            pinfo("Error: No refln data found in the mmCIF file.", self.__pinfo_value)
 
     def cif_token_change(self, old_token, new_token):
         pinfo(f"Warning! The mmcif token  _refln.{old_token} is wrong!", self.__pinfo_value)
