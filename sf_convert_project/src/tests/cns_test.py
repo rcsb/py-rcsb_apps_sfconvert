@@ -1,5 +1,5 @@
-from sf_convert.sffile.sf_file import SFFile
-from sf_convert.export.cns_export import CNSConverter
+from sf_convert.sffile.sf_file import StructureFactorFile
+from sf_convert.export.cif2cns import CifToCNSConverter
 #from pathlib import Path
 import os
 
@@ -7,17 +7,17 @@ class TestCns:
 
     @staticmethod
     def test_cif2cns(tmp_path, cif_5pny_data_path):
-        sffile = SFFile()
+        sffile = StructureFactorFile()
         infile = cif_5pny_data_path
         outfile = os.path.join(tmp_path, "cns_file.txt")
         # We should return a diagnostic on reading
         print("XXXXX", infile)
-        sffile.readFile(infile)
-        assert sffile.getBlocksCount() > 0
+        sffile.read_file(infile)
+        assert sffile.get_number_of_blocks() > 0
     
-        CNSexport = CNSConverter(sffile, outfile)
+        CNSexport = CifToCNSConverter(sffile, outfile, "xxxx")
         # We should have a diagnostic
-        CNSexport.convert()
+        CNSexport.write_cns_file(0)
 
         assert os.path.exists(outfile)
     

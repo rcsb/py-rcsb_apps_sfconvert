@@ -1,4 +1,4 @@
-from sf_convert.sffile.sf_file import SFFile
+from sf_convert.sffile.sf_file import StructureFactorFile
 
 class TestVersion:
     @staticmethod
@@ -7,5 +7,5 @@ class TestVersion:
         pass
     @staticmethod
     def test_instantiate():
-        s = SFFile()
+        s = StructureFactorFile()
         assert s
