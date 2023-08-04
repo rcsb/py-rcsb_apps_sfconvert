@@ -3,13 +3,15 @@ import os
 from pathlib import Path
 import sys
 from mmcif.api.DataCategory import DataCategory
-path_to_append = Path('/Users/vivek/Library/CloudStorage/OneDrive-RutgersUniversity/Desktop files/Summer/py-rcsb_apps_sfconvert/sf_convert_project/src/sf_convert/sffile')
-sys.path.append(str(path_to_append))
+# path_to_append = Path('/Users/vivek/Library/CloudStorage/OneDrive-RutgersUniversity/Desktop files/Summer/py-rcsb_apps_sfconvert/sf_convert_project/src/sf_convert/sffile')
+# sys.path.append(str(path_to_append))
 
-from sf_file import SFFile
+from sf_convert.sffile.sf_file import StructureFactorFile as SFFile
+from sf_convert.utils.CifUtils import reorderCategoryAttr
 
 class MtzToCifConverter:
-    def __init__(self, mtz_file_path, output_file_path):
+    def __init__(self, mtz_file_path, output_file_path, pdb_id):
+        self.pdb_id = pdb_id
         self.mtz_file_path = mtz_file_path
         self.output_file_path = output_file_path
         self.mtz2cif = gemmi.MtzToCif()
@@ -140,12 +142,22 @@ class MtzToCifConverter:
         spec_lines = ['\t'.join(line) for line in self.spec_file_content]
         self.mtz2cif.spec_lines = spec_lines
 
+    # def convert_mtz_to_cif(self):
+    #     mtz = gemmi.read_mtz_file(self.mtz_file_path)
+    #     cif_doc_string = self.mtz2cif.write_cif_to_string(mtz)
+    #     # Parse the CIF document string into a gemmi.Document object
+    #     cif_doc = gemmi.cif.read_string(cif_doc_string)
+    #     # Change the name of the first data block
+    #     cif_doc[0].name = self.pdb_id
+    #     # Convert the modified Document back into a string
+    #     return str(cif_doc)
+    
     def convert_mtz_to_cif(self):
         mtz = gemmi.read_mtz_file(self.mtz_file_path)
         return self.mtz2cif.write_cif_to_string(mtz)
 
     def read_cif_file(self, cif_file):
-        self.sffile.readFile(cif_file)
+        self.sffile.read_file(cif_file)
 
     def add_category(self, categories):
         for category_name, data_dict in categories.items():
@@ -153,8 +165,7 @@ class MtzToCifConverter:
             for key in data_dict.keys():
                 category.appendAttribute(key)
             category.append(tuple(data_dict.values()))
-            self.sffile.add_category(category)
-
+            self.sffile.append_category_to_block(category)
 
     def match_replace_and_format_labels(self, input_string):
         """
@@ -217,7 +228,7 @@ class MtzToCifConverter:
         # print("-------------------")
         # print(self.spec_file_content)
         # print("-------------------")
-        self.convert_and_write()
+        #self.convert_and_write()
 
     def convert_and_write(self):
         temp_file = "temp_file.mmcif"
@@ -228,13 +239,18 @@ class MtzToCifConverter:
         self.read_cif_file(temp_file)
         self.add_category(self.categories)
         #self.sffile.reorder_objects(['entry', 'cell', 'symmetry', 'audit', 'refln'])
-        self.sffile.reorder_objects(['audit', 'cell', 'diffrn_radiation_wavelength', 'entry', 'exptl_crystal', 'reflns_scale', 'symmetry', 'refln'])
-        self.sffile.writeFile(self.output_file_path)
+        #self.sffile.reorder_objects(['audit', 'cell', 'diffrn_radiation_wavelength', 'entry', 'exptl_crystal', 'reflns_scale', 'symmetry', 'refln'])
+        #reorderCategoryAttr()
+        new_order = ['audit', 'cell', 'diffrn_radiation_wavelength', 'entry', 'exptl_crystal', 'reflns_scale', 'symmetry', 'refln']
+        self.sffile.reorder_categories_in_block(new_order)
+
+
+        self.sffile.write_file(self.output_file_path)
         os.remove(temp_file)
 
 
 # Use the class to convert MTZ to CIF
 #converter = MtzToCifConverter('/Users/vivek/Library/CloudStorage/OneDrive-RutgersUniversity/Desktop files/Summer/py-rcsb_apps_sfconvert/sf_convert_project/src/tests/data/cif_files/Ras_NAD.mtz', 'output.cif')
-converter = MtzToCifConverter(str(Path('/Users/vivek/Library/CloudStorage/OneDrive-RutgersUniversity/Desktop files/Summer/RCSB/complex.mtz')), 'output_comp.cif')
-converter.convert_and_write()
+# converter = MtzToCifConverter(str(Path('/Users/vivek/Library/CloudStorage/OneDrive-RutgersUniversity/Desktop files/Summer/RCSB/complex.mtz')), 'output_comp.cif')
+# converter.convert_and_write()
 #converter.process_labels("FP=DELFWT, SIGFP=SIGF_XDSdataset")

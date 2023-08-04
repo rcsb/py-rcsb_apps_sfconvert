@@ -16,4 +16,17 @@ def cif_5pny_data_path(data_dir):
     yield os.path.join(data_dir, "cif_files", "5pny-sf.cif")
     
 
+@pytest.fixture
+def cns_5pny_data_path(data_dir):
+    yield os.path.join(data_dir, "cif_files", "5pny-sf.CNS")
+
+
+@pytest.fixture
+def mtz_Ras_NAD_data_path(data_dir):
+    yield os.path.join(data_dir, "cif_files", "Ras_NAD.mtz")
+
+
+@pytest.fixture
+def cif_Ras_NAD_data_path(data_dir):
+    yield os.path.join(data_dir, "cif_files", "Ras_NAD.mtz.mmcif")
 

@@ -114,8 +114,8 @@ def guess_sf_format(inpfile):
 
     return "Format not recognized"
 
-print(guess_sf_format('cns-sf6.cv'))
-print(guess_sf_format('7xvx-sf.cif.mmcif'))
-print(guess_sf_format('1o08.cif'))
-print(guess_sf_format('4ar3-sf.cif.mtz'))
-print(guess_sf_format('1N9F.mtz'))
+# print(guess_sf_format('cns-sf6.cv'))
+# print(guess_sf_format('7xvx-sf.cif.mmcif'))
+# print(guess_sf_format('1o08.cif'))
+# print(guess_sf_format('4ar3-sf.cif.mtz'))
+# print(guess_sf_format('1N9F.mtz'))
