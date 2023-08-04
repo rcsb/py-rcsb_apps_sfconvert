@@ -1,5 +1,5 @@
 from sf_convert.sffile.sf_file import StructureFactorFile
-from sf_convert.export.cif2cns import CifToCNSConverter
+from sf_convert.export_dir.cif2cns import CifToCNSConverter
 #from pathlib import Path
 import os
 

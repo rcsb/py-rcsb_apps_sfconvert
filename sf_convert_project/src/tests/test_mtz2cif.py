@@ -1,11 +1,11 @@
-from sf_convert.export.mtz2cif import MtzToCifConverter
-
+from sf_convert.import_dir.mtz2cif import MtzToCifConverter
+import os
 
 class TestMtzToCifConversion:
     def test_mtz2cif(self, tmp_path, mtz_Ras_NAD_data_path, cif_Ras_NAD_data_path):
         print("Starting the test...")
         
-        output_path = tmp_path / "output.cif"
+        output_path = os.path.join(tmp_path, "output.mmcif")
         
         print("Loading and converting the file...")
         converter = MtzToCifConverter(mtz_Ras_NAD_data_path, output_path, "5pny")

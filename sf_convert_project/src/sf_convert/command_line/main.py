@@ -1,14 +1,17 @@
 import argparse
 import re
 import os
+import sys
 from pathlib import Path
 from sf_convert.sffile.get_items_pdb import ProteinDataBank
 from sf_convert.sffile.sf_file import StructureFactorFile
-from sf_convert.export.mtz2cif import MtzToCifConverter
-from sf_convert.export.cns2cif import CNSToCifConverter
-from sf_convert.export.cif2cns import CifToCNSConverter
-from sf_convert.export.cif2mtz import CifToMTZConverter
+from sf_convert.import_dir.mtz2cif import MtzToCifConverter
+from sf_convert.export_dir.cns2cif import CNSToCifConverter
+from sf_convert.export_dir.cif2cns import CifToCNSConverter
+from sf_convert.export_dir.cif2mtz import CifToMTZConverter
 from sf_convert.sffile.guess_sf_format import guess_sf_format
+from sf_convert.utils.pinfo_file import pinfo
+from sf_convert.utils.get_sf_info_file import get_sf_info
 
 
 
@@ -177,6 +180,8 @@ def main():
 
         # If -i argument is not provided, use guess_sf_format() to determine the input format
         else:
+            if args.sf is None:
+                raise ValueError("Source file (-sf) must be provided.")
             args.i = guess_sf_format(args.sf)
             validate_format(args.i, valid_formats)
 
@@ -213,12 +218,20 @@ def main():
             if args.freer <= 0:
                 raise ValueError("-freer argument must be a positive integer.")
             pdb.update_FREERV(args.freer)
+            pinfo(f"Note: {args.freer} is used for free data set.", 0)
 
         if args.wave:
             if args.wave <= 0.0:
                 raise ValueError("-wave argument must be a positive float.")
             pdb.update_WAVE(args.wave)
 
+        
+        if args.diags:
+            #validate_file_exists(args.diags)
+            get_sf_info(args.diags)
+            #pinfo(f"Note: {args.diags} is used for warning/error messages.", 0)
+
+        
         # Handle the -i and -o arguments
         input_format = args.i
         output_format = args.o

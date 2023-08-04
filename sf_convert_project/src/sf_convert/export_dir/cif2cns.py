@@ -9,7 +9,7 @@ from sf_convert.sffile.sf_file import StructureFactorFile as sf_convert
 
 
 class CifToCNSConverter:
-    def __init__(self, sffile, fout_path, pdb_id):
+    def __init__(self, sffile, fout_path, pdb_id='xxxx'):
         self.__pdb_id = pdb_id
         self.__sf_file = sffile
         self.__fout_path = fout_path
@@ -217,7 +217,7 @@ class CifToCNSConverter:
         except ValueError:
             return 0
 
-    def write_cns_file(self, test):
+    def write_cns_file(self):
         """
         Method to write data to a CNS file
         """
@@ -264,13 +264,10 @@ class CifToCNSConverter:
                 if self.__attr_existence['status'] and self.__status == 'x':
                     continue
 
-                if test > 0.001:
-                    flag = 1 if random.randint(0, int(test)) == 1 else 0
+                if self.__status:
+                    flag = 1 if (self.__status == 'f' or self.__status == '1') else 0
                 else:
-                    if self.__status:
-                        flag = 1 if (self.__status == 'f' or self.__status == '1') else 0
-                    else:
-                        flag = 0
+                    flag = 0
 
                 output_file.write("INDE  {} {} {} FOBS= {:.2f} SIGMA= {:.2f} TEST= {}\n".format(h, k, l, ff, sff, flag))
 
@@ -293,7 +290,7 @@ class CifToCNSConverter:
                         self.float_or_zero(self.__hla), self.float_or_zero(self.__hlb), self.float_or_zero(self.__hlc), self.float_or_zero(self.__hld)))
 
     def convert(self):
-        self.write_cns_file(test=0)
+        self.write_cns_file()
 
 # def main():
 #     sffile = sf_convert()
