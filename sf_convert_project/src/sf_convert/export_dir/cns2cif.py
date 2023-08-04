@@ -5,7 +5,7 @@ from mmcif.io.IoAdapterCore import IoAdapterCore
 
 class CNSToCifConverter:
 
-    def __init__(self, file_path, pdb_id, FREERV):
+    def __init__(self, file_path, pdb_id, FREERV=None):
         self.__FREERV = FREERV
         self.__pdb_id = pdb_id
         self.__file_path = file_path

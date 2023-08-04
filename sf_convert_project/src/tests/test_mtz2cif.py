@@ -1,4 +1,4 @@
-from sf_convert.export.mtz2cif import MtzToCifConverter
+from sf_convert.import_dir.mtz2cif import MtzToCifConverter
 
 
 class TestMtzToCifConversion:

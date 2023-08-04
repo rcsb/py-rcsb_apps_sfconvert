@@ -1,4 +1,4 @@
-from sf_convert.export.cns2cif import CNSToCifConverter
+from sf_convert.export_dir.cns2cif import CNSToCifConverter
 
 class TestCnsToCifConversion:
     def test_cns2cif(self, tmp_path, cns_5pny_data_path, cif_5pny_data_path):

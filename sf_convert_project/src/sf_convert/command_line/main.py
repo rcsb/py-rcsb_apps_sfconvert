@@ -1,13 +1,14 @@
 import argparse
 import re
 import os
+import sys
 from pathlib import Path
 from sf_convert.sffile.get_items_pdb import ProteinDataBank
 from sf_convert.sffile.sf_file import StructureFactorFile
-from sf_convert.export.mtz2cif import MtzToCifConverter
-from sf_convert.export.cns2cif import CNSToCifConverter
-from sf_convert.export.cif2cns import CifToCNSConverter
-from sf_convert.export.cif2mtz import CifToMTZConverter
+from sf_convert.import_dir.mtz2cif import MtzToCifConverter
+from sf_convert.export_dir.cns2cif import CNSToCifConverter
+from sf_convert.export_dir.cif2cns import CifToCNSConverter
+from sf_convert.export_dir.cif2mtz import CifToMTZConverter
 from sf_convert.sffile.guess_sf_format import guess_sf_format
 
 

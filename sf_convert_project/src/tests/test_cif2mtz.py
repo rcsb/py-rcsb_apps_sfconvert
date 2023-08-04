@@ -1,5 +1,5 @@
 import os
-from sf_convert.export.cif2mtz import CifToMTZConverter
+from sf_convert.export_dir.cif2mtz import CifToMTZConverter
 
 class TestCifToMtzConversion:
     def test_cif2mtz(self, tmp_path, cif_5pny_data_path):
