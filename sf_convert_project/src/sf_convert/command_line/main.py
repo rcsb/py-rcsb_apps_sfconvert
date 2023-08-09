@@ -12,6 +12,7 @@ from sf_convert.export_dir.cif2mtz import CifToMTZConverter
 from sf_convert.sffile.guess_sf_format import guess_sf_format
 from sf_convert.utils.pinfo_file import pinfo
 from sf_convert.utils.get_sf_info_file import get_sf_info
+from sf_convert.utils.CheckSfFile import CheckSfFile
 
 
 
@@ -232,6 +233,18 @@ def main():
             #pinfo(f"Note: {args.diags} is used for warning/error messages.", 0)
 
         
+        if args.valid:
+            #validate_file_exists(args.valid)
+            get_sf_info(args.valid)
+            #pinfo(f"Note: {args.valid} is used for checking SF errors.", 0)
+            sffile = StructureFactorFile()
+            sffile.read_file(args.sf)
+            n = sffile.get_number_of_blocks()
+            sf_stat = CheckSfFile(sffile, args.out)
+            sf_stat.check_sf_all_blocks(n)
+            sf_stat.write_sf_4_validation()
+
+
         # Handle the -i and -o arguments
         input_format = args.i
         output_format = args.o
