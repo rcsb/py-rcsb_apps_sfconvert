@@ -1,13 +1,14 @@
 import math
 import os
 import argparse
-from sf_convert.sffile.sf_file import SFFile
+from sf_convert.sffile.sf_file import StructureFactorFile
 #from ..sffile.sf_file import SFFile
 from sf_convert.utils.pinfo_file import pinfo
 #from .pinfo_file import pinfo
 from mmcif.api.DataCategory import DataCategory
 from mmcif.api.PdbxContainers import DataContainer
 from mmcif.io.PdbxWriter import PdbxWriter
+
 
 class CheckSfFile:
     def __init__(self, sffile, fout_path, pinfo_value = 1):
@@ -253,7 +254,7 @@ class CheckSfFile:
 
     def check_sf(self, nblock):
 
-        self.__sf_block = self.__sf_file.getBlockByIndex(nblock)
+        self.__sf_block = self.__sf_file.get_block_by_index(nblock)
         pinfo(f"Data_block_id={self.__sf_block.getName()}, block_number={nblock+1}\n", self.__pinfo_value)
         self.initialize_data()
 
@@ -660,11 +661,13 @@ class CheckSfFile:
 
     def write_sf_4_validation(self, nblock=0):
     
-        file_name = 'sf_4_validate.cif'
-        file_path = os.path.join(self.__fout_path, file_name)
+        # file_name = 'sf_4_validate.cif'
+        # file_path = os.path.join(self.__fout_path, file_name)
+
+        file_path = self.__fout_path
 
 
-        self.__sf_block = self.__sf_file.getBlockByIndex(nblock)
+        self.__sf_block = self.__sf_file.get_block_by_index(nblock)
         self.initialize_data()
 
         myDataList = []
@@ -856,57 +859,6 @@ class CheckSfFile:
 #     main()
 
 # -------------------------------------------------- MAIN FUNCTION ----------------------------------------------------------- #
-
-def main():
-    # Define the input and output formats
-    input_formats = ['MTZ', 'mmCIF', 'CIF', 'CNS', 'Xplor', 'SHELX', 'HKL2000', 
-                     'Scalepack', 'Dtrek', 'TNT', 'SAINT', 'EPMR', 'XSCALE', 
-                     'XPREP', 'XTALVIEW', 'X-GEN', 'XENGEN', 'MULTAN', 'MAIN', 'OTHER']
-    output_formats = ['mmCIF', 'MTZ', 'CNS', 'TNT', 'SHELX', 'EPMR', 'XTALVIEW', 
-                      'HKL2000', 'Dtrek', 'XSCALE', 'MULTAN', 'MAIN', 'OTHER']
-
-    parser = argparse.ArgumentParser(description='Structure factor conversion')
-    parser.add_argument('-i', type=str, choices=input_formats, help='Input format')
-    parser.add_argument('-o', type=str, choices=output_formats, required=True, help='Output format')
-    parser.add_argument('-sf', type=str, required=True, help='Data file')
-    parser.add_argument('-out', type=str, help='Output file')
-    parser.add_argument('-label', type=str, help='Label name for CNS & MTZ')
-    parser.add_argument('-freer', type=int, help='A free test number in the reflection (SF) file')
-    parser.add_argument('-pdb', type=str, help='A PDB file (add items to the converted SF file if missing)')
-    parser.add_argument('-sf_type', type=str, choices=['I', 'F'], help='I (intensity) or F (amplitude). Only for shelx or TNT')
-    parser.add_argument('-detail', type=str, help='A note to the data set')
-    parser.add_argument('-wave', type=float, help='Wavelength. It overwrites the existing one')
-    parser.add_argument('-diags', type=str, help='Log file containing warning/error message')
-    parser.add_argument('-man', type=str, help='Cells & symmetry (a,b,c,alpha,beta,gamma,p21)')
-    parser.add_argument('-flag', type=int, help='A number for re-setting the Rfree random test set')
-    parser.add_argument('-format', action='store_true', help='Guess the format of the SF file')
-    parser.add_argument('-audit', type=str, help='Update the audit record')
-    parser.add_argument('-valid', type=str, help='Check various SF errors, and correct')
-    parser.add_argument('-rescut', type=float, help='High resolution cutoff for SF_4_validate.cif')
-    parser.add_argument('-sigcut', type=float, help='I/SigI cutoff for SF_4_validate.cif')
-    parser.add_argument('-cif_check', action='store_true', help='Check pdbx dictionary. (local use only)')
-    parser.add_argument('-ext_data', type=str, help='Extract data from SF file')
-
-    args = parser.parse_args()
-
-#     # Process the arguments and call the corresponding functions
-#     # e.g. 
-#     if args.i:
-#         fun1(args.i)
-#     if args.o:
-#         fun2(args.o)
-#     # etc...
-
-# def fun1(input):
-#     print("Processing input", input)
-
-# def fun2(output):
-#     print("Processing output", output)
-
-# ... Add more functions to handle other parameters
-
-if __name__ == "__main__":
-    main()
 
 
 # -------------------------------------------------- END OF MAIN FUNCTION ----------------------------------------------------------- #

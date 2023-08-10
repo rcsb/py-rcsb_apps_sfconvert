@@ -164,7 +164,8 @@ def main():
         parser.add_argument('-wave', type=float, help='Wavelength setting. It overwrites the existing one')
         parser.add_argument('-diags', type=str, help='Log file containing warning/error message')
         parser.add_argument('-detail', type=str, help='Give a note to the data set')
-        parser.add_argument('-valid', type=str, help='Check various SF errors, and correct!')
+        # parser.add_argument('-valid', type=str, help='Check various SF errors, and correct!')
+        parser.add_argument('-valid', action='store_true', help='Check various SF errors, and correct!')
         parser.add_argument('-multidatablock', type=str, help='Update block name')
 
         args = parser.parse_args()
@@ -187,14 +188,15 @@ def main():
             validate_format(args.i, valid_formats)
 
         # Check if -o argument is provided
-        if args.o is None:
+        if args.o is None and args.valid is False:
             raise ValueError(f"Output format (-o) must be provided. Please use one of the following formats: {valid_formats}")
         
         if args.sf is None:
             raise ValueError("Source file (-sf) must be provided.")
 
         # Validate the output format
-        validate_format(args.o, valid_formats)
+        if args.o:
+            validate_format(args.o, valid_formats)
 
         # Check the extension of the file specified by the -pdb argument
         if args.pdb:
@@ -234,13 +236,10 @@ def main():
 
         
         if args.valid:
-            #validate_file_exists(args.valid)
-            get_sf_info(args.valid)
-            #pinfo(f"Note: {args.valid} is used for checking SF errors.", 0)
             sffile = StructureFactorFile()
             sffile.read_file(args.sf)
             n = sffile.get_number_of_blocks()
-            sf_stat = CheckSfFile(sffile, args.out)
+            sf_stat = CheckSfFile(sffile, args.out+"_SF_4_validate.cif")
             sf_stat.check_sf_all_blocks(n)
             sf_stat.write_sf_4_validation()
 
@@ -275,7 +274,7 @@ def main():
             CNSexport = CifToCNSConverter(sffile, args.out+".CNS", pdb.pdb_id)
             CNSexport.convert()
 
-        else:
+        elif args.valid is False:
             raise ValueError(f"Conversion from {input_format} to {output_format} is not supported.")
         
     except ValueError as e:
