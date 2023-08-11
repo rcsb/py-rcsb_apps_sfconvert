@@ -10,6 +10,7 @@ from sf_convert.export_dir.cns2cif import CNSToCifConverter
 from sf_convert.export_dir.cif2cns import CifToCNSConverter
 from sf_convert.export_dir.cif2mtz import CifToMTZConverter
 from sf_convert.sffile.guess_sf_format import guess_sf_format
+from sf_convert.sffile.reformat_sfhead import reformat_sfhead
 from sf_convert.utils.pinfo_file import pinfo
 from sf_convert.utils.get_sf_info_file import get_sf_info
 from sf_convert.utils.CheckSfFile import CheckSfFile
@@ -273,6 +274,17 @@ def main():
             sffile.read_file(args.sf)
             CNSexport = CifToCNSConverter(sffile, args.out+".CNS", pdb.pdb_id)
             CNSexport.convert()
+
+        elif input_format == "mmCIF" and output_format == "mmCIF":
+            sffile = StructureFactorFile()
+            sffile.read_file(args.sf)
+
+            if args.detail:
+                _ = reformat_sfhead(sffile, args.detail)
+            else:
+                _ = reformat_sfhead(sffile)
+
+            sffile.write_file(args.out+".mmcif")
 
         elif args.valid is False:
             raise ValueError(f"Conversion from {input_format} to {output_format} is not supported.")

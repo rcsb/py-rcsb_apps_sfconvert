@@ -35,3 +35,12 @@ def cif_Ras_NAD_data_path(data_dir):
 def cif_SF_4_validate_data_path(data_dir):
     yield os.path.join(data_dir, "cif_files", "SF_4_validate.cif")
 
+
+@pytest.fixture
+def cif_mmcif_5pny_data_path(data_dir):
+    yield os.path.join(data_dir, "cif_files", "5pny-sf.cif.mmcif")
+
+
+@pytest.fixture
+def cif_mmcif_5pny_detail_data_path(data_dir):
+    yield os.path.join(data_dir, "cif_files", "5pny-sf-detail.cif.mmcif")
