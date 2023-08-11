@@ -255,13 +255,52 @@ def main():
             processor.process_file()
             processor.rename_keys()
             processor.create_data_categories()
-            processor.write_to_file(args.out+".mmcif")
+            # processor.write_to_file(args.out+".mmcif")
+            processor.write_to_file(args.out)
+
+
+            sffile = StructureFactorFile()
+            sffile.read_file(args.out)
+
+            if args.detail:
+                _ = reformat_sfhead(sffile, args.detail)
+            else:
+                _ = reformat_sfhead(sffile)
+
+            if args.multidatablock :
+                if(len(args.multidatablock) == 4):
+                    sffile.correct_block_names(args.multidatablock)
+                else:
+                    raise ValueError(f"Block name must be 4 characters long. {args.multidatablock} is not valid.")
+
+            sffile.write_file(args.out+".mmcif")
+            os.remove(args.out)
+
 
         elif input_format == "MTZ" and output_format == "mmCIF":
-            converter = MtzToCifConverter(args.sf, args.out+".mmcif", pdb.pdb_id)
+            converter = MtzToCifConverter(args.sf, args.out, pdb.pdb_id)
             if args.label:
                 converter.process_labels(args.label)
             converter.convert_and_write()
+
+
+            sffile = StructureFactorFile()
+            sffile.read_file(args.out)
+
+            if args.detail:
+                _ = reformat_sfhead(sffile, args.detail)
+            else:
+                _ = reformat_sfhead(sffile)
+
+            if args.multidatablock :
+                if(len(args.multidatablock) == 4):
+                    sffile.correct_block_names(args.multidatablock)
+                else:
+                    raise ValueError(f"Block name must be 4 characters long. {args.multidatablock} is not valid.")
+                
+            sffile.write_file(args.out+".mmcif")
+            os.remove(args.out)
+
 
         elif input_format == "mmCIF" and output_format == "MTZ":
             converter = CifToMTZConverter(args.sf)
