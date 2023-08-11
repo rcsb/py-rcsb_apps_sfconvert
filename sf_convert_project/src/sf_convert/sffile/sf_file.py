@@ -176,7 +176,6 @@ class StructureFactorFile:
 
             return num_replaced
 
-
     def reorder_category_attributes(self, category_name, new_order, block_name=None):
         # Get the category object
         category = self.get_category_object(category_name, block_name)
@@ -187,7 +186,6 @@ class StructureFactorFile:
         # Replace the existing category with the reordered one
         self.remove_category_by_name(category_name, block_name)
         self.append_category_to_block(reordered_category, block_name)
-
 
     def reorder_categories_in_block(self, new_order, block_name=None):
         # Get the block
@@ -224,3 +222,29 @@ class StructureFactorFile:
             self.__data_blocks[self.__default_block_index] = new_block
         else:
             self.__data_blocks[block_index] = new_block
+
+    def generate_expected_block_name(self, pdbid, block):
+        # Special case for block equals 0
+        if block == 0:
+            return f"r{pdbid}sf"
+        
+        # Set bid
+        bid = "_ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789abcdefghijklmnopqrstuvwxyz"
+        
+        # Calculate rem and mod
+        rem = (block - 1) // 36
+        mod = (block - 1) % 36
+        
+        # Conditionally set bname
+        if rem > 0:
+            return f"r{pdbid}{bid[mod+1]}{bid[rem]}sf"
+        else:
+            return f"r{pdbid}{bid[mod+1]}sf"
+
+    def correct_block_names(self, pdbid):
+        # block_names = self.get_all_block_names()
+        for index, block in enumerate(self.__data_blocks):
+            # expected_name = self.generate_expected_block_name(block_names[index][1:5], index)  # Assuming pdbid is the 4 characters after "r"
+            expected_name = self.generate_expected_block_name(pdbid, index)  # Assuming pdbid is the 4 characters after "r"
+            if block.getName() != expected_name:
+                block.setName(expected_name) 
