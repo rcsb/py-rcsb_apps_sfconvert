@@ -284,6 +284,12 @@ def main():
             else:
                 _ = reformat_sfhead(sffile)
 
+            if args.multidatablock :
+                if(len(args.multidatablock) == 4):
+                    sffile.correct_block_names(args.multidatablock)
+                else:
+                    raise ValueError(f"Block name must be 4 characters long. {args.multidatablock} is not valid.")
+
             sffile.write_file(args.out+".mmcif")
 
         elif args.valid is False:
