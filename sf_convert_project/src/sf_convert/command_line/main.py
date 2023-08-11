@@ -1,6 +1,6 @@
 import argparse
-import re
 import os
+import re
 import sys
 from pathlib import Path
 from sf_convert.sffile.get_items_pdb import ProteinDataBank
@@ -16,327 +16,357 @@ from sf_convert.utils.get_sf_info_file import get_sf_info
 from sf_convert.utils.CheckSfFile import CheckSfFile
 
 
+VALID_FORMATS = ["CNS", "MTZ", "mmCIF"]
 
 
 class CustomHelpParser(argparse.ArgumentParser):
     def print_help(self):
         custom_help_message = """
-=======================================================================
-              sf_convert (version: x.xxx : 2023-xx-xx )                      
-=======================================================================
+    =======================================================================
+                sf_convert (version: x.xxx : 2023-xx-xx )                      
+    =======================================================================
 
-Usage: 'sf_convert  -i input_format -o output_format -sf data_file'
-   or  'sf_convert  -o output_format -sf data_file'
-=======================================================================
--i <input_format> :  optional,  support one of the format below.  
-         (If '-i' is not given, sf_convert will guess the input format.) 
+    Usage: 'sf_convert  -i input_format -o output_format -sf data_file'
+    or  'sf_convert  -o output_format -sf data_file'
+    =======================================================================
+    -i <input_format> :  optional,  support one of the format below.  
+            (If '-i' is not given, sf_convert will guess the input format.) 
 
-         MTZ, mmCIF, CNS. 
+            MTZ, mmCIF, CNS. 
 
--o  <output_format> : support one of output format (below) 
+    -o  <output_format> : support one of output format (below) 
 
-         mmCIF, MTZ, CNS. 
+            mmCIF, MTZ, CNS. 
 
--sf  <datafile> : Give  the  Input Structure Factor File Name. 
+    -sf  <datafile> : Give  the  Input Structure Factor File Name. 
 
--out <output_file> :  Give output file name (if not given, default by program).
+    -out <output_file> :  Give output file name (if not given, default by program).
 
-       Other options (below) can be added to the argument: 
--label   followed by label name for CNS & MTZ (see examples below). 
--freer   followed by a free test number (-freer 1) in the reflection (SF) file.
--pdb     followed by a PDB file (add items to the converted SF file if missing).
--detail  followed by a text (-detail " text " ), give a note to the data set.
--wave    followed by a wavelength (-wave 0.998). It overwrites the existing one.
--diags   followed by a log file (-diags file) containing warning/error message.
+        Other options (below) can be added to the argument: 
+    -label   followed by label name for CNS & MTZ (see examples below). 
+    -freer   followed by a free test number (-freer 1) in the reflection (SF) file.
+    -pdb     followed by a PDB file (add items to the converted SF file if missing).
+    -detail  followed by a text (-detail " text " ), give a note to the data set.
+    -wave    followed by a wavelength (-wave 0.998). It overwrites the existing one.
+    -diags   followed by a log file (-diags file) containing warning/error message.
 
-       Other not often used options (below) can be added to the argument: 
--valid   check various SF errors, and correct!(sf_convert -valid sffile) 
+        Other not often used options (below) can be added to the argument: 
+    -valid   check various SF errors, and correct!(sf_convert -valid sffile) 
 
-==============================================================================
-Note: 
-1. CIF is for small molecule. The mmCIF is for macro-molecule format.
+    ==============================================================================
+    Note: 
+    1. CIF is for small molecule. The mmCIF is for macro-molecule format.
 
-      mmCIF token                    type     data label   
+        mmCIF token                    type     data label   
 
- _refln.F_meas_au         	      F           FP 
- _refln.F_meas_sigma_au               Q           SIGFP 
- _refln.intensity_meas    	      J           I     
- _refln.intensity_sigma   	      Q           SIGI   
+    _refln.F_meas_au         	      F           FP 
+    _refln.F_meas_sigma_au               Q           SIGFP 
+    _refln.intensity_meas    	      J           I     
+    _refln.intensity_sigma   	      Q           SIGI   
 
- _refln.F_calc_au            	      F           FC     
- _refln.phase_calc        	      P           PHIC   
- _refln.phase_meas        	      P           PHIB   
- _refln.fom               	      W           FOM    
- 
-_refln.pdbx_FWT                       F           FWT    
-_refln.pdbx_PHWT                      P           PHWT   
-_refln.pdbx_DELFWT                    F           DELFWT  
-_refln.pdbx_DELPHWT                   P           DELPHWT 
- 
- _refln.pdbx_HL_A_iso                 A       	  HLA   
- _refln.pdbx_HL_B_iso                 A       	  HLB   
- _refln.pdbx_HL_C_iso                 A       	  HLC   
- _refln.pdbx_HL_D_iso                 A       	  HLD   
- 
- _refln.pdbx_F_plus         	      G           F(+)   
- _refln.pdbx_F_plus_sigma   	      L           SIGF(+) 
- _refln.pdbx_F_minus        	      G           F(-)   
- _refln.pdbx_F_minus_sigma  	      L           SIGF(-)
- _refln.pdbx_anom_difference          D           DP   
- _refln.pdbx_anom_difference_sigma    Q           SIGDP
- _refln.pdbx_I_plus                   K           I(+)   
- _refln.pdbx_I_plus_sigma             M           SIGI(+)
- _refln.pdbx_I_minus                  K           I(-)   
- _refln.pdbx_I_minus_sigma            M           SIGI(-) 
+    _refln.F_calc_au            	      F           FC     
+    _refln.phase_calc        	      P           PHIC   
+    _refln.phase_meas        	      P           PHIB   
+    _refln.fom               	      W           FOM    
+    
+    _refln.pdbx_FWT                       F           FWT    
+    _refln.pdbx_PHWT                      P           PHWT   
+    _refln.pdbx_DELFWT                    F           DELFWT  
+    _refln.pdbx_DELPHWT                   P           DELPHWT 
+    
+    _refln.pdbx_HL_A_iso                 A       	  HLA   
+    _refln.pdbx_HL_B_iso                 A       	  HLB   
+    _refln.pdbx_HL_C_iso                 A       	  HLC   
+    _refln.pdbx_HL_D_iso                 A       	  HLD   
+    
+    _refln.pdbx_F_plus         	      G           F(+)   
+    _refln.pdbx_F_plus_sigma   	      L           SIGF(+) 
+    _refln.pdbx_F_minus        	      G           F(-)   
+    _refln.pdbx_F_minus_sigma  	      L           SIGF(-)
+    _refln.pdbx_anom_difference          D           DP   
+    _refln.pdbx_anom_difference_sigma    Q           SIGDP
+    _refln.pdbx_I_plus                   K           I(+)   
+    _refln.pdbx_I_plus_sigma             M           SIGI(+)
+    _refln.pdbx_I_minus                  K           I(-)   
+    _refln.pdbx_I_minus_sigma            M           SIGI(-) 
 
-_refln.status            	      I           FREE    
-_refln.pdbx_r_free_flag               I           FLAG    
-==============================================================================
+    _refln.status            	      I           FREE    
+    _refln.pdbx_r_free_flag               I           FLAG    
+    ==============================================================================
 
-Example_1: convert any supported format to any output format:   
-    sf_convert  -o any_output_format -sf sf_file -out output_file 
+    Example_1: convert any supported format to any output format:   
+        sf_convert  -o any_output_format -sf sf_file -out output_file 
 
-Example_2: convert mtz to mmcif (automatic): 
-    sf_convert  -o mmcif -sf mtzfile -out output_file 
+    Example_2: convert mtz to mmcif (automatic): 
+        sf_convert  -o mmcif -sf mtzfile -out output_file 
 
-Example_3: convert mtz to mmcif (give the free set): 
-    sf_convert  -o mmcif -sf mtzfile -freer 1 -out output_file 
+    Example_3: convert mtz to mmcif (give the free set): 
+        sf_convert  -o mmcif -sf mtzfile -freer 1 -out output_file 
 
-Example_4: convert mtz to mmcif (use labels in mtz, one data set): 
-           (The labels on the left must be one of mmcif tokens) 
-    sf_convert -o mmcif -sf mtzfile -label FP=?, SIGFP=?, FREE=?, \ 
-               I=?, SIGI=?  -freer 1 -out output_file 
+    Example_4: convert mtz to mmcif (use labels in mtz, one data set): 
+            (The labels on the left must be one of mmcif tokens) 
+        sf_convert -o mmcif -sf mtzfile -label FP=?, SIGFP=?, FREE=?, \ 
+                I=?, SIGI=?  -freer 1 -out output_file 
 
-Example_5: convert MTZ to mmcif (one data set with anomalous)
-           (If label has '(' or ')', the pair must be quoted by ' ')
-    sf_convert  -o mmcif -sf mtz_file -freer 1 -label FP=? ,SIGFP=? , \ 
-               FREE=? , 'F(+)=?' ,'SIGF(+)=?','F(-)=?' ,'SIGF(-)=?'
+    Example_5: convert MTZ to mmcif (one data set with anomalous)
+            (If label has '(' or ')', the pair must be quoted by ' ')
+        sf_convert  -o mmcif -sf mtz_file -freer 1 -label FP=? ,SIGFP=? , \ 
+                FREE=? , 'F(+)=?' ,'SIGF(+)=?','F(-)=?' ,'SIGF(-)=?'
 
-Example_6: convert MTZ to mmcif (two or more data set using labels)
-           (Each data set must be separated by ':' !)
-    sf_convert  -o mmcif -sf mtz_file -freer 1 -label \ 
-                FP=? ,SIGFP=? , FREE=? , I=?, SIGI=?, \ 
-                'F(+)=?' ,'SIGF(+)=?','F(-)=?' ,'SIGF(-)=?', \ 
-                'I(+)=?' ,'SIGI(+)=?','I(-)=?' ,'SIGI(-)=?'  \ 
-                :  \ 
-                 FP=? ,SIGFP=? , FREE=? , I=?, SIGI=?, \ 
-                'F(+)=?' ,'SIGF(+)=?','F(-)=?' ,'SIGF(-)=?',  \ 
-                'I(+)=?' ,'SIGI(+)=?','I(-)=?' ,'SIGI(-)=?' \ 
-                -out output_file 
+    Example_6: convert MTZ to mmcif (two or more data set using labels)
+            (Each data set must be separated by ':' !)
+        sf_convert  -o mmcif -sf mtz_file -freer 1 -label \ 
+                    FP=? ,SIGFP=? , FREE=? , I=?, SIGI=?, \ 
+                    'F(+)=?' ,'SIGF(+)=?','F(-)=?' ,'SIGF(-)=?', \ 
+                    'I(+)=?' ,'SIGI(+)=?','I(-)=?' ,'SIGI(-)=?'  \ 
+                    :  \ 
+                    FP=? ,SIGFP=? , FREE=? , I=?, SIGI=?, \ 
+                    'F(+)=?' ,'SIGF(+)=?','F(-)=?' ,'SIGF(-)=?',  \ 
+                    'I(+)=?' ,'SIGI(+)=?','I(-)=?' ,'SIGI(-)=?' \ 
+                    -out output_file 
 
-Example_7: Multiple file auto-conversion. (files separated by ',' or space) 
-     sf_convert  -o mmcif -sf sffile1 sffile2 sffile3 -out outfile_name  
+    Example_7: Multiple file auto-conversion. (files separated by ',' or space) 
+        sf_convert  -o mmcif -sf sffile1 sffile2 sffile3 -out outfile_name  
 
-Example_8: Make the converted mmcif be complete (using coordinate). 
-     sf_convert  -o mmcif -sf sf_file -pdb xyzfile  
+    Example_8: Make the converted mmcif be complete (using coordinate). 
+        sf_convert  -o mmcif -sf sf_file -pdb xyzfile  
 
-Example_9: Give a remark to the converted data set. 
-     sf_convert  -o mmcif -sf sf_file -detail "any text"  
+    Example_9: Give a remark to the converted data set. 
+        sf_convert  -o mmcif -sf sf_file -detail "any text"  
 
-Note: The question marks '?' correspond to the labels in the SF file.
-"""
+    Note: The question marks '?' correspond to the labels in the SF file.
+    """
         print(custom_help_message)
 
     def error(self, message):
-        #self.print_help()
-        #raise ValueError(message)
-        #print(f"Error: {message}")
         sys.stderr.write('Error: %s\n' % message)
         sys.exit(2)
 
+
 def validate_file_exists(filepath):
+    """Check if a given file exists."""
     if not os.path.exists(filepath):
         raise FileNotFoundError(f"The file {filepath} does not exist.")
 
-def validate_format(file_format, valid_formats):
-    if file_format not in valid_formats:
-        raise ValueError(f"Invalid format: {file_format}. Please use one of the following formats: {valid_formats}")
+
+def validate_format(file_format):
+    """Validate if the given format is one of the VALID_FORMATS."""
+    if file_format not in VALID_FORMATS:
+        raise ValueError(f"Invalid format: {file_format}. Please use one of the following formats: {VALID_FORMATS}")
+
+
+def get_input_format(args):
+    """Determine the input format either from the provided argument or by guessing."""
+    if args.i:
+        validate_format(args.i)
+        return args.i
+    if args.sf is None:
+        raise ValueError("Source file (-sf) must be provided.")
+    return guess_sf_format(args.sf)
+
+
+def handle_pdb_argument(args, pdb):
+    """Handle operations related to the -pdb argument."""
+    validate_file_exists(args.pdb)
+    if args.pdb.endswith(".cif"):
+        sffile = StructureFactorFile()
+        sffile.readFile(str(Path(args.pdb)))
+        return pdb.extract_attributes_from_cif(sffile)
+    elif args.pdb.endswith(".pdb"):
+        return pdb.extract_attributes_from_pdb(args.pdb)
+    else:
+        raise ValueError("Invalid file format for -pdb argument. Please use either a PDBx/mmCIF Format (.cif) or PDB Format (.pdb) file.")
+
+
+def handle_label_argument(args):
+    """Validate the -label argument format."""
+    pattern = re.compile(r'^([^=]+=[^=]+)(,\s*[^=]+=[^=]+)*$')
+    if not pattern.match(args.label):
+        raise ValueError("Invalid format for -label argument. Please use the format 'key1=value1, key2=value2, ...'")
+
+
+def handle_freer_argument(args, pdb):
+    """Handle operations related to the -freer argument."""
+    if args.freer <= 0:
+        raise ValueError("-freer argument must be a positive integer.")
+    pdb.update_FREERV(args.freer)
+    pinfo(f"Note: {args.freer} is used for free data set.", 0)
+
+
+def handle_wave_argument(args, pdb):
+    """Handle operations related to the -wave argument."""
+    if args.wave <= 0.0:
+        raise ValueError("-wave argument must be a positive float.")
+    pdb.update_WAVE(args.wave)
+
+
+def handle_diags_argument(args):
+    """Handle operations related to the -diags argument."""
+    get_sf_info(args.diags)
+
+
+def handle_valid_argument(args):
+    """Handle operations related to the -valid argument."""
+    sffile = StructureFactorFile()
+    sffile.read_file(args.sf)
+    n = sffile.get_number_of_blocks()
+    sf_stat = CheckSfFile(sffile, args.out + "_SF_4_validate.cif")
+    sf_stat.check_sf_all_blocks(n)
+    sf_stat.write_sf_4_validation()
+
+
+def convert_from_CNS_to_mmCIF(args, pdb):
+    """Converts from CNS format to mmCIF format."""
+    processor = CNSToCifConverter(args.sf, pdb.pdb_id, pdb.FREERV)
+    processor.process_file()
+    processor.rename_keys()
+    processor.create_data_categories()
+    processor.write_to_file(args.out)
+
+    sffile = StructureFactorFile()
+    sffile.read_file(args.out)
+
+    reformat_sf_header(sffile, args)
+
+    if args.multidatablock:
+        validate_block_name(args.multidatablock)
+        sffile.correct_block_names(args.multidatablock)
+                
+    sffile.write_file(args.out + ".mmcif")
+    os.remove(args.out)
+
+
+def convert_from_MTZ_to_mmCIF(args, pdb):
+    """Converts from MTZ format to mmCIF format."""
+    converter = MtzToCifConverter(args.sf, args.out, pdb.pdb_id)
+    if args.label:
+        converter.process_labels(args.label)
+    converter.convert_and_write()
+
+    sffile = StructureFactorFile()
+    sffile.read_file(args.out)
+
+    reformat_sf_header(sffile, args)
+
+    if args.multidatablock:
+        validate_block_name(args.multidatablock)
+        sffile.correct_block_names(args.multidatablock)
+
+    sffile.write_file(args.out + ".mmcif")
+    os.remove(args.out)
+
+
+def convert_from_mmCIF_to_MTZ(args):
+    """Converts from mmCIF format to MTZ format."""
+    converter = CifToMTZConverter(args.sf)
+    converter.load_cif()
+    converter.determine_mappings()
+    converter.convert_to_mtz(args.out + ".mtz")
+
+
+def convert_from_mmCIF_to_CNS(args, pdb):
+    """Converts from mmCIF format to CNS format."""
+    sffile = StructureFactorFile()
+    sffile.read_file(args.sf)
+    CNSexport = CifToCNSConverter(sffile, args.out + ".CNS", pdb.pdb_id)
+    CNSexport.convert()
+
+
+def convert_from_mmCIF_to_mmCIF(args):
+    """Converts from mmCIF format to mmCIF format."""
+    sffile = StructureFactorFile()
+    sffile.read_file(args.sf)
+
+    if args.multidatablock:
+        validate_block_name(args.multidatablock)
+        sffile.correct_block_names(args.multidatablock)
+
+    sffile.write_file(args.out + ".mmcif")
+
+
+def reformat_sf_header(sffile, args):
+    """Reformats the SF header."""
+    if args.detail:
+        _ = reformat_sfhead(sffile, args.detail)
+    else:
+        _ = reformat_sfhead(sffile)
+
+
+def validate_block_name(block_name):
+    """Validates the block name length."""
+    if len(block_name) != 4:
+        raise ValueError(f"Block name must be 4 characters long. {block_name} is not valid.")
+
+
+def convert_files(args, input_format, pdb):
+    """Converts files based on input and output formats."""
+    output_format = args.o
+
+    if input_format == "CNS" and output_format == "mmCIF":
+        convert_from_CNS_to_mmCIF(args, pdb)
+    elif input_format == "MTZ" and output_format == "mmCIF":
+        convert_from_MTZ_to_mmCIF(args, pdb)
+    elif input_format == "mmCIF" and output_format == "MTZ":
+        convert_from_mmCIF_to_MTZ(args)
+    elif input_format == "mmCIF" and output_format == "CNS":
+        convert_from_mmCIF_to_CNS(args, pdb)
+    elif input_format == "mmCIF" and output_format == "mmCIF":
+        convert_from_mmCIF_to_mmCIF(args)
+    elif args.valid is False:
+        raise ValueError(f"Conversion from {input_format} to {output_format} is not supported.")
+
 
 def main():
     try:
-        parser = CustomHelpParser(description="""This script allows various operations on files. Refer to the help document for more details.""")
-        parser.add_argument('-i', type=str, help='Input format')
-        parser.add_argument('-o', type=str, help='Output format. Accepted values are mmCIF, CNS, MTZ')
-        parser.add_argument('-sf', type=str, help='Source file')
-        parser.add_argument('-out', type=str, default='output', help='Output file name (if not given, default by program)')
-        parser.add_argument('-label', type=str, help='Label name for CNS & MTZ')
-        parser.add_argument('-pdb', type=str, help='PDB file (add items to the converted SF file if missing)')
-        parser.add_argument('-freer', type=int, help='free test number in the reflection (SF) file')
-        parser.add_argument('-wave', type=float, help='Wavelength setting. It overwrites the existing one')
-        parser.add_argument('-diags', type=str, help='Log file containing warning/error message')
-        parser.add_argument('-detail', type=str, help='Give a note to the data set')
-        # parser.add_argument('-valid', type=str, help='Check various SF errors, and correct!')
-        parser.add_argument('-valid', action='store_true', help='Check various SF errors, and correct!')
-        parser.add_argument('-multidatablock', type=str, help='Update block name')
-
-        args = parser.parse_args()
-
-        # TODO: Implement the logic based on the arguments
-
-        valid_formats = ["CNS", "MTZ", "mmCIF"]
-
+        args = parse_arguments()
         pdb = ProteinDataBank()
-
-        # If -i argument is provided, validate it
-        if args.i is not None:
-            validate_format(args.i, valid_formats)
-
-        # If -i argument is not provided, use guess_sf_format() to determine the input format
-        else:
-            if args.sf is None:
-                raise ValueError("Source file (-sf) must be provided.")
-            args.i = guess_sf_format(args.sf)
-            validate_format(args.i, valid_formats)
-
-        # Check if -o argument is provided
-        if args.o is None and args.valid is False:
-            raise ValueError(f"Output format (-o) must be provided. Please use one of the following formats: {valid_formats}")
         
-        if args.sf is None:
-            raise ValueError("Source file (-sf) must be provided.")
-
-        # Validate the output format
-        if args.o:
-            validate_format(args.o, valid_formats)
-
-        # Check the extension of the file specified by the -pdb argument
+        input_format = get_input_format(args)
+        
         if args.pdb:
-            validate_file_exists(args.pdb)
-            if args.pdb.endswith(".cif"):
-                sffile = StructureFactorFile()
-                sffile.readFile(str(Path(args.pdb)))
-                data = pdb.extract_attributes_from_cif(sffile)
-            elif args.pdb.endswith(".pdb"):
-                pdb_id = pdb.extract_attributes_from_pdb(args.pdb)
-            else:
-                raise ValueError("Invalid file format for -pdb argument. Please use either a PDBx/mmCIF Format (.cif) or PDB Format (.pdb) file.")
-
-        # Validate the -label argument
+            handle_pdb_argument(args, pdb)
+        
         if args.label:
-            # Check if label is in the format "key=value, key=value, ..."
-            pattern = re.compile(r'^([^=]+=[^=]+)(,\s*[^=]+=[^=]+)*$')
-            if not pattern.match(args.label):
-                raise ValueError("Invalid format for -label argument. Please use the format 'key1=value1, key2=value2, ...'")
-
+            handle_label_argument(args)
+        
         if args.freer:
-            if args.freer <= 0:
-                raise ValueError("-freer argument must be a positive integer.")
-            pdb.update_FREERV(args.freer)
-            pinfo(f"Note: {args.freer} is used for free data set.", 0)
-
+            handle_freer_argument(args, pdb)
+        
         if args.wave:
-            if args.wave <= 0.0:
-                raise ValueError("-wave argument must be a positive float.")
-            pdb.update_WAVE(args.wave)
-
+            handle_wave_argument(args, pdb)
         
         if args.diags:
-            #validate_file_exists(args.diags)
-            get_sf_info(args.diags)
-            #pinfo(f"Note: {args.diags} is used for warning/error messages.", 0)
-
+            handle_diags_argument(args)
         
         if args.valid:
-            sffile = StructureFactorFile()
-            sffile.read_file(args.sf)
-            n = sffile.get_number_of_blocks()
-            sf_stat = CheckSfFile(sffile, args.out+"_SF_4_validate.cif")
-            sf_stat.check_sf_all_blocks(n)
-            sf_stat.write_sf_4_validation()
-
-
-        # Handle the -i and -o arguments
-        input_format = args.i
-        output_format = args.o
-
-        # Conversion logic
-        if input_format == "CNS" and output_format == "mmCIF":
-            processor = CNSToCifConverter(args.sf, pdb.pdb_id, pdb.FREERV)
-            processor.process_file()
-            processor.rename_keys()
-            processor.create_data_categories()
-            # processor.write_to_file(args.out+".mmcif")
-            processor.write_to_file(args.out)
-
-
-            sffile = StructureFactorFile()
-            sffile.read_file(args.out)
-
-            if args.detail:
-                _ = reformat_sfhead(sffile, args.detail)
-            else:
-                _ = reformat_sfhead(sffile)
-
-            if args.multidatablock :
-                if(len(args.multidatablock) == 4):
-                    sffile.correct_block_names(args.multidatablock)
-                else:
-                    raise ValueError(f"Block name must be 4 characters long. {args.multidatablock} is not valid.")
-
-            sffile.write_file(args.out+".mmcif")
-            os.remove(args.out)
-
-
-        elif input_format == "MTZ" and output_format == "mmCIF":
-            converter = MtzToCifConverter(args.sf, args.out, pdb.pdb_id)
-            if args.label:
-                converter.process_labels(args.label)
-            converter.convert_and_write()
-
-
-            sffile = StructureFactorFile()
-            sffile.read_file(args.out)
-
-            if args.detail:
-                _ = reformat_sfhead(sffile, args.detail)
-            else:
-                _ = reformat_sfhead(sffile)
-
-            if args.multidatablock :
-                if(len(args.multidatablock) == 4):
-                    sffile.correct_block_names(args.multidatablock)
-                else:
-                    raise ValueError(f"Block name must be 4 characters long. {args.multidatablock} is not valid.")
-                
-            sffile.write_file(args.out+".mmcif")
-            os.remove(args.out)
-
-
-        elif input_format == "mmCIF" and output_format == "MTZ":
-            converter = CifToMTZConverter(args.sf)
-            converter.load_cif()
-            converter.determine_mappings()
-            converter.convert_to_mtz(args.out+".mtz")
-
-        elif input_format == "mmCIF" and output_format == "CNS":
-            sffile = StructureFactorFile()
-            sffile.read_file(args.sf)
-            CNSexport = CifToCNSConverter(sffile, args.out+".CNS", pdb.pdb_id)
-            CNSexport.convert()
-
-        elif input_format == "mmCIF" and output_format == "mmCIF":
-            sffile = StructureFactorFile()
-            sffile.read_file(args.sf)
-
-            if args.detail:
-                _ = reformat_sfhead(sffile, args.detail)
-            else:
-                _ = reformat_sfhead(sffile)
-
-            if args.multidatablock :
-                if(len(args.multidatablock) == 4):
-                    sffile.correct_block_names(args.multidatablock)
-                else:
-                    raise ValueError(f"Block name must be 4 characters long. {args.multidatablock} is not valid.")
-
-            sffile.write_file(args.out+".mmcif")
-
-        elif args.valid is False:
-            raise ValueError(f"Conversion from {input_format} to {output_format} is not supported.")
+            handle_valid_argument(args)
+        
+        convert_files(args, input_format, pdb)
         
     except ValueError as e:
         print(f"Error: {e}")
         sys.exit(2)
+
+
+def parse_arguments():
+    """Parse and return command line arguments."""
+    parser = CustomHelpParser(description="This script allows various operations on files. Refer to the help document for more details.")
+    
+    parser.add_argument('-i', type=str, help='Input format')
+    parser.add_argument('-o', type=str, help='Output format. Accepted values are mmCIF, CNS, MTZ')
+    parser.add_argument('-sf', type=str, help='Source file')
+    parser.add_argument('-out', type=str, default='output', help='Output file name (if not given, default by program)')
+    parser.add_argument('-label', type=str, help='Label name for CNS & MTZ')
+    parser.add_argument('-pdb', type=str, help='PDB file (add items to the converted SF file if missing)')
+    parser.add_argument('-freer', type=int, help='Free test number in the reflection (SF) file')
+    parser.add_argument('-wave', type=float, help='Wavelength setting. It overwrites the existing one')
+    parser.add_argument('-diags', type=str, help='Log file containing warning/error message')
+    parser.add_argument('-detail', type=str, help='Give a note to the data set')
+    parser.add_argument('-valid', action='store_true', help='Check various SF errors, and correct!')
+    parser.add_argument('-multidatablock', type=str, help='Update block name')
+
+    return parser.parse_args()
+
 
 if __name__ == "__main__":
     main()
