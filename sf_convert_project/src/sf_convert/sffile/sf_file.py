@@ -45,6 +45,9 @@ class StructureFactorFile:
                 return idx, block
         return None, None
 
+    def get_default_block_index(self):
+        return self.__default_block_index
+    
     def get_category_object(self, category, block_name=None):
         if block_name is None:
             block_index = self.__default_block_index
@@ -172,17 +175,18 @@ class StructureFactorFile:
                     num_replaced += 1
 
             return num_replaced
-    
-    # def reorder_category_attributes(self, category_name, new_order, block_name=None):
-    #     # Get the category object
-    #     category = self.get_category_object(category_name, block_name)
 
-    #     # Reorder the category's attributes
-    #     reordered_category = reorderCategoryAttr(category, new_order)
 
-    #     # Replace the existing category with the reordered one
-    #     self.remove_category_by_name(category_name, block_name)
-    #     self.append_category_to_block(reordered_category, block_name)
+    def reorder_category_attributes(self, category_name, new_order, block_name=None):
+        # Get the category object
+        category = self.get_category_object(category_name, block_name)
+
+        # Reorder the category's attributes
+        reordered_category = reorderCategoryAttr(category, new_order)
+
+        # Replace the existing category with the reordered one
+        self.remove_category_by_name(category_name, block_name)
+        self.append_category_to_block(reordered_category, block_name)
 
 
     def reorder_categories_in_block(self, new_order, block_name=None):

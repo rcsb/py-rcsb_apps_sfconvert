@@ -31,7 +31,7 @@ class MtzToCifConverter:
                 "group_code": "1"
             }
         }
-        pinfo(f'Note: file {self.__file_path} has no _audit. (auto added)',self.__pinfo_value)
+        pinfo(f'Note: file {self.mtz_file_path} has no _audit. (auto added)',self.__pinfo_value)
         self.spec_file_content = [
             ('H', 'H', 'index_h'),
             ('K', 'H', 'index_k'),
@@ -244,8 +244,11 @@ class MtzToCifConverter:
         #self.sffile.reorder_objects(['entry', 'cell', 'symmetry', 'audit', 'refln'])
         #self.sffile.reorder_objects(['audit', 'cell', 'diffrn_radiation_wavelength', 'entry', 'exptl_crystal', 'reflns_scale', 'symmetry', 'refln'])
         #reorderCategoryAttr()
+        # print(self.sffile.get_category_names())
         new_order = ['audit', 'cell', 'diffrn_radiation_wavelength', 'entry', 'exptl_crystal', 'reflns_scale', 'symmetry', 'refln']
         self.sffile.reorder_categories_in_block(new_order)
+        # print(self.sffile.get_category_names())
+
 
 
         self.sffile.write_file(self.output_file_path)
