@@ -1,5 +1,6 @@
 from sf_convert.sffile.sf_file import StructureFactorFile
 from sf_convert.utils.CheckSfFile import CheckSfFile
+from sf_convert.utils.pinfo_file import PInfoLogger
 import os
 import difflib
 
@@ -15,7 +16,8 @@ class TestValid:
         sffile = StructureFactorFile()
         sffile.read_file(cif_5pny_data_path)
         n = sffile.get_number_of_blocks()
-        sf_stat = CheckSfFile(sffile, output_path)
+        logger = PInfoLogger('path_to_log1.log', 'path_to_log2.log')
+        sf_stat = CheckSfFile(sffile, logger, output_path)
         sf_stat.check_sf_all_blocks(n)
         sf_stat.write_sf_4_validation()
 

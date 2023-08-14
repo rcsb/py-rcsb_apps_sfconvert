@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 import sys
 from mmcif.api.DataCategory import DataCategory
-from sf_convert.utils.pinfo_file import pinfo
+# from sf_convert.utils.pinfo_file import pinfo
 # path_to_append = Path('/Users/vivek/Library/CloudStorage/OneDrive-RutgersUniversity/Desktop files/Summer/py-rcsb_apps_sfconvert/sf_convert_project/src/sf_convert/sffile')
 # sys.path.append(str(path_to_append))
 
@@ -11,13 +11,14 @@ from sf_convert.sffile.sf_file import StructureFactorFile as SFFile
 from sf_convert.utils.CifUtils import reorderCategoryAttr
 
 class MtzToCifConverter:
-    def __init__(self, mtz_file_path, output_file_path, pdb_id):
+    def __init__(self, mtz_file_path, output_file_path, pdb_id, logger):
         self.pdb_id = pdb_id
         self.__pinfo_value = 0
         self.mtz_file_path = mtz_file_path
         self.output_file_path = output_file_path
         self.mtz2cif = gemmi.MtzToCif()
         self.sffile = SFFile()
+        self.__logger = logger
         self.categories = {
             "audit": {
                 "revision_id": "1_0",
@@ -31,7 +32,7 @@ class MtzToCifConverter:
                 "group_code": "1"
             }
         }
-        pinfo(f'Note: file {self.mtz_file_path} has no _audit. (auto added)',self.__pinfo_value)
+        self.__logger.pinfo(f'Note: file {self.mtz_file_path} has no _audit. (auto added)',self.__pinfo_value)
         self.spec_file_content = [
             ('H', 'H', 'index_h'),
             ('K', 'H', 'index_k'),

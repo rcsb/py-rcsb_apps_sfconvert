@@ -1,4 +1,5 @@
 from sf_convert.import_dir.mtz2cif import MtzToCifConverter
+from sf_convert.utils.pinfo_file import PInfoLogger
 import os
 
 class TestMtzToCifConversion:
@@ -8,7 +9,8 @@ class TestMtzToCifConversion:
         output_path = os.path.join(tmp_path, "output.mmcif")
         
         print("Loading and converting the file...")
-        converter = MtzToCifConverter(mtz_Ras_NAD_data_path, output_path, "5pny")
+        logger = PInfoLogger('path_to_log1.log', 'path_to_log2.log')
+        converter = MtzToCifConverter(mtz_Ras_NAD_data_path, output_path, "5pny", logger)
         converter.process_labels()  # if labels are required
         converter.convert_and_write()
         

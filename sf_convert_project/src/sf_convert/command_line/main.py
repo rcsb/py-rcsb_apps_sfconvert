@@ -11,7 +11,7 @@ from sf_convert.export_dir.cif2cns import CifToCNSConverter
 from sf_convert.export_dir.cif2mtz import CifToMTZConverter
 from sf_convert.sffile.guess_sf_format import guess_sf_format
 from sf_convert.sffile.reformat_sfhead import reformat_sfhead
-from sf_convert.utils.pinfo_file import pinfo
+from sf_convert.utils.pinfo_file import PInfoLogger
 from sf_convert.utils.get_sf_info_file import get_sf_info
 from sf_convert.utils.CheckSfFile import CheckSfFile
 
@@ -185,12 +185,12 @@ def handle_label_argument(args):
         raise ValueError("Invalid format for -label argument. Please use the format 'key1=value1, key2=value2, ...'")
 
 
-def handle_freer_argument(args, pdb):
+def handle_freer_argument(args, pdb, logger):
     """Handle operations related to the -freer argument."""
     if args.freer <= 0:
         raise ValueError("-freer argument must be a positive integer.")
     pdb.update_FREERV(args.freer)
-    pinfo(f"Note: {args.freer} is used for free data set.", 0)
+    logger.pinfo(f"Note: {args.freer} is used for free data set.", 0)
 
 
 def handle_wave_argument(args, pdb):
@@ -205,19 +205,19 @@ def handle_diags_argument(args):
     get_sf_info(args.diags)
 
 
-def handle_valid_argument(args):
+def handle_valid_argument(args, logger):
     """Handle operations related to the -valid argument."""
     sffile = StructureFactorFile()
     sffile.read_file(args.sf)
     n = sffile.get_number_of_blocks()
-    sf_stat = CheckSfFile(sffile, args.out + "_SF_4_validate.cif")
+    sf_stat = CheckSfFile(sffile, logger, args.out + "_SF_4_validate.cif")
     sf_stat.check_sf_all_blocks(n)
     sf_stat.write_sf_4_validation()
 
 
-def convert_from_CNS_to_mmCIF(args, pdb):
+def convert_from_CNS_to_mmCIF(args, pdb, logger):
     """Converts from CNS format to mmCIF format."""
-    processor = CNSToCifConverter(args.sf, pdb.pdb_id, pdb.FREERV)
+    processor = CNSToCifConverter(args.sf, pdb.pdb_id, logger, pdb.FREERV)
     processor.process_file()
     processor.rename_keys()
     processor.create_data_categories()
@@ -226,7 +226,7 @@ def convert_from_CNS_to_mmCIF(args, pdb):
     sffile = StructureFactorFile()
     sffile.read_file(args.out)
 
-    reformat_sf_header(sffile, args)
+    reformat_sf_header(sffile, args, logger)
 
     if args.multidatablock:
         validate_block_name(args.multidatablock)
@@ -236,9 +236,9 @@ def convert_from_CNS_to_mmCIF(args, pdb):
     os.remove(args.out)
 
 
-def convert_from_MTZ_to_mmCIF(args, pdb):
+def convert_from_MTZ_to_mmCIF(args, pdb, logger):
     """Converts from MTZ format to mmCIF format."""
-    converter = MtzToCifConverter(args.sf, args.out, pdb.pdb_id)
+    converter = MtzToCifConverter(args.sf, args.out, pdb.pdb_id, logger)
     if args.label:
         converter.process_labels(args.label)
     converter.convert_and_write()
@@ -246,7 +246,7 @@ def convert_from_MTZ_to_mmCIF(args, pdb):
     sffile = StructureFactorFile()
     sffile.read_file(args.out)
 
-    reformat_sf_header(sffile, args)
+    reformat_sf_header(sffile, args, logger)
 
     if args.multidatablock:
         validate_block_name(args.multidatablock)
@@ -284,12 +284,12 @@ def convert_from_mmCIF_to_mmCIF(args):
     sffile.write_file(args.out + ".mmcif")
 
 
-def reformat_sf_header(sffile, args):
+def reformat_sf_header(sffile, args, logger):
     """Reformats the SF header."""
     if args.detail:
-        _ = reformat_sfhead(sffile, args.detail)
+        _ = reformat_sfhead(sffile, logger, args.detail)
     else:
-        _ = reformat_sfhead(sffile)
+        _ = reformat_sfhead(sffile, logger)
 
 
 def validate_block_name(block_name):
@@ -298,14 +298,14 @@ def validate_block_name(block_name):
         raise ValueError(f"Block name must be 4 characters long. {block_name} is not valid.")
 
 
-def convert_files(args, input_format, pdb):
+def convert_files(args, input_format, pdb, logger):
     """Converts files based on input and output formats."""
     output_format = args.o
 
     if input_format == "CNS" and output_format == "mmCIF":
-        convert_from_CNS_to_mmCIF(args, pdb)
+        convert_from_CNS_to_mmCIF(args, pdb, logger)
     elif input_format == "MTZ" and output_format == "mmCIF":
-        convert_from_MTZ_to_mmCIF(args, pdb)
+        convert_from_MTZ_to_mmCIF(args, pdb, logger)
     elif input_format == "mmCIF" and output_format == "MTZ":
         convert_from_mmCIF_to_MTZ(args)
     elif input_format == "mmCIF" and output_format == "CNS":
@@ -320,6 +320,8 @@ def main():
     try:
         args = parse_arguments()
         pdb = ProteinDataBank()
+        logger = PInfoLogger('path_to_log1.log', 'path_to_log2.log')
+        logger.clear_logs()
         
         input_format = get_input_format(args)
         
@@ -330,7 +332,7 @@ def main():
             handle_label_argument(args)
         
         if args.freer:
-            handle_freer_argument(args, pdb)
+            handle_freer_argument(args, pdb, logger)
         
         if args.wave:
             handle_wave_argument(args, pdb)
@@ -339,9 +341,9 @@ def main():
             handle_diags_argument(args)
         
         if args.valid:
-            handle_valid_argument(args)
+            handle_valid_argument(args, logger)
         
-        convert_files(args, input_format, pdb)
+        convert_files(args, input_format, pdb, logger)
         
     except ValueError as e:
         print(f"Error: {e}")
