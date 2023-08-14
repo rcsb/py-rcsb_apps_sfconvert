@@ -11,10 +11,11 @@ from mmcif.io.PdbxWriter import PdbxWriter
 
 
 class CheckSfFile:
-    def __init__(self, sffile, fout_path, pinfo_value = 1):
+    def __init__(self, sffile, logger, fout_path, pinfo_value = 1):
         self.__sf_file = sffile
         self.__pinfo_value = pinfo_value
         self.__fout_path = fout_path
+        self.__logger = logger
 
     def initialize_data(self):
         self.initialize_refln_data()
@@ -208,7 +209,7 @@ class CheckSfFile:
 
             return rcell, cell
         else:
-            pinfo("Warning: No cell data found in the mmCIF file.", self.__pinfo_value)
+            self.__logger.pinfo("Warning: No cell data found in the mmCIF file.", self.__pinfo_value)
 
     def get_resolution(self, h, k, l, rcell):
         aa1 = 2 * rcell[0] * rcell[1] * math.cos(math.radians(rcell[5]))
@@ -244,18 +245,18 @@ class CheckSfFile:
                 if resolution > best_resolution:
                     best_resolution = resolution
 
-            pinfo("Best Resolution: {:.2f} Angstroms".format(best_resolution), self.__pinfo_value)
+            self.__logger.pinfo("Best Resolution: {:.2f} Angstroms".format(best_resolution), self.__pinfo_value)
         else:
-            pinfo("Error: No refln data found in the mmCIF file.", self.__pinfo_value)
+            self.__logger.pinfo("Error: No refln data found in the mmCIF file.", self.__pinfo_value)
 
     def cif_token_change(self, old_token, new_token):
-        pinfo(f"Warning! The mmcif token  _refln.{old_token} is wrong!", self.__pinfo_value)
-        pinfo(f"It has been corrected as _refln.{new_token}", self.__pinfo_value)
+        self.__logger.pinfo(f"Warning! The mmcif token  _refln.{old_token} is wrong!", self.__pinfo_value)
+        self.__logger.pinfo(f"It has been corrected as _refln.{new_token}", self.__pinfo_value)
 
     def check_sf(self, nblock):
 
         self.__sf_block = self.__sf_file.get_block_by_index(nblock)
-        pinfo(f"Data_block_id={self.__sf_block.getName()}, block_number={nblock+1}\n", self.__pinfo_value)
+        self.__logger.pinfo(f"Data_block_id={self.__sf_block.getName()}, block_number={nblock+1}\n", self.__pinfo_value)
         self.initialize_data()
 
         temp_nref, nstart, n1, n2, n4, n5, nfpairF, nfpairI, nf_sFo, nf_sIo, key = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
@@ -274,19 +275,19 @@ class CheckSfFile:
         RESOL = 200
         
         if not (self.__dH or self.__dK or self.__dL or self.__H or self.__K or self.__L):
-            pinfo(f"Error: File has no 'index_h, index_k, index_l' (data block= {nblock + 1}).", self.__pinfo_value)
+            self.__logger.pinfo(f"Error: File has no 'index_h, index_k, index_l' (data block= {nblock + 1}).", self.__pinfo_value)
             return
         
         if not (self.__Fo_au or self.__Fo or self.__Io or self.__F2o or self.__I_plus or self.__I_minus or
                 self.__F_plus or self.__F_minus or self.__unmerge_i or self.__unmerge_si):
-            pinfo(f"Error: File has no mandatory items 'F/I/F+/F-/I+/I-' (data block= {nblock + 1}). ", self.__pinfo_value)
+            self.__logger.pinfo(f"Error: File has no mandatory items 'F/I/F+/F-/I+/I-' (data block= {nblock + 1}). ", self.__pinfo_value)
             return
 
         if self.__nref < 30 and self.__dnref > 30:
             return  # do not further check the unmerged data!!
         
         if self.__nref < 30:
-            pinfo(f"Error: File has too few reflections ({self.__nref}) (data block= {nblock + 1}).", self.__pinfo_value)
+            self.__logger.pinfo(f"Error: File has too few reflections ({self.__nref}) (data block= {nblock + 1}).", self.__pinfo_value)
             return
 
         if ((self.__Fo_au and not self.__sFo_au) or (self.__Fo and not self.__sFo) or
@@ -295,10 +296,10 @@ class CheckSfFile:
             (self.__F_plus and not self.__sF_plus) or (self.__F_minus and not self.__sF_minus) or
             (self.__unmerge_i and not self.__unmerge_si)):
 
-            pinfo(f"Error: Sigma values are missing (data block= {nblock + 1})!", self.__pinfo_value)
+            self.__logger.pinfo(f"Error: Sigma values are missing (data block= {nblock + 1})!", self.__pinfo_value)
 
         if self.__status is None:
-            pinfo(f"Error: File has no free set (data block= {nblock + 1}).", self.__pinfo_value)
+            self.__logger.pinfo(f"Error: File has no free set (data block= {nblock + 1}).", self.__pinfo_value)
 
         refln_data = self.__sf_block.getObj("refln")
         if refln_data is not None:
@@ -337,7 +338,7 @@ class CheckSfFile:
             if ((ah == 0 and ak == 0 and al == 0) or
                     (abs(ah) > 800 or abs(ak) > 800 or abs(al) > 800)):
                 if n1 == 1:
-                    pinfo(f"Error: File has wrong indices ({hkl}).", self.__pinfo_value)
+                    self.__logger.pinfo(f"Error: File has wrong indices ({hkl}).", self.__pinfo_value)
                     n1 += 1
 
             #--------------------------------------------------------------
@@ -366,7 +367,7 @@ class CheckSfFile:
                 f = float(self.__F_plus[i])
                 nfpairF += 1
                 if f < 0 and self.__n4 == 1:
-                    pinfo(f"Error: File has negative amplitude (F+: {self.__F_plus[i]}) for ({hkl}).", self.__pinfo_value)
+                    self.__logger.pinfo(f"Error: File has negative amplitude (F+: {self.__F_plus[i]}) for ({hkl}).", self.__pinfo_value)
                     n4 += 1
 
             if self.__I_plus:
@@ -438,7 +439,7 @@ class CheckSfFile:
                 f = float(self.__Fo_au[i])
                 if f < 0 and self.__n5 == 0:
                     self.__n5 += 1
-                    pinfo(f"Error: File has negative amplitude (Fo: {self.__Fo_au[i]}) for ({hkl}).", self.__pinfo_value)
+                    self.__logger.pinfo(f"Error: File has negative amplitude (Fo: {self.__Fo_au[i]}) for ({hkl}).", self.__pinfo_value)
 
                 if f < min_F: min_F = f
                 if f > max_F: max_F = f
@@ -482,98 +483,98 @@ class CheckSfFile:
             if self.__fom and abs(float(self.__fom[i])) > 1.01:
                 if n6 == 0:
                     n6 += 1
-                    pinfo(f"Warning: File has wrong values of FOM ({self.__fom[i]}) for ({hkl}).", self.__pinfo_value)
+                    self.__logger.pinfo(f"Warning: File has wrong values of FOM ({self.__fom[i]}) for ({hkl}).", self.__pinfo_value)
 
             if self.__phase_c and abs(float(self.__phase_c[i])) > 361.0:
                 if n7 == 0:
                     n7 += 1
-                    pinfo(f"Warning: File has wrong values of phase ({self.__phase_c[i]}) for ({hkl}).", self.__pinfo_value)
+                    self.__logger.pinfo(f"Warning: File has wrong values of phase ({self.__phase_c[i]}) for ({hkl}).", self.__pinfo_value)
 
             if self.__phase_o and abs(float(self.__phase_o[i])) > 361.0:
                 if n8 == 0:
                     n8 += 1
-                    pinfo(f"Warning: File has wrong values of phase ({self.__phase_o[i]}) for ({hkl}).", self.__pinfo_value)
+                    self.__logger.pinfo(f"Warning: File has wrong values of phase ({self.__phase_o[i]}) for ({hkl}).", self.__pinfo_value)
 
 
         if n1 > 0:
-            pinfo(f"Error: File has ({n1}) reflections with wrong indices.", self.__pinfo_value)
+            self.__logger.pinfo(f"Error: File has ({n1}) reflections with wrong indices.", self.__pinfo_value)
 
         if n2 > 0:
-            pinfo(f"Warning: File has ({n2}) reflections with negative SIGMA, (Corrected: given status '<').", self.__pinfo_value)
+            self.__logger.pinfo(f"Warning: File has ({n2}) reflections with negative SIGMA, (Corrected: given status '<').", self.__pinfo_value)
 
         if n4 > 0:
-            pinfo(f"Error: File has ({n4}) reflections with negative amplitude (F+).", self.__pinfo_value)
+            self.__logger.pinfo(f"Error: File has ({n4}) reflections with negative amplitude (F+).", self.__pinfo_value)
 
         if n5 > 0:
-            pinfo(f"Error: File has ({n5}) reflections with negative amplitude (Fo).", self.__pinfo_value)
+            self.__logger.pinfo(f"Error: File has ({n5}) reflections with negative amplitude (Fo).", self.__pinfo_value)
 
         if temp_nref > 10 and ((nf_sFo > 0 and temp_nref - nf_sFo < 3) or (nf_sIo > 0 and temp_nref - nf_sIo < 3)):
-            pinfo(f"Warning! File has Sigma_Fo all the same!", self.__pinfo_value)
+            self.__logger.pinfo(f"Warning! File has Sigma_Fo all the same!", self.__pinfo_value)
 
         # Following are the messages related to total number of reflections
-        pinfo(f"Total number of observed reflections = {(n_obs + n_free)}", self.__pinfo_value)
-        pinfo(f"Total number of observed reflections (status='o') = {n_obs}", self.__pinfo_value)
-        pinfo(f"Total number of observed reflections (status='f') = {n_free}", self.__pinfo_value)
+        self.__logger.pinfo(f"Total number of observed reflections = {(n_obs + n_free)}", self.__pinfo_value)
+        self.__logger.pinfo(f"Total number of observed reflections (status='o') = {n_obs}", self.__pinfo_value)
+        self.__logger.pinfo(f"Total number of observed reflections (status='f') = {n_free}", self.__pinfo_value)
         if n_obs > 0:
             rfree_p = 100 * float(n_free) / float(n_obs)
-            pinfo(f"Percentage for free set = {rfree_p:.2f}", self.__pinfo_value)
+            self.__logger.pinfo(f"Percentage for free set = {rfree_p:.2f}", self.__pinfo_value)
 
         if nfpairF > 10:
-            pinfo(f"Total number of Friedel pairs (F+/F-) = {nfpairF}", self.__pinfo_value)
-            pinfo(f"Total number of observed F+ = {nfp}", self.__pinfo_value)
-            pinfo(f"Total number of observed F- = {nfn}", self.__pinfo_value)
-            pinfo(f"Sum of observed F+ and F-  = {(nfn + nfp)}", self.__pinfo_value)
+            self.__logger.pinfo(f"Total number of Friedel pairs (F+/F-) = {nfpairF}", self.__pinfo_value)
+            self.__logger.pinfo(f"Total number of observed F+ = {nfp}", self.__pinfo_value)
+            self.__logger.pinfo(f"Total number of observed F- = {nfn}", self.__pinfo_value)
+            self.__logger.pinfo(f"Sum of observed F+ and F-  = {(nfn + nfp)}", self.__pinfo_value)
         
         if nfpairI > 10:
-            pinfo(f"Total number of Friedel pairs (I+/I-) = {nfpairI}", self.__pinfo_value)
-            pinfo(f"Total number of observed I+ = {nip}", self.__pinfo_value)
-            pinfo(f"Total number of observed I- = {nin}", self.__pinfo_value)
-            pinfo(f"Sum of observed I+ and I-  = {(nin + nip)}", self.__pinfo_value)
+            self.__logger.pinfo(f"Total number of Friedel pairs (I+/I-) = {nfpairI}", self.__pinfo_value)
+            self.__logger.pinfo(f"Total number of observed I+ = {nip}", self.__pinfo_value)
+            self.__logger.pinfo(f"Total number of observed I- = {nin}", self.__pinfo_value)
+            self.__logger.pinfo(f"Sum of observed I+ and I-  = {(nin + nip)}", self.__pinfo_value)
 
         if key > 0 and self.__cell[0] > 0.001:
-            pinfo(f"Cell = {self.__cell[0]:.2f} {self.__cell[1]:.2f} {self.__cell[2]:.2f} {self.__cell[3]:.2f} {self.__cell[4]:.2f} {self.__cell[5]:.2f}", self.__pinfo_value)
-            pinfo(f"Lowest resolution= {max_R:.2f} ; corresponding HKL={self.__hkl_max}", self.__pinfo_value)
-            pinfo(f"Highest resolution={min_R:.2f} ; corresponding HKL={self.__hkl_min}", self.__pinfo_value)
+            self.__logger.pinfo(f"Cell = {self.__cell[0]:.2f} {self.__cell[1]:.2f} {self.__cell[2]:.2f} {self.__cell[3]:.2f} {self.__cell[4]:.2f} {self.__cell[5]:.2f}", self.__pinfo_value)
+            self.__logger.pinfo(f"Lowest resolution= {max_R:.2f} ; corresponding HKL={self.__hkl_max}", self.__pinfo_value)
+            self.__logger.pinfo(f"Highest resolution={min_R:.2f} ; corresponding HKL={self.__hkl_min}", self.__pinfo_value)
             if RESOH > 0.11 and abs(RESOH - min_R) > 0.4 and nblock == 0:
-                pinfo(f"Warning: large difference between reported ({RESOH:.2f}) and calculated({min_R:.2f}) resolution.", self.__pinfo_value)
+                self.__logger.pinfo(f"Warning: large difference between reported ({RESOH:.2f}) and calculated({min_R:.2f}) resolution.", self.__pinfo_value)
             resol[0] = min_R
         
-        pinfo(f"Max indices (Hmax={max_H:4d}  Kmax={max_K:4d}  Lmax={max_L:4d})", self.__pinfo_value)
-        pinfo(f"Min indices (Hmin={min_H:4d}  Kmin={min_K:4d}  Lmin={min_L:4d})", self.__pinfo_value)
+        self.__logger.pinfo(f"Max indices (Hmax={max_H:4d}  Kmax={max_K:4d}  Lmax={max_L:4d})", self.__pinfo_value)
+        self.__logger.pinfo(f"Min indices (Hmin={min_H:4d}  Kmin={min_K:4d}  Lmin={min_L:4d})", self.__pinfo_value)
 
         if self.__Fo_au:
-            pinfo(f"maximum value of amplitude= {max_F:.2f}", self.__pinfo_value)
-            pinfo(f"minimum value of amplitude= {min_F:.2f}", self.__pinfo_value)
-            pinfo(f"<F/sigmaF> = {f_over_sf / nf_Fo:.2f};  <F>/<sigmaF> = {sum_f / sum_sf:.2f}", self.__pinfo_value)
+            self.__logger.pinfo(f"maximum value of amplitude= {max_F:.2f}", self.__pinfo_value)
+            self.__logger.pinfo(f"minimum value of amplitude= {min_F:.2f}", self.__pinfo_value)
+            self.__logger.pinfo(f"<F/sigmaF> = {f_over_sf / nf_Fo:.2f};  <F>/<sigmaF> = {sum_f / sum_sf:.2f}", self.__pinfo_value)
             if sum_f / sum_sf > 140 or sum_f / sum_sf < 4:
-                pinfo(f"Warning: Value of (Fo_avg/sigFo_avg = {sum_f / sum_sf:.2f}) is out of range (check Fo or SigFo in SF file).", self.__pinfo_value)
+                self.__logger.pinfo(f"Warning: Value of (Fo_avg/sigFo_avg = {sum_f / sum_sf:.2f}) is out of range (check Fo or SigFo in SF file).", self.__pinfo_value)
 
         if self.__F2o:
-            pinfo(f"maximum value of F square= {max_F2:.2f}", self.__pinfo_value)
-            pinfo(f"minimum value of F square= {min_F2:.2f}", self.__pinfo_value)
-            pinfo(f"<F2/sigmaF2> = {f2_over_sf2 / nf_F2o:.2f};  <F2>/<sigmaF2> = {sum_f2 / sum_sf2:.2f}", self.__pinfo_value)
+            self.__logger.pinfo(f"maximum value of F square= {max_F2:.2f}", self.__pinfo_value)
+            self.__logger.pinfo(f"minimum value of F square= {min_F2:.2f}", self.__pinfo_value)
+            self.__logger.pinfo(f"<F2/sigmaF2> = {f2_over_sf2 / nf_F2o:.2f};  <F2>/<sigmaF2> = {sum_f2 / sum_sf2:.2f}", self.__pinfo_value)
 
         if self.__Io:
-            pinfo(f"maximum value of intensity= {max_I:.2f}", self.__pinfo_value)
-            pinfo(f"minimum value of intensity= {min_I:.2f}", self.__pinfo_value)
-            pinfo(f"<I/sigmaI> = {i_over_si / nf_Io:.2f};  <I>/<sigmaI> = {sum_i / sum_si:.2f}", self.__pinfo_value)
+            self.__logger.pinfo(f"maximum value of intensity= {max_I:.2f}", self.__pinfo_value)
+            self.__logger.pinfo(f"minimum value of intensity= {min_I:.2f}", self.__pinfo_value)
+            self.__logger.pinfo(f"<I/sigmaI> = {i_over_si / nf_Io:.2f};  <I>/<sigmaI> = {sum_i / sum_si:.2f}", self.__pinfo_value)
             if sum_i / sum_si > 80 or sum_i / sum_si < 2:
-                pinfo(f"Warning: Value of (I_avg/sigI_avg = {sum_i / sum_si:.2f}) is out of range (check Io or SigIo in SF file). ", self.__pinfo_value)
+                self.__logger.pinfo(f"Warning: Value of (I_avg/sigI_avg = {sum_i / sum_si:.2f}) is out of range (check Io or SigIo in SF file). ", self.__pinfo_value)
 
             if nf_Fo :
                 if f_over_sf / nf_Fo > 0 and (f_over_sf / nf_Fo > 2.5 * i_over_si / nf_Io or f_over_sf / nf_Fo < 1.0 * i_over_si / nf_Io):
-                    pinfo(f"Warning: too much difference Fo/sigFo = {f_over_sf / nf_Fo:.2f};  Io/sigIo = {i_over_si / nf_Io:.2f}", self.__pinfo_value)
+                    self.__logger.pinfo(f"Warning: too much difference Fo/sigFo = {f_over_sf / nf_Fo:.2f};  Io/sigIo = {i_over_si / nf_Io:.2f}", self.__pinfo_value)
 
         if nnii > 10:
-            pinfo(f"Using all data:  <I/sigI>={ii_sigii / nnii:.2f}", self.__pinfo_value)
-            pinfo(f"Using all data:  <I>/<sigI>={sum_ii / sum_sigii:.2f}", self.__pinfo_value)
-            pinfo(f"Using all data:  Rsig(<sigI>/<I>)={sum_sigii / sum_ii:.3f}", self.__pinfo_value)
-            pinfo(f"The maximum value of <I/sigI>_max={ii_sigii_max:.2f}", self.__pinfo_value)
+            self.__logger.pinfo(f"Using all data:  <I/sigI>={ii_sigii / nnii:.2f}", self.__pinfo_value)
+            self.__logger.pinfo(f"Using all data:  <I>/<sigI>={sum_ii / sum_sigii:.2f}", self.__pinfo_value)
+            self.__logger.pinfo(f"Using all data:  Rsig(<sigI>/<I>)={sum_sigii / sum_ii:.3f}", self.__pinfo_value)
+            self.__logger.pinfo(f"The maximum value of <I/sigI>_max={ii_sigii_max:.2f}", self.__pinfo_value)
 
         if nnii_low > 10:
-            pinfo(f"Use data with resolution >7.0 Angstrom: <I/sigI>_low={ii_sigii_low / nnii_low:.2f}", self.__pinfo_value)
+            self.__logger.pinfo(f"Use data with resolution >7.0 Angstrom: <I/sigI>_low={ii_sigii_low / nnii_low:.2f}", self.__pinfo_value)
 
-        pinfo(f"\n", self.__pinfo_value)
+        self.__logger.pinfo(f"\n", self.__pinfo_value)
 
         return
 

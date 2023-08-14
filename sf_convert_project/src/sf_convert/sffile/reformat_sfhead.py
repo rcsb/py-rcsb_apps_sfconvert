@@ -1,8 +1,8 @@
-from sf_convert.utils.pinfo_file import pinfo
+# from sf_convert.utils.pinfo_file import pinfo
 from mmcif.api.DataCategoryBase import DataCategoryBase
 
 
-def reformat_sfhead(sf_file, DETAIL=None):
+def reformat_sfhead(sf_file, logger, DETAIL=None):
     # myContainerList = []
     changes_made = False
 
@@ -143,10 +143,10 @@ def reformat_sfhead(sf_file, DETAIL=None):
     }
 
     # Perform the renaming of attributes
-    changes_made |= rename_sfhead(sf_file, mapping_dicts)
+    changes_made |= rename_sfhead(sf_file, mapping_dicts, logger)
 
     # Perform the removal of categories
-    changes_made |= remove_sfhead(sf_file, remove_list)
+    changes_made |= remove_sfhead(sf_file, remove_list, logger)
 
     # Perform the removal of duplicate reflections
     changes_made |= remove_duplicate_reflections(sf_file)
@@ -175,7 +175,7 @@ def reformat_sfhead(sf_file, DETAIL=None):
 
     return changes_made
 
-def rename_sfhead(sf_file, mapping_dicts):
+def rename_sfhead(sf_file, mapping_dicts, logger):
     changes_made = False
     for dict_name, mapping_dict in mapping_dicts.items():
         for block_index in range(sf_file.get_number_of_blocks()):
@@ -190,11 +190,11 @@ def rename_sfhead(sf_file, mapping_dicts):
                 if renameDict:
                     changes_made = True
                     for old_name, new_name in renameDict.items():
-                        pinfo(f"Renaming {old_name} to {new_name} in {dict_name} category of block {block.getName()}", 0)
+                        logger.pinfo(f"Renaming {old_name} to {new_name} in {dict_name} category of block {block.getName()}", 0)
                 category_object.renameAttributes(renameDict)
     return changes_made
 
-def remove_sfhead(sf_file, remove_list):
+def remove_sfhead(sf_file, remove_list, logger):
     changes_made = False
     for item in remove_list:
         for block_index in range(sf_file.get_number_of_blocks()):
@@ -202,7 +202,7 @@ def remove_sfhead(sf_file, remove_list):
             removed_flag = sf_file.remove_category_by_name(item, block.getName())
             if removed_flag:
                 changes_made = True
-                pinfo(f"Removing {item} category from block {block.getName()}", 0)
+                logger.pinfo(f"Removing {item} category from block {block.getName()}", 0)
     return changes_made
 
 def remove_duplicate_reflections(sf_file):
