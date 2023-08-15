@@ -3,7 +3,7 @@ import os
 import argparse
 from sf_convert.sffile.sf_file import StructureFactorFile
 #from ..sffile.sf_file import SFFile
-from sf_convert.utils.pinfo_file import pinfo
+#from sf_convert.utils.pinfo_file import pinfo
 #from .pinfo_file import pinfo
 from mmcif.api.DataCategory import DataCategory
 from mmcif.api.PdbxContainers import DataContainer
