@@ -6,7 +6,7 @@ from pathlib import Path
 from sf_convert.sffile.get_items_pdb import ProteinDataBank
 from sf_convert.sffile.sf_file import StructureFactorFile
 from sf_convert.import_dir.mtz2cif import MtzToCifConverter
-from sf_convert.export_dir.cns2cif import CNSToCifConverter
+from sf_convert.import_dir.cns2cif import CNSToCifConverter
 from sf_convert.export_dir.cif2cns import CifToCNSConverter
 from sf_convert.export_dir.cif2mtz import CifToMTZConverter
 from sf_convert.sffile.guess_sf_format import guess_sf_format
@@ -284,6 +284,44 @@ def convert_from_mmCIF_to_mmCIF(args):
     sffile.write_file(args.out + ".mmcif")
 
 
+def convert_from_CNS_to_MTZ(args, pdb, logger):
+    """Converts from CNS format to MTZ format through mmCIF."""
+    
+    # Convert from CNS to mmCIF first
+    original_out = args.out
+    intermediate_mmcif = original_out + "_intermediate.mmcif"
+    args.out = intermediate_mmcif[:-6]  # remove ".mmcif" from the end
+    convert_from_CNS_to_mmCIF(args, pdb, logger)
+    
+    # Convert the generated mmCIF to MTZ
+    args.sf = intermediate_mmcif
+    args.out = original_out
+    convert_from_mmCIF_to_MTZ(args)
+    
+    # Remove the intermediary mmCIF file
+    os.remove(intermediate_mmcif)
+
+
+def convert_from_MTZ_to_CNS(args, pdb, logger):
+    """Converts from MTZ format to CNS format through mmCIF."""
+    
+    # Save the original output name
+    original_out = args.out
+    
+    # Convert from MTZ to mmCIF first
+    intermediate_mmcif = original_out + "_intermediate.mmcif"
+    args.out = intermediate_mmcif[:-6]  # remove ".mmcif" from the end
+    convert_from_MTZ_to_mmCIF(args, pdb, logger)
+    
+    # Convert the generated mmCIF to CNS
+    args.sf = intermediate_mmcif
+    args.out = original_out
+    convert_from_mmCIF_to_CNS(args, pdb)
+    
+    # Remove the intermediary mmCIF file
+    os.remove(intermediate_mmcif)
+
+
 def reformat_sf_header(sffile, args, logger):
     """Reformats the SF header."""
     if args.detail:
@@ -312,6 +350,10 @@ def convert_files(args, input_format, pdb, logger):
         convert_from_mmCIF_to_CNS(args, pdb)
     elif input_format == "mmCIF" and output_format == "mmCIF":
         convert_from_mmCIF_to_mmCIF(args)
+    elif input_format == "CNS" and output_format == "MTZ":
+        convert_from_CNS_to_MTZ(args, pdb, logger)
+    elif input_format == "MTZ" and output_format == "CNS":
+        convert_from_MTZ_to_CNS(args, pdb, logger)
     elif args.valid is False:
         raise ValueError(f"Conversion from {input_format} to {output_format} is not supported.")
 
