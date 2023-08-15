@@ -248,3 +248,31 @@ class StructureFactorFile:
             expected_name = self.generate_expected_block_name(pdbid, index)  # Assuming pdbid is the 4 characters after "r"
             if block.getName() != expected_name:
                 block.setName(expected_name) 
+
+
+    #---------------------------------- Test Functions ----------------------------------#
+
+    # def get_refln_status_from_all_blocks(self):
+    #     """
+    #     Retrieve the 'status' attribute of the 'refln' data category from all data blocks.
+    #     Returns a dictionary with block names as keys and lists of 'status' values as values.
+    #     """
+    #     status_dict = {}
+    #     for block in self.__data_blocks:
+    #         refln_category = block.getObj("refln")
+    #         if refln_category:
+    #             status_values = refln_category.getAttributeValueList("status")
+    #             status_dict[block.getName()] = status_values
+    #     return status_dict
+
+    # def write_refln_status_to_file(self, output_file):
+    #     """
+    #     Write the 'status' attribute of the 'refln' data category from all data blocks to a specified file.
+    #     """
+    #     status_dict = self.get_refln_status_from_all_blocks()
+    #     with open(output_file, 'w') as f:
+    #         for block_name, statuses in status_dict.items():
+    #             f.write(f"Block Name: {block_name}\n")
+    #             for status in statuses:
+    #                 f.write(f"    Status: {status}\n")
+    #             f.write("\n")

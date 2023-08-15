@@ -1,4 +1,4 @@
-from sf_convert.export_dir.cns2cif import CNSToCifConverter
+from sf_convert.import_dir.cns2cif import CNSToCifConverter
 from sf_convert.utils.pinfo_file import PInfoLogger
 import os
 class TestCnsToCifConversion:
