@@ -17,7 +17,7 @@ class TestCns:
     
         CNSexport = CifToCNSConverter(sffile, outfile, "xxxx")
         # We should have a diagnostic
-        CNSexport.write_cns_file(0)
+        CNSexport.write_cns_file()
 
         assert os.path.exists(outfile)
     
