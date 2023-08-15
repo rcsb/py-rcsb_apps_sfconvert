@@ -39,7 +39,7 @@ class MtzToCifConverter:
             ('L', 'H', 'index_l'),
             ('? FREE|RFREE|FREER|FreeR_flag|R-free-flags|FreeRflag', 'I', 'status', 'S'),
             ('FreeR_flag', 'I', 'pdbx_r_free_flag'),
-            ('F_XDSdataset', 'F', 'F_meas_au'),
+            ('? F_XDSdataset', 'F', 'F_meas_au'),
             ('SIGF_XDSdataset', 'Q', 'F_meas_sigma_au'),
             ('? FC', 'F', 'F_calc_au'),
             ('? PHIC', 'P', 'phase_calc'),
