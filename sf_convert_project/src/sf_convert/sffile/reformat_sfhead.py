@@ -1,5 +1,6 @@
 # from sf_convert.utils.pinfo_file import pinfo
-from mmcif.api.DataCategoryBase import DataCategoryBase
+# from mmcif.api.DataCategoryBase import DataCategoryBase
+from mmcif.api.DataCategory import DataCategory
 
 
 def reformat_sfhead(sf_file, logger, DETAIL=None):
@@ -242,7 +243,7 @@ def append_attributes(sf_file, category_name, attributes, block_name=None):
     category = block.getObj(category_name)
     # If category doesn't exist, create it
     if not category:
-        category = DataCategoryBase(category_name)
+        category = DataCategory(category_name)
         block.append(category)
         changes_made = True
 

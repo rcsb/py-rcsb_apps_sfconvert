@@ -5,7 +5,7 @@ class ProteinDataBank:
         self.pdb_id = 'xxxx'
         self.RESOH = 0.1
         self.RESOL = 200
-        self.FREERV = 1
+        self.FREERV = None
         self.WAVE = None
         self.NFREE = None
         self.CELL = None
