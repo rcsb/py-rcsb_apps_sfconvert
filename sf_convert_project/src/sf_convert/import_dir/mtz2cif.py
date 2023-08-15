@@ -3,6 +3,8 @@ import os
 from pathlib import Path
 import sys
 from mmcif.api.DataCategory import DataCategory
+import subprocess
+import tempfile
 # from sf_convert.utils.pinfo_file import pinfo
 # path_to_append = Path('/Users/vivek/Library/CloudStorage/OneDrive-RutgersUniversity/Desktop files/Summer/py-rcsb_apps_sfconvert/sf_convert_project/src/sf_convert/sffile')
 # sys.path.append(str(path_to_append))
@@ -254,6 +256,47 @@ class MtzToCifConverter:
 
         self.sffile.write_file(self.output_file_path)
         os.remove(temp_file)
+
+    def convert_for_nfree(self, nfree_value: int = None):
+        """
+        Convert MTZ to CIF using gemmi mtz2cif command when there's an nfree_value.
+
+        :param nfree_value: Value for the --nfree flag (optional).
+        :return: None
+        """
+
+        cmd = ["gemmi", "mtz2cif", self.mtz_file_path, self.output_file_path]
+
+        # Create a temporary spec file from self.spec_file_content
+        with tempfile.NamedTemporaryFile('w', delete=False, suffix='.spec') as temp_spec:
+            for line in self.spec_file_content:
+                temp_spec.write(' '.join(line) + '\n')
+            spec_file_path = temp_spec.name
+
+        # Add spec file to command
+        cmd.insert(2, "--spec=" + spec_file_path)
+
+        # Add nfree value if provided
+        if nfree_value is not None:
+            cmd.insert(2, "--nfree=" + str(nfree_value))
+
+        result = subprocess.run(cmd, capture_output=True, text=True)
+
+        # Delete the temporary spec file
+        try:
+            os.remove(spec_file_path)
+        except Exception as e:
+            self.__logger.pinfo(f"Error deleting temp spec file: {e}", 2)
+
+        if result.returncode != 0:
+            self.__logger.pinfo(f"Error occurred: {result.stderr}", 2)
+        else:
+            self.__logger.pinfo("Conversion successful!", 2)
+
+
+
+
+
 
 
 # Use the class to convert MTZ to CIF

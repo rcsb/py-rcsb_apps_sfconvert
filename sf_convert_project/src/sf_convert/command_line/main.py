@@ -241,7 +241,10 @@ def convert_from_MTZ_to_mmCIF(args, pdb, logger):
     converter = MtzToCifConverter(args.sf, args.out, pdb.pdb_id, logger)
     if args.label:
         converter.process_labels(args.label)
-    converter.convert_and_write()
+    if pdb.FREERV:
+        converter.convert_for_nfree(pdb.FREERV)
+    else:
+        converter.convert_and_write()
 
     sffile = StructureFactorFile()
     sffile.read_file(args.out)
@@ -363,7 +366,7 @@ def main():
         args = parse_arguments()
         pdb = ProteinDataBank()
         logger = PInfoLogger('path_to_log1.log', 'path_to_log2.log')
-        logger.clear_logs()
+        # logger.clear_logs()
         
         input_format = get_input_format(args)
         

@@ -5,6 +5,8 @@ class PInfoLogger:
     def __init__(self, log_file1_path, log_file2_path):
         self.log_file1 = log_file1_path
         self.log_file2 = log_file2_path
+
+        self.clear_logs()  # Clear the logs if they already exist
         
         # Set up the loggers
         self.logger1 = self._setup_logger('Logger1', self.log_file1)
