@@ -16,7 +16,7 @@ from sf_convert.utils.get_sf_info_file import get_sf_info
 from sf_convert.utils.CheckSfFile import CheckSfFile
 
 
-VALID_FORMATS = ["CNS", "MTZ", "mmCIF"]
+VALID_FORMATS = ["CNS", "MTZ", "mmCIF", "CIF"]
 
 
 class CustomHelpParser(argparse.ArgumentParser):
@@ -351,7 +351,8 @@ def convert_files(args, input_format, pdb, logger):
         convert_from_mmCIF_to_MTZ(args)
     elif input_format == "mmCIF" and output_format == "CNS":
         convert_from_mmCIF_to_CNS(args, pdb)
-    elif input_format == "mmCIF" and output_format == "mmCIF":
+    # elif input_format == "mmCIF" and output_format == "mmCIF":
+    elif (input_format in ["mmCIF", "CIF"]) and output_format == "mmCIF":
         convert_from_mmCIF_to_mmCIF(args)
     elif input_format == "CNS" and output_format == "MTZ":
         convert_from_CNS_to_MTZ(args, pdb, logger)
