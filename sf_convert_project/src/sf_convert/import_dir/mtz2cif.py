@@ -40,6 +40,7 @@ class MtzToCifConverter:
             ('K', 'H', 'index_k'),
             ('L', 'H', 'index_l'),
             ('? FREE|RFREE|FREER|FreeR_flag|R-free-flags|FreeRflag', 'I', 'status', 'S'),
+            ('? FREE|RFREE|FREER|R-free-flags|FreeRflag', 'I', 'pdbx_r_free_flag'),
             ('? FreeR_flag', 'I', 'pdbx_r_free_flag'),
             ('? F_XDSdataset', 'F', 'F_meas_au'),
             ('? SIGF_XDSdataset', 'Q', 'F_meas_sigma_au'),
@@ -248,8 +249,10 @@ class MtzToCifConverter:
         #self.sffile.reorder_objects(['audit', 'cell', 'diffrn_radiation_wavelength', 'entry', 'exptl_crystal', 'reflns_scale', 'symmetry', 'refln'])
         #reorderCategoryAttr()
         # print(self.sffile.get_category_names())
+
         new_order = ['audit', 'cell', 'diffrn_radiation_wavelength', 'entry', 'exptl_crystal', 'reflns_scale', 'symmetry', 'refln']
         self.sffile.reorder_categories_in_block(new_order)
+
         # print(self.sffile.get_category_names())
 
 
