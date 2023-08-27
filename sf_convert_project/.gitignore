@@ -110,4 +110,4 @@ venv.bak/
 # emacs autosave file
 *~
 src/tests/data/PU/
-
+src/tests/data/PU.tar
