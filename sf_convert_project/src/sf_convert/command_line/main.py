@@ -21,6 +21,9 @@ VALID_FORMATS = ["CNS", "MTZ", "mmCIF", "CIF"]
 
 class CustomHelpParser(argparse.ArgumentParser):
     def print_help(self):
+        """
+        Prints the custom help message for the sf_convert script.
+        """
         custom_help_message = """
     =======================================================================
                 sf_convert (version: x.xxx : 2023-xx-xx )                      
@@ -139,24 +142,57 @@ class CustomHelpParser(argparse.ArgumentParser):
         print(custom_help_message)
 
     def error(self, message):
+        """
+        Prints an error message and exits the program.
+        
+        Args:
+            message: The error message to be printed.
+        """
         sys.stderr.write('Error: %s\n' % message)
         sys.exit(2)
 
 
 def validate_file_exists(filepath):
-    """Check if a given file exists."""
+    """
+    Validates if a given file exists.
+    
+    Args:
+        filepath: The path to the file to be validated.
+        
+    Raises:
+        FileNotFoundError: If the file does not exist.
+    """
     if not os.path.exists(filepath):
         raise FileNotFoundError(f"The file {filepath} does not exist.")
 
 
 def validate_format(file_format):
-    """Validate if the given format is one of the VALID_FORMATS."""
+    """
+    Validates if the given format is one of the VALID_FORMATS.
+    
+    Args:
+        file_format: The format to be validated.
+        
+    Raises:
+        ValueError: If the format is not valid.
+    """
     if file_format not in VALID_FORMATS:
         raise ValueError(f"Invalid format: {file_format}. Please use one of the following formats: {VALID_FORMATS}")
 
 
 def get_input_format(args):
-    """Determine the input format either from the provided argument or by guessing."""
+    """
+    Determines the input format either from the provided argument or by guessing.
+    
+    Args:
+        args: The command line arguments.
+        
+    Returns:
+        The determined input format.
+        
+    Raises:
+        ValueError: If the source file is not provided.
+    """
     if args.i:
         validate_format(args.i)
         return args.i
@@ -166,7 +202,20 @@ def get_input_format(args):
 
 
 def handle_pdb_argument(args, pdb):
-    """Handle operations related to the -pdb argument."""
+    """
+    Handles operations related to the -pdb argument.
+    
+    Args:
+        args: The command line arguments.
+        pdb: The ProteinDataBank object.
+        
+    Returns:
+        The extracted attributes from the PDB file.
+        
+    Raises:
+        ValueError: If the file format for -pdb argument is invalid.
+        FileNotFoundError: If the PDB file does not exist.
+    """
     validate_file_exists(args.pdb)
     if args.pdb.endswith(".cif"):
         sffile = StructureFactorFile()
@@ -179,14 +228,32 @@ def handle_pdb_argument(args, pdb):
 
 
 def handle_label_argument(args):
-    """Validate the -label argument format."""
+    """
+    Validates the -label argument format.
+    
+    Args:
+        args: The command line arguments.
+        
+    Raises:
+        ValueError: If the format for -label argument is invalid.
+    """
     pattern = re.compile(r'^([^=]+=[^=]+)(,\s*[^=]+=[^=]+)*$')
     if not pattern.match(args.label):
         raise ValueError("Invalid format for -label argument. Please use the format 'key1=value1, key2=value2, ...'")
 
 
 def handle_freer_argument(args, pdb, logger):
-    """Handle operations related to the -freer argument."""
+    """
+    Handles operations related to the -freer argument.
+    
+    Args:
+        args: The command line arguments.
+        pdb: The ProteinDataBank object.
+        logger: The PInfoLogger object.
+        
+    Raises:
+        ValueError: If the -freer argument is not a positive integer.
+    """
     if args.freer <= 0:
         raise ValueError("-freer argument must be a positive integer.")
     pdb.update_FREERV(args.freer)
@@ -194,19 +261,39 @@ def handle_freer_argument(args, pdb, logger):
 
 
 def handle_wave_argument(args, pdb):
-    """Handle operations related to the -wave argument."""
+    """
+    Handles operations related to the -wave argument.
+    
+    Args:
+        args: The command line arguments.
+        pdb: The ProteinDataBank object.
+        
+    Raises:
+        ValueError: If the -wave argument is not a positive float.
+    """
     if args.wave <= 0.0:
         raise ValueError("-wave argument must be a positive float.")
     pdb.update_WAVE(args.wave)
 
 
 def handle_diags_argument(args):
-    """Handle operations related to the -diags argument."""
+    """
+    Handles operations related to the -diags argument.
+    
+    Args:
+        args: The command line arguments.
+    """
     get_sf_info(args.diags)
 
 
 def handle_valid_argument(args, logger):
-    """Handle operations related to the -valid argument."""
+    """
+    Handles operations related to the -valid argument.
+    
+    Args:
+        args: The command line arguments.
+        logger: The PInfoLogger object.
+    """
     sffile = StructureFactorFile()
     sffile.read_file(args.sf)
     n = sffile.get_number_of_blocks()
@@ -216,7 +303,14 @@ def handle_valid_argument(args, logger):
 
 
 def convert_from_CNS_to_mmCIF(args, pdb, logger):
-    """Converts from CNS format to mmCIF format."""
+    """
+    Converts from CNS format to mmCIF format.
+    
+    Args:
+        args: The command line arguments.
+        pdb: The ProteinDataBank object.
+        logger: The PInfoLogger object.
+    """
     processor = CNSToCifConverter(args.sf, pdb.pdb_id, logger, pdb.FREERV)
     processor.process_file()
     processor.rename_keys()
@@ -237,7 +331,14 @@ def convert_from_CNS_to_mmCIF(args, pdb, logger):
 
 
 def convert_from_MTZ_to_mmCIF(args, pdb, logger):
-    """Converts from MTZ format to mmCIF format."""
+    """
+    Converts from MTZ format to mmCIF format.
+    
+    Args:
+        args: The command line arguments.
+        pdb: The ProteinDataBank object.
+        logger: The PInfoLogger object.
+    """
     converter = MtzToCifConverter(args.sf, args.out, pdb.pdb_id, logger)
     if args.label:
         converter.process_labels(args.label)
@@ -260,7 +361,12 @@ def convert_from_MTZ_to_mmCIF(args, pdb, logger):
 
 
 def convert_from_mmCIF_to_MTZ(args):
-    """Converts from mmCIF format to MTZ format."""
+    """
+    Converts from mmCIF format to MTZ format.
+    
+    Args:
+        args: The command line arguments.
+    """
     converter = CifToMTZConverter(args.sf)
     converter.load_cif()
     converter.determine_mappings()
@@ -268,7 +374,13 @@ def convert_from_mmCIF_to_MTZ(args):
 
 
 def convert_from_mmCIF_to_CNS(args, pdb):
-    """Converts from mmCIF format to CNS format."""
+    """
+    Converts from mmCIF format to CNS format.
+    
+    Args:
+        args: The command line arguments.
+        pdb: The ProteinDataBank object.
+    """
     sffile = StructureFactorFile()
     sffile.read_file(args.sf)
     CNSexport = CifToCNSConverter(sffile, args.out + ".CNS", pdb.pdb_id)
@@ -276,7 +388,12 @@ def convert_from_mmCIF_to_CNS(args, pdb):
 
 
 def convert_from_mmCIF_to_mmCIF(args):
-    """Converts from mmCIF format to mmCIF format."""
+    """
+    Converts from mmCIF format to mmCIF format.
+    
+    Args:
+        args: The command line arguments.
+    """
     sffile = StructureFactorFile()
     sffile.read_file(args.sf)
 
@@ -288,8 +405,14 @@ def convert_from_mmCIF_to_mmCIF(args):
 
 
 def convert_from_CNS_to_MTZ(args, pdb, logger):
-    """Converts from CNS format to MTZ format through mmCIF."""
+    """
+    Converts from CNS format to MTZ format through mmCIF.
     
+    Args:
+        args: The command line arguments.
+        pdb: The ProteinDataBank object.
+        logger: The PInfoLogger object.
+    """
     # Convert from CNS to mmCIF first
     original_out = args.out
     intermediate_mmcif = original_out + "_intermediate.mmcif"
@@ -306,8 +429,14 @@ def convert_from_CNS_to_MTZ(args, pdb, logger):
 
 
 def convert_from_MTZ_to_CNS(args, pdb, logger):
-    """Converts from MTZ format to CNS format through mmCIF."""
+    """
+    Converts from MTZ format to CNS format through mmCIF.
     
+    Args:
+        args: The command line arguments.
+        pdb: The ProteinDataBank object.
+        logger: The PInfoLogger object.
+    """
     # Save the original output name
     original_out = args.out
     
@@ -326,7 +455,14 @@ def convert_from_MTZ_to_CNS(args, pdb, logger):
 
 
 def reformat_sf_header(sffile, args, logger):
-    """Reformats the SF header."""
+    """
+    Reformats the SF header.
+    
+    Args:
+        sffile: The StructureFactorFile object.
+        args: The command line arguments.
+        logger: The PInfoLogger object.
+    """
     if args.detail:
         _ = reformat_sfhead(sffile, logger, args.detail)
     else:
@@ -334,13 +470,32 @@ def reformat_sf_header(sffile, args, logger):
 
 
 def validate_block_name(block_name):
-    """Validates the block name length."""
+    """
+    Validates the block name length.
+    
+    Args:
+        block_name: The block name to be validated.
+        
+    Raises:
+        ValueError: If the block name is not 4 characters long.
+    """
     if len(block_name) != 4:
         raise ValueError(f"Block name must be 4 characters long. {block_name} is not valid.")
 
 
 def convert_files(args, input_format, pdb, logger):
-    """Converts files based on input and output formats."""
+    """
+    Converts files based on input and output formats.
+    
+    Args:
+        args: The command line arguments.
+        input_format: The determined input format.
+        pdb: The ProteinDataBank object.
+        logger: The PInfoLogger object.
+        
+    Raises:
+        ValueError: If the conversion from input to output format is not supported.
+    """
     output_format = args.o
 
     if input_format == "CNS" and output_format == "mmCIF":
@@ -363,6 +518,9 @@ def convert_files(args, input_format, pdb, logger):
 
 
 def main():
+    """
+    The main function that handles the execution of the sf_convert script.
+    """
     try:
         args = parse_arguments()
         pdb = ProteinDataBank()
@@ -397,7 +555,12 @@ def main():
 
 
 def parse_arguments():
-    """Parse and return command line arguments."""
+    """
+    Parses and returns the command line arguments.
+    
+    Returns:
+        The parsed command line arguments.
+    """
     parser = CustomHelpParser(description="This script allows various operations on files. Refer to the help document for more details.")
     
     parser.add_argument('-i', type=str, help='Input format')
