@@ -1,4 +1,13 @@
 def guess_sf_format(inpfile):
+    """
+    Guesses the format of a structure factor file based on its content.
+
+    Args:
+        inpfile (str): The path to the input file.
+
+    Returns:
+        str: The guessed format of the structure factor file, or None if the format is not recognized.
+    """
     try:
         with open(inpfile, 'r', encoding='utf-8') as file:
             lines = file.readlines()
@@ -101,7 +110,6 @@ def guess_sf_format(inpfile):
                     return "SAINT"
             
     except UnicodeDecodeError:
-        #print(f"Unable to decode the file '{inpfile}' using utf-8 encoding. Opening in binary mode.")
         try:
             with open(inpfile, 'rb') as file:
                 first_three_bytes = file.read(3)
@@ -109,13 +117,6 @@ def guess_sf_format(inpfile):
             if first_three_bytes == b'MTZ':
                 return "MTZ"
         except Exception as e:
-            #print(f"Error opening the file '{inpfile}' in binary mode: {e}")
             return None
 
     return "Format not recognized"
-
-# print(guess_sf_format('cns-sf6.cv'))
-# print(guess_sf_format('7xvx-sf.cif.mmcif'))
-# print(guess_sf_format('1o08.cif'))
-# print(guess_sf_format('4ar3-sf.cif.mtz'))
-# print(guess_sf_format('1N9F.mtz'))

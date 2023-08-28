@@ -7,6 +7,17 @@ import difflib
 
 class TestValid:
     def test_sf_file_validation(self, tmp_path, cif_5pny_data_path, cif_SF_4_validate_data_path):
+        """
+        Tests the validation of a structure factor file.
+
+        Args:
+            tmp_path: The path to the temporary directory.
+            cif_5pny_data_path: The path to the CIF file containing the structure factor data.
+            cif_SF_4_validate_data_path: The path to the reference output file for validation.
+
+        Returns:
+            None
+        """
         print("Starting the test...")
 
         # Define the path for the output file

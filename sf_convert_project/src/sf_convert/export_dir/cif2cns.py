@@ -1,15 +1,17 @@
 import random
-#from sffile.sf_convert import sf_convert
-#from sf_convert.sffile.sf_file import SFFile
 from pathlib import Path
-
-import sys
-sys.path.append("/Users/vivek/OneDrive - Rutgers University/Desktop files/Summer/py-rcsb_apps_sfconvert/sf_convert_project/src")
 from sf_convert.sffile.sf_file import StructureFactorFile as sf_convert
-
 
 class CifToCNSConverter:
     def __init__(self, sffile, fout_path, pdb_id='xxxx'):
+        """
+        Initializes the CifToCNSConverter object.
+
+        Args:
+            sffile (StructureFactorFile): The StructureFactorFile object containing the CIF data.
+            fout_path (str): The path to the output CNS file.
+            pdb_id (str, optional): The PDB ID. Defaults to 'xxxx'.
+        """
         self.__pdb_id = pdb_id
         self.__sf_file = sffile
         self.__fout_path = fout_path
@@ -48,21 +50,31 @@ class CifToCNSConverter:
         self.__initialize_data()
 
     def __initialize_data(self):
+        """
+        Initializes the data for the converter.
+        """
         self.__initialize_refln_data()
         self.__initialize_counts()
         self.__check_attributes_exist()
 
     def __initialize_refln_data(self):
+        """
+        Initializes the reflection data from the StructureFactorFile object.
+        """
         self.__sf_block = self.__sf_file.get_block_by_index(0)
         self.__refln_data = self.__sf_block.getObj("refln")
-        #print(self.__refln_data)
 
     def __initialize_counts(self):
+        """
+        Initializes the number of reflections.
+        """
         if self.__refln_data:
             self.__nref = self.__refln_data.getRowCount()
 
     def __check_attributes_exist(self):
-        
+        """
+        Checks the existence of specific attributes in the reflection data.
+        """
         for attr, value in self.attributes.items():
             self.__attr_existence[value] = self.__refln_data.hasAttribute(attr)
 
@@ -77,6 +89,12 @@ class CifToCNSConverter:
             self.__attr_existence[attribute] = any(self.__refln_data.hasAttribute(alternative) for alternative in alternatives)
 
     def __initialize_columns_at_index(self, i):
+        """
+        Initializes the columns at a given index.
+
+        Args:
+            i (int): The index of the columns to initialize.
+        """
         attL = self.__refln_data.getAttributeList()
 
         # First row - set attribute for columns that do not exist
@@ -88,28 +106,52 @@ class CifToCNSConverter:
         for attr, var in self.attributes.items():
             if attr in attL:
                 value = self.__refln_data.getValue(attr, i)
-                # setattr(self, var, value)
                 setattr(self, "_CifToCNSConverter__"+var, value)
-                #print(f'Attribute: {attr}, Variable: {var}, Value at index {i}: {value}')  # Print the value
 
         self.__initialize_Io_at_index(i)
         self.__initialize_sIo_at_index(i)
         self.__initialize_status_at_index(i)
 
     def __initialize_Io_at_index(self, i):
-        self.__Io = self.__get_first_refln_value(["intensity_meas", "intensity_meas_au", "intensity"],
-                                                 i)
+        """
+        Initializes the Io attribute at a given index.
+
+        Args:
+            i (int): The index of the Io attribute to initialize.
+        """
+        self.__Io = self.__get_first_refln_value(["intensity_meas", "intensity_meas_au", "intensity"], i)
 
     def __initialize_sIo_at_index(self, i):
+        """
+        Initializes the sIo attribute at a given index.
+
+        Args:
+            i (int): The index of the sIo attribute to initialize.
+        """
         self.__sIo = self.__get_first_refln_value(["intensity_sigma", "intensity_sigma_au",
                                                    "intensity_sigm", "intensity_meas_sigma",
-                                                   "intensity_meas_sigma_au"],
-                                                  i)
+                                                   "intensity_meas_sigma_au"], i)
 
     def __initialize_status_at_index(self, i):
+        """
+        Initializes the status attribute at a given index.
+
+        Args:
+            i (int): The index of the status attribute to initialize.
+        """
         self.__status = self.__get_first_refln_value(["status", "R_free_flag", "statu", "status_au"], i)
 
     def __get_first_refln_value(self, attrList, row):
+        """
+        Gets the first value from a list of attributes in the reflection data.
+
+        Args:
+            attrList (list): The list of attributes to check.
+            row (int): The row index to check.
+
+        Returns:
+            The first value found in the attribute list, or None if no value is found.
+        """
         attL = self.__refln_data.getAttributeList()
 
         ret = None
@@ -120,16 +162,17 @@ class CifToCNSConverter:
 
         return ret
 
-        
     def get_F_I(self, j):
         """
         Method to get H, K, L, F o& I from SF
+
+        Args:
+            j (int): The index of the reflection data.
+
+        Returns:
+            tuple: A tuple containing the values of H, K, L, F, sigma(F), I, sigma(I).
         """
         self.__initialize_columns_at_index(j)
-        # These are handled by __inialize_columns_at_index()
-        # self.__initialize_Io_at_index(j)
-        # self.__initialize_sIo_at_index(j)
-        # self.__initialize_status_at_index(j)
 
         # Parse values to integers
         h = int(self.__H)
@@ -211,6 +254,15 @@ class CifToCNSConverter:
         return h, k, l, ff, sff, ii, sii
 
     def float_or_zero(self, value):
+        """
+        Converts a value to float or returns 0 if it cannot be converted.
+
+        Args:
+            value (str): The value to convert.
+
+        Returns:
+            float: The converted value or 0 if it cannot be converted.
+        """
         try:
             float(value)
             return float(value)
@@ -219,7 +271,7 @@ class CifToCNSConverter:
 
     def write_cns_file(self):
         """
-        Method to write data to a CNS file
+        Writes the data to a CNS file.
         """
         with open(self.__fout_path, 'w') as output_file:
             output_file.write("NREFlection= {}\n".format(self.__nref))
@@ -290,13 +342,7 @@ class CifToCNSConverter:
                         self.float_or_zero(self.__hla), self.float_or_zero(self.__hlb), self.float_or_zero(self.__hlc), self.float_or_zero(self.__hld)))
 
     def convert(self):
+        """
+        Converts the CIF data to a CNS file.
+        """
         self.write_cns_file()
-
-# def main():
-#     sffile = sf_convert()
-#     sffile.read_file(str(Path("/Users/vivek/Library/CloudStorage/OneDrive-RutgersUniversity/Desktop files/Summer/py-rcsb_apps_sfconvert/sf_convert_project/src/sf_convert/sffile/5pny-sf.cif")))
-#     CNSexport = CifToCNSConverter(sffile, str(Path("your_output_file.txt")), 'xxxx')
-#     CNSexport.convert()
-
-# if __name__ == "__main__":
-#     main()

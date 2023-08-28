@@ -6,6 +6,18 @@ from sf_convert.utils.pinfo_file import PInfoLogger
 
 class TestMmcifConversion:
     def test_mmcif_conversion(self, tmp_path, cif_5pny_data_path, cif_mmcif_5pny_detail_data_path, DETAIL = "any text"):
+        """
+        Tests the conversion of a CIF file to mmCIF format.
+
+        Args:
+            tmp_path: The path to the temporary directory.
+            cif_5pny_data_path: The path to the CIF file to be converted.
+            cif_mmcif_5pny_detail_data_path: The path to the reference mmCIF file for comparison.
+            DETAIL: Additional detail to be added to the mmCIF file (default is "any text").
+
+        Returns:
+            None
+        """
         print("Starting the mmCIF conversion test...")
 
         # Define the path for the output file
@@ -82,7 +94,3 @@ class TestMmcifConversion:
             else:
                 i += 1
         return lines
-
-
-
-

@@ -1,12 +1,18 @@
-# from sf_convert.utils.pinfo_file import pinfo
-# from mmcif.api.DataCategoryBase import DataCategoryBase
 from mmcif.api.DataCategory import DataCategory
 
-
 def reformat_sfhead(sf_file, logger, DETAIL=None):
-    # myContainerList = []
-    changes_made = False
+    """
+    Reformat the structure factor file by performing various operations.
 
+    Args:
+        sf_file (StructureFactorFile): The structure factor file object.
+        logger: The logger object for logging messages.
+        DETAIL: The detail value to be used for modifying the "details" attribute.
+
+    Returns:
+        bool: True if any changes were made, False otherwise.
+    """
+    changes_made = False
     remove_list = ["citation"]
 
     refln = {
@@ -143,40 +149,40 @@ def reformat_sfhead(sf_file, logger, DETAIL=None):
         }
     }
 
-    # Perform the renaming of attributes
+
     changes_made |= rename_sfhead(sf_file, mapping_dicts, logger)
-
-    # Perform the removal of categories
     changes_made |= remove_sfhead(sf_file, remove_list, logger)
-
-    # Perform the removal of duplicate reflections
     changes_made |= remove_duplicate_reflections(sf_file)
-
-    # changes_made |= append_attributes(sf_file, attributes_to_append)
-    # changes_made = sf_file.add_attributes_to_category("diffrn", attributes_to_append)
-
 
     block_names = sf_file.get_all_block_names()
     for i in range(len(block_names)):
         old_order = sf_file.get_category_names(block_names[i])
-
         old_order_copy = old_order[:]
 
         attributes_to_append = ["ambient_temp", "crystal_treatment"]
-
         changes_made = append_attributes(sf_file, "diffrn", attributes_to_append, block_names[i])
 
-        if(DETAIL):
+        if DETAIL:
             changes_made = modify_attribute_value(sf_file, "diffrn", "details", DETAIL, block_names[i])
             changes_made = modify_attribute_value(sf_file, "diffrn", "crystal_id", 1, block_names[i])
 
         sf_file.reorder_category_attributes("diffrn", ["id", "crystal_id", "ambient_temp", "crystal_treatment", "details"], block_names[i])
-
         sf_file.reorder_categories_in_block(old_order_copy, block_names[i])
 
     return changes_made
 
 def rename_sfhead(sf_file, mapping_dicts, logger):
+    """
+    Rename attributes in the structure factor file based on the provided mapping dictionaries.
+
+    Args:
+        sf_file (StructureFactorFile): The structure factor file object.
+        mapping_dicts (dict): A dictionary containing the mapping dictionaries for each category.
+        logger: The logger object for logging messages.
+
+    Returns:
+        bool: True if any changes were made, False otherwise.
+    """
     changes_made = False
     for dict_name, mapping_dict in mapping_dicts.items():
         for block_index in range(sf_file.get_number_of_blocks()):
@@ -196,6 +202,17 @@ def rename_sfhead(sf_file, mapping_dicts, logger):
     return changes_made
 
 def remove_sfhead(sf_file, remove_list, logger):
+    """
+    Remove categories from the structure factor file based on the provided remove list.
+
+    Args:
+        sf_file (StructureFactorFile): The structure factor file object.
+        remove_list (list): A list of category names to remove.
+        logger: The logger object for logging messages.
+
+    Returns:
+        bool: True if any changes were made, False otherwise.
+    """
     changes_made = False
     for item in remove_list:
         for block_index in range(sf_file.get_number_of_blocks()):
@@ -207,27 +224,35 @@ def remove_sfhead(sf_file, remove_list, logger):
     return changes_made
 
 def remove_duplicate_reflections(sf_file):
+    """
+    Remove duplicate reflections from the structure factor file.
+
+    Args:
+        sf_file (StructureFactorFile): The structure factor file object.
+
+    Returns:
+        bool: True if any changes were made, False otherwise.
+    """
     changes_made = False
     total_blocks = sf_file.get_number_of_blocks()
     for block_index in range(total_blocks):
         block = sf_file.get_block_by_index(block_index)
-        #print(f"Checking duplicates from block {block_index + 1}/{total_blocks}")
         changes_made |= sf_file.remove_duplicates_in_category('refln', block.getName())
     return changes_made
 
 def append_attributes(sf_file, category_name, attributes, block_name=None):
     """
-    Appends specified attributes to a category within a block using appendAttributeExtendRows.
+    Append attributes to a category within a block.
 
-    Parameters:
-    - sf_file (StructureFactorFile): The structure factor file object.
-    - category_name (str): Name of the category to which attributes should be appended.
-    - attributes (list): List of attributes to append.
-    - block_name (str, optional): Name of the block to which attributes should be appended.
-                                If not provided, the default block is used.
+    Args:
+        sf_file (StructureFactorFile): The structure factor file object.
+        category_name (str): The name of the category to append attributes to.
+        attributes (list): A list of attribute names to append.
+        block_name (str, optional): The name of the block to append attributes to.
+                                    If not provided, the default block is used.
 
     Returns:
-    bool: True if any changes were made, False otherwise.
+        bool: True if any changes were made, False otherwise.
     """
     changes_made = False
 
@@ -257,19 +282,18 @@ def append_attributes(sf_file, category_name, attributes, block_name=None):
 
 def modify_attribute_value(sf_file, category_name, attribute_name, new_value, block_name=None):
     """
-    Modifies the value of a specified attribute in a given category within a block using replaceValue. 
-    Automatically fetches the old value from the file using getValueOrDefault.
+    Modify the value of a specified attribute in a given category within a block.
 
-    Parameters:
-    - sf_file (StructureFactorFile): The structure factor file object.
-    - category_name (str): Name of the category containing the attribute.
-    - attribute_name (str): Name of the attribute to modify.
-    - new_value (str): The new value to set for the attribute.
-    - block_name (str, optional): Name of the block containing the category.
-                                  If not provided, the default block is used.
+    Args:
+        sf_file (StructureFactorFile): The structure factor file object.
+        category_name (str): The name of the category containing the attribute.
+        attribute_name (str): The name of the attribute to modify.
+        new_value: The new value to set for the attribute.
+        block_name (str, optional): The name of the block containing the category.
+                                    If not provided, the default block is used.
 
     Returns:
-    bool: True if the value was modified, False otherwise (e.g., if the attribute or category doesn't exist).
+        bool: True if the value was modified, False otherwise.
     """
     # Get the block (use default block if block_name is None)
     if block_name:
@@ -287,27 +311,9 @@ def modify_attribute_value(sf_file, category_name, attribute_name, new_value, bl
 
     # Fetch the old value using getValueOrDefault
     old_value = category.getValueOrDefault(attribute_name, rowIndex=0, defaultValue=".")
-    # print(f"Old value: {old_value}")
     if old_value is not None:
         # Replace the old value with the new value
         num_replaced = category.replaceValue(old_value, new_value, attribute_name)
         return num_replaced > 0
 
     return False
-
-
-# from sf_file import StructureFactorFile
-
-# # Initialize a StructureFactorFile object and read data from a file
-# sf_file = StructureFactorFile()
-# sf_file.read_file('5pny-sf.cif')
-
-# # Perform the reformatting
-# changes_made = reformat_sfhead(sf_file)
-
-# # Check if any changes were made
-# if changes_made:
-#     # Write the modified data back to a file
-#     sf_file.write_file('example_modified.cif')
-# else:
-#     print("No changes were made to the structure factor file.")

@@ -12,32 +12,89 @@ from mmcif.io.PdbxWriter import PdbxWriter
 
 class CheckSfFile:
     def __init__(self, sffile, logger, fout_path, pinfo_value = 1):
+        """
+        Initializes the CheckSfFile object.
+
+        Args:
+            sffile: The SFFile object representing the structure factor file.
+            logger: The logger object for logging messages.
+            fout_path: The path to the output file for write_sf_4_validation.
+            pinfo_value: The value for pinfo.
+
+        Returns:
+            None
+        """
         self.__sf_file = sffile
         self.__pinfo_value = pinfo_value
         self.__fout_path = fout_path
         self.__logger = logger
 
     def initialize_data(self):
+        """
+        Initializes the data for the SF file.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
         self.initialize_refln_data()
         self.initialize_diffrn_refln_data()
         self.initialize_counts()
         self.initialize_columns()
 
     def initialize_refln_data(self):
+        """
+        Initializes the refln data.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
         self.__refln_data = self.__sf_block.getObj("refln")
         if self.__refln_data is not None:
             self.__rcell, self.__cell = self.calc_cell_and_recip()
 
     def initialize_diffrn_refln_data(self):
+        """
+        Initializes the diffrn_refln data.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
         self.__diffrn_refln_data = self.__sf_block.getObj("diffrn_refln")
 
     def initialize_counts(self):
+        """
+        Initializes the counts of reflections.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
         if self.__refln_data:
             self.__nref = self.__refln_data.getRowCount()
         if self.__diffrn_refln_data:
             self.__dnref = self.__diffrn_refln_data.getRowCount()
 
     def initialize_columns(self):
+        """
+        Initializes the columns of the SF file.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
         attributes = {
             "index_h": "H",
             "index_k": "K",
@@ -88,6 +145,15 @@ class CheckSfFile:
         self.initialize_status()
 
     def initialize_Io(self):
+        """
+        Initializes the Io column.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
         # Check if attribute "intensity_meas" is present
         if self.__refln_data.hasAttribute("intensity_meas"):
             self.__Io = self.__refln_data.getColumn(self.__refln_data.getIndex("intensity_meas"))
@@ -113,6 +179,15 @@ class CheckSfFile:
                 self.cif_token_change("intensity", "intensity_meas")
 
     def initialize_sIo(self):
+        """
+        Initializes the sIo column.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
         # Check if attribute "intensity_sigma" is present
         if self.__refln_data.hasAttribute("intensity_sigma"):
             self.__sIo = self.__refln_data.getColumn(self.__refln_data.getIndex("intensity_sigma"))
@@ -156,6 +231,15 @@ class CheckSfFile:
                 self.cif_token_change("intensity_meas_sigma_au", "intensity_sigma")
 
     def initialize_status(self):
+        """
+        Initializes the status column.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
         self.__status = self.__refln_data.getColumn(self.__refln_data.getIndex("status"))
         if not self.__status:
             self.__status = self.__refln_data.getColumn(self.__refln_data.getIndex("R_free_flag"))
@@ -173,6 +257,16 @@ class CheckSfFile:
                         self.cif_token_change("status_au", "status")
 
     def calc_cell_and_recip(self):
+        """
+        Calculates the cell and reciprocal cell.
+
+        Args:
+            None
+
+        Returns:
+            rcell: The reciprocal cell.
+            cell: The cell.
+        """
         data = self.__sf_block.getObj("cell")
         if data is not None:
             a = float(data.getValue("length_a"))
@@ -212,6 +306,18 @@ class CheckSfFile:
             self.__logger.pinfo("Warning: No cell data found in the mmCIF file.", self.__pinfo_value)
 
     def get_resolution(self, h, k, l, rcell):
+        """
+        Calculates the resolution for a given h, k, l and rcell.
+
+        Args:
+            h: The h value.
+            k: The k value.
+            l: The l value.
+            rcell: The reciprocal cell.
+
+        Returns:
+            resol: The resolution.
+        """
         aa1 = 2 * rcell[0] * rcell[1] * math.cos(math.radians(rcell[5]))
         aa2 = 2 * rcell[0] * rcell[2] * math.cos(math.radians(rcell[4]))
         aa3 = 2 * rcell[1] * rcell[2] * math.cos(math.radians(rcell[3]))
@@ -228,6 +334,15 @@ class CheckSfFile:
         return resol
 
     def calc_resolution(self):
+        """
+        Calculates the resolution for the SF file.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
         refln_data = self._sf_block.getObj("refln")
         if refln_data is not None:
             rcell, cell = self.calc_cell_and_recip()
@@ -250,11 +365,29 @@ class CheckSfFile:
             self.__logger.pinfo("Error: No refln data found in the mmCIF file.", self.__pinfo_value)
 
     def cif_token_change(self, old_token, new_token):
+        """
+        Changes the cif token.
+
+        Args:
+            old_token: The old token.
+            new_token: The new token.
+
+        Returns:
+            None
+        """
         self.__logger.pinfo(f"Warning! The mmcif token  _refln.{old_token} is wrong!", self.__pinfo_value)
         self.__logger.pinfo(f"It has been corrected as _refln.{new_token}", self.__pinfo_value)
 
     def check_sf(self, nblock):
+        """
+        Checks the SF file for a given block.
 
+        Args:
+            nblock: The block number.
+
+        Returns:
+            None
+        """
         self.__sf_block = self.__sf_file.get_block_by_index(nblock)
         self.__logger.pinfo(f"Data_block_id={self.__sf_block.getName()}, block_number={nblock+1}\n", self.__pinfo_value)
         self.initialize_data()
@@ -579,6 +712,15 @@ class CheckSfFile:
         return
 
     def float_or_zero(self, value):
+        """
+        Converts a value to float or returns zero if it is not a valid float.
+
+        Args:
+            value: The value to convert.
+
+        Returns:
+            The float value or zero.
+        """
         try:
             float(value)
             return float(value)
@@ -586,6 +728,16 @@ class CheckSfFile:
             return 0
 
     def other_to_f(self, i):
+        """
+        Converts other columns to F and Fs values.
+
+        Args:
+            i: The index.
+
+        Returns:
+            F: The F value.
+            Fs: The Fs value.
+        """
         sp1 = 0
         sp2 = 0
         I = 0
@@ -645,6 +797,19 @@ class CheckSfFile:
         return F, Fs
 
     def i_to_f(self, i, I, sI, sf_default):
+        """
+        Converts I column to F and Fs values.
+
+        Args:
+            i: The index.
+            I: The I value.
+            sI: The sI column.
+            sf_default: The default value for Fs.
+
+        Returns:
+            fp: The F value.
+            sigfp: The Fs value.
+        """
         f = 0.0
         sf = 0.0
 
@@ -661,7 +826,15 @@ class CheckSfFile:
         return fp, sigfp
 
     def write_sf_4_validation(self, nblock=0):
-    
+        """
+        Writes the SF file for validation.
+
+        Args:
+            nblock: The block number.
+
+        Returns:
+            None
+        """
         # file_name = 'sf_4_validate.cif'
         # file_path = os.path.join(self.__fout_path, file_name)
 
@@ -823,6 +996,15 @@ class CheckSfFile:
         #print("\nNumber of reflections for validation set = %d" % nf)
     
     def check_sf_all_blocks(self, n):
+        """
+        Checks the SF file for all blocks.
+
+        Args:
+            n: The number of blocks.
+
+        Returns:
+            None
+        """
         for i in range(n):
             self.check_sf(i)   
 # -------------------------------------------------- MAIN FUNCTION ----------------------------------------------------------- #

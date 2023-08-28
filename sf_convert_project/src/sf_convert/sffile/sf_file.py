@@ -6,24 +6,41 @@ from pathlib import Path
 from sf_convert.utils.CifUtils import reorderCategoryAttr
 
 import sys
-# export_path = Path('/Users/vivek/Library/CloudStorage/OneDrive-RutgersUniversity/Desktop files/Summer/py-rcsb_apps_sfconvert/sf_convert_project/src/sf_convert/export')
-# sys.path.append(str(export_path))
-# from cns_export import CNSConverter
-# from mtz_export import MTZConverter
 
 class StructureFactorFile:
     def __init__(self):
+        """
+        Initializes a new instance of the StructureFactorFile class.
+        """
         self.__data_blocks = []  # Contains the data blocks in the file
         self.__file_io = IoAdapterCore()  # Handles file input/output
         self.__default_block_index = 0  # The index of the default data block
 
     def read_file(self, filename):
+        """
+        Reads a structure factor file.
+
+        Args:
+            filename (str): The path to the file to be read.
+
+        Raises:
+            RuntimeError: If the file fails to be read.
+        """
         try:
             self.__data_blocks = self.__file_io.readFile(filename)
         except Exception as e:
             raise RuntimeError(f"Failed to read file {filename}") from e
 
     def get_block_by_index(self, block_index):
+        """
+        Retrieves a data block by its index.
+
+        Args:
+            block_index (int): The index of the data block.
+
+        Returns:
+            DataContainer: The data block at the specified index, or None if the index is invalid.
+        """
         if 0 <= block_index < len(self.__data_blocks):
             return self.__data_blocks[block_index]
         else:
@@ -31,24 +48,67 @@ class StructureFactorFile:
             return None 
 
     def get_number_of_blocks(self):
+        """
+        Gets the number of data blocks in the file.
+
+        Returns:
+            int: The number of data blocks.
+        """
         return len(self.__data_blocks)
 
     def write_file(self, filename):
+        """
+        Writes the structure factor file to disk.
+
+        Args:
+            filename (str): The path to the output file.
+        """
         self.__file_io.writeFile(filename, self.__data_blocks)
 
     def get_all_block_names(self):
+        """
+        Gets the names of all data blocks.
+
+        Returns:
+            list: A list of block names.
+        """
         return [block.getName() for block in self.__data_blocks]
 
     def get_block_by_name(self, name):
+        """
+        Retrieves a data block by its name.
+
+        Args:
+            name (str): The name of the data block.
+
+        Returns:
+            tuple: A tuple containing the index and the data block with the specified name, or (None, None) if the block does not exist.
+        """
         for idx, block in enumerate(self.__data_blocks):
             if block.getName() == name:
                 return idx, block
         return None, None
 
     def get_default_block_index(self):
+        """
+        Gets the index of the default data block.
+
+        Returns:
+            int: The index of the default data block.
+        """
         return self.__default_block_index
     
     def get_category_object(self, category, block_name=None):
+        """
+        Retrieves a category object from a data block.
+
+        Args:
+            category (str): The name of the category.
+            block_name (str, optional): The name of the data block. Defaults to None.
+
+        Returns:
+            DataCategoryBase: The category object, or None if the category or data block does not exist.
+        """
         if block_name is None:
             block_index = self.__default_block_index
             return self.__data_blocks[block_index].getObj(category)
@@ -59,11 +119,26 @@ class StructureFactorFile:
             return block_res.getObj(category)
 
     def set_default_block(self, block_name):
+        """
+        Sets the default data block.
+
+        Args:
+            block_name (str): The name of the data block to set as default.
+        """
         block_index, _ = self.get_block_by_name(block_name)
         if block_index is not None:
             self.__default_block_index = block_index
 
     def get_category_names(self, block_name=None):
+        """
+        Gets the names of all categories in a data block.
+
+        Args:
+            block_name (str, optional): The name of the data block. Defaults to None.
+
+        Returns:
+            list: A list of category names.
+        """
         if block_name == "Default" or block_name == None:
             block_index = self.__default_block_index
             return self.__data_blocks[block_index].getObjNameList()
@@ -74,6 +149,13 @@ class StructureFactorFile:
             return block_res.getObjNameList()
 
     def append_category_to_block(self, category, block_name=None):
+        """
+        Appends a category to a data block.
+
+        Args:
+            category (DataCategoryBase): The category to append.
+            block_name (str, optional): The name of the data block. Defaults to None.
+        """
         if block_name is None:
             block = self.__data_blocks[self.__default_block_index]
         else:
@@ -84,6 +166,16 @@ class StructureFactorFile:
         block.append(category)
 
     def remove_category_by_name(self, category_name, block_name=None):
+        """
+        Removes a category from a data block by its name.
+
+        Args:
+            category_name (str): The name of the category to remove.
+            block_name (str, optional): The name of the data block. Defaults to None.
+
+        Returns:
+            bool: True if the category was successfully removed, False otherwise.
+        """
         if block_name is None:
             block = self.__data_blocks[self.__default_block_index]
         else:
@@ -92,21 +184,16 @@ class StructureFactorFile:
                 print(f"Block {block_name} does not exist.")
                 return False
         removed_category = block.remove(category_name)
-        #print(removed_category)
-        return removed_category #is not None
+        return removed_category
 
     def add_data_to_block(self, category_name, data_dict, block_name=None):
         """
-        This function adds a category with its data to a specific block.
-        If no block name is provided, data will be added to the default block.
-        
-        Parameters:
-        category_name (str): The name of the category to be added.
-        data_dict (dict): A dictionary where the keys are the attribute names and the values are their respective values.
-        block_name (str, optional): The name of the block to which the category should be added. Defaults to None.
-        
-        Returns:
-        None
+        Adds a category with its data to a specific block.
+
+        Args:
+            category_name (str): The name of the category to be added.
+            data_dict (dict): A dictionary where the keys are the attribute names and the values are their respective values.
+            block_name (str, optional): The name of the block to which the category should be added. Defaults to None.
         """
         if block_name is None:
             block = self.__data_blocks[self.__default_block_index]
@@ -122,6 +209,16 @@ class StructureFactorFile:
         block.append(new_category)
 
     def remove_duplicates_in_category(self, category_name, block_name=None):
+        """
+        Removes duplicate rows in a category.
+
+        Args:
+            category_name (str): The name of the category.
+            block_name (str, optional): The name of the data block. Defaults to None.
+
+        Returns:
+            bool: True if any duplicates were removed, False otherwise.
+        """
         if block_name is None:
             block = self.get_block_by_index(self.default_block_index)
         else:
@@ -151,32 +248,53 @@ class StructureFactorFile:
         return initial_row_count != final_row_count
 
     def replace_value_in_category(self, category_name, attribute_name, new_value, old_value=None, block_name=None):
-            if block_name is None:
-                block = self.get_block_by_index(self.__default_block_index)
-            else:
-                _, block = self.get_block_by_name(block_name)
-                if block is None:
-                    print(f"Block {block_name} does not exist.")
-                    return 0
+        """
+        Replaces a value in a category.
 
-            category = block.getObj(category_name)
-            if category is None:
-                print(f"Category {category_name} does not exist in block {block.getName()}.")
+        Args:
+            category_name (str): The name of the category.
+            attribute_name (str): The name of the attribute.
+            new_value (str): The new value to replace with.
+            old_value (str, optional): The old value to replace. Defaults to None.
+            block_name (str, optional): The name of the data block. Defaults to None.
+
+        Returns:
+            int: The number of values replaced.
+        """
+        if block_name is None:
+            block = self.get_block_by_index(self.__default_block_index)
+        else:
+            _, block = self.get_block_by_name(block_name)
+            if block is None:
+                print(f"Block {block_name} does not exist.")
                 return 0
 
-            num_replaced = 0
-            for row in category.data:
-                index = category.getAttributeIndex(attribute_name)
-                if index is None:
-                    print(f"Attribute {attribute_name} does not exist in category {category_name}.")
-                    return 0
-                if old_value is None or row[index] == old_value:
-                    row[index] = new_value
-                    num_replaced += 1
+        category = block.getObj(category_name)
+        if category is None:
+            print(f"Category {category_name} does not exist in block {block.getName()}.")
+            return 0
 
-            return num_replaced
+        num_replaced = 0
+        for row in category.data:
+            index = category.getAttributeIndex(attribute_name)
+            if index is None:
+                print(f"Attribute {attribute_name} does not exist in category {category_name}.")
+                return 0
+            if old_value is None or row[index] == old_value:
+                row[index] = new_value
+                num_replaced += 1
+
+        return num_replaced
 
     def reorder_category_attributes(self, category_name, new_order, block_name=None):
+        """
+        Reorders the attributes of a category.
+
+        Args:
+            category_name (str): The name of the category.
+            new_order (list): The new order of attribute names.
+            block_name (str, optional): The name of the data block. Defaults to None.
+        """
         # Get the category object
         category = self.get_category_object(category_name, block_name)
 
@@ -188,6 +306,13 @@ class StructureFactorFile:
         self.append_category_to_block(reordered_category, block_name)
 
     def reorder_categories_in_block(self, new_order, block_name=None):
+        """
+        Reorders the categories in a data block.
+
+        Args:
+            new_order (list): The new order of category names.
+            block_name (str, optional): The name of the data block. Defaults to None.
+        """
         # Get the block
         if block_name is None:
             block = self.__data_blocks[self.__default_block_index]
@@ -224,6 +349,16 @@ class StructureFactorFile:
             self.__data_blocks[block_index] = new_block
 
     def generate_expected_block_name(self, pdbid, block):
+        """
+        Generates the expected name for a data block.
+
+        Args:
+            pdbid (str): The PDB ID.
+            block (int): The block index.
+
+        Returns:
+            str: The expected block name.
+        """
         # Special case for block equals 0
         if block == 0:
             return f"r{pdbid}sf"
@@ -242,37 +377,13 @@ class StructureFactorFile:
             return f"r{pdbid}{bid[mod+1]}sf"
 
     def correct_block_names(self, pdbid):
-        # block_names = self.get_all_block_names()
+        """
+        Corrects the names of all data blocks.
+
+        Args:
+            pdbid (str): The PDB ID.
+        """
         for index, block in enumerate(self.__data_blocks):
-            # expected_name = self.generate_expected_block_name(block_names[index][1:5], index)  # Assuming pdbid is the 4 characters after "r"
             expected_name = self.generate_expected_block_name(pdbid, index)  # Assuming pdbid is the 4 characters after "r"
             if block.getName() != expected_name:
-                block.setName(expected_name) 
-
-
-    #---------------------------------- Test Functions ----------------------------------#
-
-    # def get_refln_status_from_all_blocks(self):
-    #     """
-    #     Retrieve the 'status' attribute of the 'refln' data category from all data blocks.
-    #     Returns a dictionary with block names as keys and lists of 'status' values as values.
-    #     """
-    #     status_dict = {}
-    #     for block in self.__data_blocks:
-    #         refln_category = block.getObj("refln")
-    #         if refln_category:
-    #             status_values = refln_category.getAttributeValueList("status")
-    #             status_dict[block.getName()] = status_values
-    #     return status_dict
-
-    # def write_refln_status_to_file(self, output_file):
-    #     """
-    #     Write the 'status' attribute of the 'refln' data category from all data blocks to a specified file.
-    #     """
-    #     status_dict = self.get_refln_status_from_all_blocks()
-    #     with open(output_file, 'w') as f:
-    #         for block_name, statuses in status_dict.items():
-    #             f.write(f"Block Name: {block_name}\n")
-    #             for status in statuses:
-    #                 f.write(f"    Status: {status}\n")
-    #             f.write("\n")
+                block.setName(expected_name)

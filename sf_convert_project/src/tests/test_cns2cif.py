@@ -1,8 +1,20 @@
 from sf_convert.import_dir.cns2cif import CNSToCifConverter
 from sf_convert.utils.pinfo_file import PInfoLogger
 import os
+
 class TestCnsToCifConversion:
     def test_cns2cif(self, tmp_path, cns_5pny_data_path, cif_5pny_data_path):
+        """
+        Tests the conversion of a CNS file to CIF format.
+
+        Args:
+            tmp_path: The path to the temporary directory.
+            cns_5pny_data_path: The path to the CNS file to be converted.
+            cif_5pny_data_path: The path to the reference CIF file for comparison.
+
+        Returns:
+            None
+        """
         print("Starting the test...")
         
         output_path = os.path.join(tmp_path, "output.mmcif")

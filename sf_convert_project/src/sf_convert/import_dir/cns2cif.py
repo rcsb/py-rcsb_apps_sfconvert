@@ -2,9 +2,17 @@ from collections import defaultdict
 from mmcif.api.DataCategory import DataCategory
 from mmcif.api.PdbxContainers import DataContainer
 from mmcif.io.IoAdapterCore import IoAdapterCore
-# from sf_convert.utils.pinfo_file import pinfo
 
 class CNSToCifConverter:
+    """
+    A class for converting CNS files to CIF format.
+
+    Args:
+        file_path (str): The path to the CNS file.
+        pdb_id (str): The PDB ID.
+        logger (Logger): The logger object.
+        FREERV (int, optional): The FREERV value. Defaults to None.
+    """
 
     def __init__(self, file_path, pdb_id, logger, FREERV=None):
         self.__FREERV = FREERV
@@ -14,13 +22,17 @@ class CNSToCifConverter:
         self.__k_values = []
         self.__l_values = []
         self.__values = defaultdict(list)
-        #self.__curContainer = DataContainer("cif2cif")
         self.__curContainer = DataContainer(self.__pdb_id)
         self.__pinfo_value = 0
         self.__logger = logger
 
-
     def __process_line(self, line):
+        """
+        Process a line from the CNS file.
+
+        Args:
+            line (str): The line to process.
+        """
         words = line.split()
         if len(words) < 4:
             return
@@ -44,8 +56,13 @@ class CNSToCifConverter:
                     self.__values[current_key].append(word)
                 current_key = None
 
-                    
     def __process_status_line(self, line):
+        """
+        Process a status line from the CNS file.
+
+        Args:
+            line (str): The status line to process.
+        """
         if 'INDE' in line:
             ffg = 0
             if 'TEST' in line or 'FREE' in line:
@@ -61,9 +78,14 @@ class CNSToCifConverter:
                     self.__values['status'].append('f' if ffg == self.__FREERV else 'o')
                 else:
                     self.__values['status'].append('f' if ffg == 1 else 'o')
-                
 
     def __rename_keys_complete(self):
+        """
+        Rename the keys in the values dictionary.
+
+        Returns:
+            dict: The renamed values dictionary.
+        """
         rename_dict = {
             "FOBS": "F_meas_au",
             "FP": "F_meas_au",
@@ -90,24 +112,25 @@ class CNSToCifConverter:
         return new_values
 
     def process_file(self):
+        """
+        Process the CNS file.
+        """
         with open(self.__file_path, 'r') as file:
             for line in file:
                 self.__process_line(line)
                 self.__process_status_line(line)
 
-
-
-    def process_file(self):
-        with open(self.__file_path, 'r') as file:
-            for line in file:
-                self.__process_line(line)
-
-
     def rename_keys(self):
+        """
+        Rename the keys in the values dictionary.
+        """
         self.__values = self.__rename_keys_complete()
         self.__values['status'] = ['o' if v == 0 else 'f' for v in self.__values['status']]
 
     def create_data_categories(self):
+        """
+        Create the data categories for the CIF file.
+        """
         aCat = DataCategory("audit")
         aCat.appendAttribute("revision_id")
         aCat.appendAttribute("creation_date")
@@ -116,14 +139,12 @@ class CNSToCifConverter:
         self.__curContainer.append(aCat)
         self.__logger.pinfo(f'Note: file {self.__file_path} has no _audit. (auto added)',self.__pinfo_value)
 
-
         bCat = DataCategory("diffrn_radiation_wavelength")
         bCat.appendAttribute("id")
         bCat.appendAttribute("wavelength")
         bCat.append(["1", "."])
         self.__curContainer.append(bCat)
         self.__logger.pinfo("Warning: No wavelength value was found in SF file", self.__pinfo_value)
-
 
         cCat = DataCategory("entry")
         cCat.appendAttribute("id")
@@ -141,8 +162,6 @@ class CNSToCifConverter:
         self.__curContainer.append(eCat)
 
         fCat = DataCategory("refln")
-
-        # Append the attribute names
         fCat.appendAttribute('crystal_id')
         fCat.appendAttribute('wavelength_id')
         fCat.appendAttribute('scale_group_code')
@@ -151,22 +170,19 @@ class CNSToCifConverter:
         fCat.appendAttribute('index_l')
         for key in self.__values.keys():
             fCat.appendAttribute(key)
-
-        # Append the values
         for i in range(len(self.__h_values)):
             values_to_append = (1, 1, 1, self.__h_values[i], self.__k_values[i], self.__l_values[i])
             for key in self.__values.keys():
                 values_to_append += (self.__values[key][i],)
             fCat.append(values_to_append)
-
         self.__curContainer.append(fCat)
 
     def write_to_file(self, output_file_path):
+        """
+        Write the CIF file to disk.
+
+        Args:
+            output_file_path (str): The path to write the CIF file.
+        """
         myIo = IoAdapterCore()
         myIo.writeFile(output_file_path, [self.__curContainer])
-
-# processor = CNSToCifConverter('/Users/vivek/Library/CloudStorage/OneDrive-RutgersUniversity/Desktop files/Summer/RCSB/5pny-sf.cif.CNS')
-# processor.process_file()
-# processor.rename_keys()
-# processor.create_data_categories()
-# processor.write_to_file("cns2cif_output.cif")

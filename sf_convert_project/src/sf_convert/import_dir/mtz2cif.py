@@ -10,6 +10,15 @@ from sf_convert.utils.CifUtils import reorderCategoryAttr
 
 class MtzToCifConverter:
     def __init__(self, mtz_file_path, output_file_path, pdb_id, logger):
+        """
+        Initializes the MtzToCifConverter object.
+
+        Args:
+            mtz_file_path (str): The path to the input MTZ file.
+            output_file_path (str): The path to the output CIF file.
+            pdb_id (str): The PDB ID.
+            logger (Logger): The logger object for logging messages.
+        """
         self.pdb_id = pdb_id
         self.__pinfo_value = 0
         self.mtz_file_path = mtz_file_path
@@ -209,18 +218,39 @@ class MtzToCifConverter:
 
 
     def set_spec(self):
+        """
+        Sets the spec lines for the MtzToCif object.
+        """
         spec_lines = ['\t'.join(line) for line in self.spec_file_content]
         self.mtz2cif.spec_lines = spec_lines
 
 
     def convert_mtz_to_cif(self):
+        """
+        Converts the MTZ file to CIF format.
+
+        Returns:
+            str: The CIF document.
+        """
         mtz = gemmi.read_mtz_file(self.mtz_file_path)
         return self.mtz2cif.write_cif_to_string(mtz)
 
     def read_cif_file(self, cif_file):
+        """
+        Reads the CIF file.
+
+        Args:
+            cif_file (str): The path to the CIF file.
+        """
         self.sffile.read_file(cif_file)
 
     def add_category(self, categories):
+        """
+        Adds the specified categories to the CIF file.
+
+        Args:
+            categories (dict): A dictionary containing the category names and their attributes.
+        """
         for category_name, data_dict in categories.items():
             category = DataCategory(category_name)
             for key in data_dict.keys():
@@ -229,10 +259,16 @@ class MtzToCifConverter:
             self.sffile.append_category_to_block(category)
 
     def match_replace_and_format_labels(self, input_string):
+        """
+        Matches, replaces, and formats the labels based on the input string.
 
-        # Split the input_string by comma and space to get the key-value pairs
+        Args:
+            input_string (str): The input string containing the key-value pairs.
+
+        Returns:
+            None
+        """
         key_value_pairs = input_string.split(', ')
-        # Create the dictionary from the key-value pairs
         key_value_dict = {pair.split('=')[0]: pair.split('=')[1] for pair in key_value_pairs}
 
         replaced_and_formatted_labels = []
@@ -257,6 +293,15 @@ class MtzToCifConverter:
    
 
     def process_labels(self, input_string):
+        """
+        Processes the labels based on the input string.
+
+        Args:
+            input_string (str): The input string containing the key-value pairs.
+
+        Returns:
+            None
+        """
         key_value_pairs = input_string.split(', ')
         key_value_dict = {pair.split('=')[0]: pair.split('=')[1] for pair in key_value_pairs}
 
@@ -277,6 +322,15 @@ class MtzToCifConverter:
 
 
     def assign_label(self, desired_label):
+        """
+        Assigns a label to a desired label.
+
+        Args:
+            desired_label (str): The desired label.
+
+        Returns:
+            str: The assigned label.
+        """
         if desired_label not in self.assigned_labels:
             self.assigned_labels.add(desired_label)
             return desired_label
@@ -284,7 +338,16 @@ class MtzToCifConverter:
 
 
     def generate_full_label(self, i, labels_list):
+        """
+        Generates the full label based on the label type and content.
 
+        Args:
+            i (int): The index of the label in the labels list.
+            labels_list (list): The list of labels.
+
+        Returns:
+            str: The generated full label.
+        """
         label_type, label_content = labels_list[i]
 
         # Direct mappings
@@ -362,14 +425,21 @@ class MtzToCifConverter:
         return "Unknown Label"
 
 
-    # Adjust the generate_full_labels_for_list function
     def generate_full_labels_for_list(self, labels_list):
+        """
+        Generates the full labels for a list of labels.
+
+        Args:
+            labels_list (list): The list of labels.
+
+        Returns:
+            list: The list of generated full labels.
+        """
         results = []
         for i in range(len(labels_list)):
             generated_label = self.generate_full_label(i, labels_list)
             results.append((labels_list[i][0], labels_list[i][1], generated_label))
             if generated_label == "pdbx_r_free_flag":
-            # results.append((labels_list[i][0], labels_list[i][1], 'status', 'S'))
                 self.CUSTOM_END = []
                 self.CUSTOM_END.append((labels_list[i][1], labels_list[i][0], 'status', 'S'))
         return results
@@ -377,6 +447,15 @@ class MtzToCifConverter:
 
     
     def get_mtz_columns_with_custom_entries(self, mtz_file):
+        """
+        Gets the MTZ columns with custom entries.
+
+        Args:
+            mtz_file (str): The path to the MTZ file.
+
+        Returns:
+            list: The list of MTZ columns with custom entries.
+        """
         mtz = gemmi.read_mtz_file(mtz_file)
         labels_list = [(column.type, column.label) for column in mtz.columns]
         results = self.generate_full_labels_for_list(labels_list)
@@ -385,6 +464,9 @@ class MtzToCifConverter:
 
 
     def convert_and_write(self):
+        """
+        Converts the MTZ file to CIF format and writes it to the output file.
+        """
         temp_file = "temp_file.mmcif"
 
         spec_lines_result = self.get_mtz_columns_with_custom_entries(self.mtz_file_path)
@@ -407,7 +489,15 @@ class MtzToCifConverter:
         os.remove(temp_file)
 
     def convert_for_nfree(self, nfree_value: int = None):
+        """
+        Converts the MTZ file to CIF format with the specified nfree value.
 
+        Args:
+            nfree_value (int): The nfree value.
+
+        Returns:
+            None
+        """
         cmd = ["gemmi", "mtz2cif", self.mtz_file_path, self.output_file_path]
 
         # Create a temporary spec file from self.spec_file_content

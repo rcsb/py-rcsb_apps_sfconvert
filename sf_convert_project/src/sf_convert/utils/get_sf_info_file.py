@@ -5,6 +5,12 @@ import logging
 # and are logging to 'FTMP1.log' and 'FTMP2.log', respectively
 
 def get_sf_info(diagfile):
+    """
+    Retrieves the structure factor information and writes it to a CIF file.
+
+    Args:
+        diagfile (str): The path to the diagnostic file.
+    """
     # Check if diagfile is not empty
     # if os.path.exists(diagfile):
     with open('../command_line/FTMP1.log', 'r') as fr1:

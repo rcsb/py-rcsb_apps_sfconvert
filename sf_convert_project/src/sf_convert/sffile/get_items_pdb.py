@@ -2,6 +2,9 @@ import re
 
 class ProteinDataBank:
     def __init__(self):
+        """
+        Initializes a new instance of the ProteinDataBank class.
+        """
         self.pdb_id = 'xxxx'
         self.RESOH = 0.1
         self.RESOL = 200
@@ -12,11 +15,26 @@ class ProteinDataBank:
         self.SYMM = None
 
     def _update_attributes(self, attributes):
+        """
+        Updates the attributes of the ProteinDataBank object with the provided attributes.
+
+        Args:
+            attributes (dict): A dictionary containing the attribute names and their values.
+        """
         for key, value in attributes.items():
             if value is not None:
                 self.__dict__[key] = value
 
     def extract_attributes_from_cif(self, sffile):
+        """
+        Extracts attributes from a CIF file and updates the ProteinDataBank object.
+
+        Args:
+            sffile (StructureFactorFile): The StructureFactorFile object containing the CIF data.
+
+        Returns:
+            dict: A dictionary containing the extracted attributes.
+        """
         container = sffile.get_block_by_index(0)
         attributes = self._get_cif_attributes(container)
 
@@ -27,6 +45,15 @@ class ProteinDataBank:
         return attributes
 
     def _get_cif_attributes(self, container):
+        """
+        Extracts attributes from a CIF container.
+
+        Args:
+            container (DataContainer): The DataContainer object containing the CIF data.
+
+        Returns:
+            dict: A dictionary containing the extracted attributes.
+        """
         cif_attributes = {
             'entry': [('id', 'pdb_id')],
             'reflns': [('d_resolution_high', 'RESOH'), ('d_resolution_low', 'RESOL'), ('free_R_factor', 'FREERV')],
@@ -54,12 +81,29 @@ class ProteinDataBank:
         return attributes
 
     def extract_attributes_from_pdb(self, filename):
+        """
+        Extracts attributes from a PDB file and updates the ProteinDataBank object.
+
+        Args:
+            filename (str): The path to the PDB file.
+
+        Returns:
+            dict: A dictionary containing the extracted attributes.
+        """
         attributes = self._get_pdb_attributes(filename)
         self._update_attributes(attributes)
         return attributes
 
     def _get_pdb_attributes(self, filename):
-        # Initiate the variables
+        """
+        Extracts attributes from a PDB file.
+
+        Args:
+            filename (str): The path to the PDB file.
+
+        Returns:
+            dict: A dictionary containing the extracted attributes.
+        """
         pdb_id = wave = nfree = resoh = resol = freerv = symm = None
         cell = [None]*6
 
@@ -90,33 +134,56 @@ class ProteinDataBank:
         return {'pdb_id': pdb_id, 'RESOH': resoh, 'RESOL': resol, 'FREERV': freerv, 'WAVE': wave, 'NFREE': nfree, 'SYMM': symm, 'CELL': cell}
 
     def _extract_float(self, line):
+        """
+        Extracts a float value from a line of text.
+
+        Args:
+            line (str): The line of text.
+
+        Returns:
+            float: The extracted float value.
+        """
         return float(re.search(r'[-+]?\d*\.\d+|\d+', line.split(':')[1]).group())
 
     def _extract_int(self, line):
+        """
+        Extracts an integer value from a line of text.
+
+        Args:
+            line (str): The line of text.
+
+        Returns:
+            int: The extracted integer value.
+        """
         return int(re.search(r'\d+', line.split(':')[1]).group())
 
     def _extract_cell_parameters(self, line):
+        """
+        Extracts the cell parameters from a line of text.
+
+        Args:
+            line (str): The line of text.
+
+        Returns:
+            list: A list containing the extracted cell parameters.
+        """
         cell_values = line[6:].split()[:6]
         return [float(val) for val in cell_values]
 
     def update_FREERV(self, new_freerv):
+        """
+        Updates the FREERV attribute with a new value.
+
+        Args:
+            new_freerv: The new value for FREERV.
+        """
         self.FREERV = new_freerv
 
     def update_WAVE(self, new_wave):
+        """
+        Updates the WAVE attribute with a new value.
+
+        Args:
+            new_wave: The new value for WAVE.
+        """
         self.WAVE = new_wave
-
-# testing
-# pdb = ProteinDataBank()
-# from sf_file import SFFile
-# sffile = SFFile()
-# sffile.readFile('/Users/vivek/Library/CloudStorage/OneDrive-RutgersUniversity/Desktop files/Summer/RCSB/1o08.cif')
-# print(pdb.extract_attributes_from_cif(sffile))
-
-        # self.pdb_id = 'xxxx' # used in MTZ and CNS(IG)
-        # self.RESOH = 0.1 # used in check_sf needed this or else default values are used
-        # self.RESOL = 200 # same as above
-        # self.FREERV = None # Have to verfiy this with prof
-        # self.WAVE = None # wavelength DONE
-        # self.NFREE = None #
-        # self.CELL = None # cell parameters to be implemented in MTZ file when there is no CELL found or this is not empty ig and also in sf-4-validatin we need to change and use this
-        # self.SYMM = None # same as above

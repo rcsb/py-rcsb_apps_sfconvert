@@ -1,9 +1,16 @@
 from mmcif.api.DataCategory import DataCategory
 
 def reorderCategoryAttr(cobjIn, attrList=None):
-    """Returns a new category in which the attribute list order starts
-    with attrList.  attrList can contain attributes that do not exist"""
+    """
+    Returns a new category with the attribute list reordered.
 
+    Args:
+        cobjIn (DataCategory): The input category object.
+        attrList (list, optional): The desired order of attribute names. Defaults to None.
+
+    Returns:
+        DataCategory: The new category with the reordered attributes.
+    """
     if attrList is None:
         attrList = []
 
@@ -29,6 +36,6 @@ def reorderCategoryAttr(cobjIn, attrList=None):
         if att not in used:
             newlist.append(att)
         
-    newcat = DataCategory(name_in, newlist, d_in, copyInputData = True)
+    newcat = DataCategory(name_in, newlist, d_in, copyInputData=True)
 
     return newcat

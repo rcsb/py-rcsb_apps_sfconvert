@@ -6,6 +6,17 @@ import difflib
 
 class TestCifToCnsConversion:
     def test_cif2cns(self, tmp_path, cif_5pny_data_path, cns_5pny_data_path):
+        """
+        Tests the conversion of a CIF file to CNS format.
+
+        Args:
+            tmp_path: The path to the temporary directory.
+            cif_5pny_data_path: The path to the CIF file to be converted.
+            cns_5pny_data_path: The path to the reference CNS file for comparison.
+
+        Returns:
+            None
+        """
         print("Starting the test...")
         
         output_path = os.path.join(tmp_path, "output.CNS")

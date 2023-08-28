@@ -4,8 +4,12 @@ from sf_convert.utils.CifUtils import reorderCategoryAttr
 class TestUtils:
     @staticmethod
     def test_attribute_reorder():
-        """ Tests if we can reorder attributs in a category"""
+        """
+        Tests the reordering of attributes in a category.
 
+        Returns:
+            None
+        """
         attrList= ["a", "b", "c", "d", "e"]
         row_temp = ["something", "there", "maybe", "I"]
         rowlist = []

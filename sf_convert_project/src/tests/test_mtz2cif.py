@@ -4,6 +4,17 @@ import os
 
 class TestMtzToCifConversion:
     def test_mtz2cif(self, tmp_path, mtz_Ras_NAD_data_path, cif_Ras_NAD_data_path):
+        """
+        Tests the conversion of an MTZ file to CIF format.
+
+        Args:
+            tmp_path: The path to the temporary directory.
+            mtz_Ras_NAD_data_path: The path to the MTZ file to be converted.
+            cif_Ras_NAD_data_path: The path to the reference CIF file for comparison.
+
+        Returns:
+            None
+        """
         print("Starting the test...")
         
         output_path = os.path.join(tmp_path, "output.mmcif")

@@ -2,6 +2,12 @@ import gemmi
 
 class CifToMTZConverter:
     def __init__(self, cif_path):
+        """
+        Initializes a CifToMTZConverter object.
+
+        Args:
+            cif_path (str): The path to the CIF file.
+        """
         self.cif_path = cif_path
         self.mappings = {
             'h_index_mapping' : [['index_h', 'H', 'H', 0]],
@@ -41,11 +47,23 @@ class CifToMTZConverter:
         self.cv = gemmi.CifToMtz()
 
     def load_cif(self):
+        """
+        Loads the CIF file and returns the column labels.
+
+        Returns:
+            list: The column labels of the CIF file.
+        """
         cif_doc = gemmi.cif.read(self.cif_path)
         self.rblock = gemmi.as_refln_blocks(cif_doc)[0]
         return self.rblock.column_labels()
 
     def determine_mappings(self):
+        """
+        Determines the mappings between column labels and MTZ specifications.
+
+        Returns:
+            list: The MTZ specification lines.
+        """
         spec_lines = []
         column_labels = self.rblock.column_labels()
         for key, alternatives in self.mappings.items():
@@ -58,6 +76,15 @@ class CifToMTZConverter:
         return spec_lines
 
     def convert_to_mtz(self, output_path):
+        """
+        Converts the CIF file to MTZ format and writes it to the specified output path.
+
+        Args:
+            output_path (str): The path to write the MTZ file.
+
+        Returns:
+            list: The column labels of the MTZ file.
+        """
         mtz = self.cv.convert_block_to_mtz(self.rblock)
         mtz.write_to_file(output_path)
         return [col.label for col in mtz.columns]
