@@ -1,5 +1,6 @@
 from mmcif.api.DataCategory import DataCategory
 
+
 def reorderCategoryAttr(cobjIn, attrList=None):
     """
     Returns a new category with the attribute list reordered.
@@ -35,7 +36,7 @@ def reorderCategoryAttr(cobjIn, attrList=None):
     for att in attl_in:
         if att not in used:
             newlist.append(att)
-        
+
     newcat = DataCategory(name_in, newlist, d_in, copyInputData=True)
 
     return newcat

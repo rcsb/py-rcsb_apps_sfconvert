@@ -3,6 +3,7 @@ from mmcif.api.DataCategory import DataCategory
 from mmcif.api.PdbxContainers import DataContainer
 from mmcif.io.IoAdapterCore import IoAdapterCore
 
+
 class CNSToCifConverter:
     """
     A class for converting CNS files to CIF format.
@@ -39,7 +40,7 @@ class CNSToCifConverter:
         try:
             h = int(words[1])
             k = int(words[2])
-            l = int(words[3])
+            l = int(words[3])  # noqa: E741
         except ValueError:
             return
         self.__h_values.append(h)
@@ -137,7 +138,7 @@ class CNSToCifConverter:
         aCat.appendAttribute("update_record")
         aCat.append(["1_0", "?", "Initial release"])
         self.__curContainer.append(aCat)
-        self.__logger.pinfo(f'Note: file {self.__file_path} has no _audit. (auto added)',self.__pinfo_value)
+        self.__logger.pinfo(f'Note: file {self.__file_path} has no _audit. (auto added)', self.__pinfo_value)
 
         bCat = DataCategory("diffrn_radiation_wavelength")
         bCat.appendAttribute("id")

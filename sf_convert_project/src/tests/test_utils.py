@@ -1,6 +1,7 @@
 from mmcif.api.DataCategory import DataCategory
 from sf_convert.utils.CifUtils import reorderCategoryAttr
 
+
 class TestUtils:
     @staticmethod
     def test_attribute_reorder():
@@ -10,10 +11,10 @@ class TestUtils:
         Returns:
             None
         """
-        attrList= ["a", "b", "c", "d", "e"]
+        attrList = ["a", "b", "c", "d", "e"]
         row_temp = ["something", "there", "maybe", "I"]
         rowlist = []
-        for i in range(1,10):
+        for i in range(1, 10):
             tr = [i] + row_temp
             rowlist.append(tr)
 
@@ -25,7 +26,7 @@ class TestUtils:
         assert dout == dc
 
         # Now test reordering
-        
+
         dout = reorderCategoryAttr(dc, ["b", "fred", "a"])
         assert dout != dc
 

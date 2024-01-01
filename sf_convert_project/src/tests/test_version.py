@@ -1,5 +1,6 @@
 from sf_convert.sffile.sf_file import StructureFactorFile
 
+
 class TestVersion:
     @staticmethod
     def test_get_version():

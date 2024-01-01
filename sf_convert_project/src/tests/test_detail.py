@@ -4,8 +4,9 @@ from sf_convert.sffile.sf_file import StructureFactorFile
 from sf_convert.sffile.reformat_sfhead import reformat_sfhead
 from sf_convert.utils.pinfo_file import PInfoLogger
 
+
 class TestMmcifConversion:
-    def test_mmcif_conversion(self, tmp_path, cif_5pny_data_path, cif_mmcif_5pny_detail_data_path, DETAIL = "any text"):
+    def test_mmcif_conversion(self, tmp_path, cif_5pny_data_path, cif_mmcif_5pny_detail_data_path, DETAIL="any text"):
         """
         Tests the conversion of a CIF file to mmCIF format.
 
@@ -38,11 +39,9 @@ class TestMmcifConversion:
         with open(output_path, 'r') as file:
             output_lines = [line.strip() for line in file.readlines() if not line.strip().startswith("#")]
 
-
         # Join split lines
         expected_lines = self.join_split_lines(expected_lines)
         output_lines = self.join_split_lines(output_lines)
-
 
         # Normalize whitespace in each line for accurate comparison
         expected_lines = [' '.join(line.split()) for line in expected_lines]
@@ -66,14 +65,14 @@ class TestMmcifConversion:
         # assert len(differences) == 0, "Files are not the same"
 
         print("mmCIF conversion test completed.")
-    
+
     @staticmethod
     def join_split_lines(lines):
         """
         Join lines that are split into two.
 
         This function takes a list of strings and looks for lines that appear to be split over two entries.
-        If the current line doesn't end with a quote and the next line starts with a quote, 
+        If the current line doesn't end with a quote and the next line starts with a quote,
         they are treated as split lines and are concatenated together.
 
         Args:
@@ -88,9 +87,9 @@ class TestMmcifConversion:
         """
         i = 0
         while i < len(lines) - 1:
-            if not lines[i].endswith("'") and lines[i+1].startswith("'"):
-                lines[i] += " '" + lines[i+1][1:]
-                del lines[i+1]
+            if not lines[i].endswith("'") and lines[i + 1].startswith("'"):
+                lines[i] += " '" + lines[i + 1][1:]
+                del lines[i + 1]
             else:
                 i += 1
         return lines

@@ -1,11 +1,8 @@
-import argparse
 from mmcif.io.IoAdapterCore import IoAdapterCore
-from mmcif.api.PdbxContainers import ContainerBase, DataContainer
+from mmcif.api.PdbxContainers import DataContainer
 from mmcif.api.DataCategoryBase import DataCategoryBase
-from pathlib import Path
 from sf_convert.utils.CifUtils import reorderCategoryAttr
 
-import sys
 
 class StructureFactorFile:
     def __init__(self):
@@ -45,7 +42,7 @@ class StructureFactorFile:
             return self.__data_blocks[block_index]
         else:
             print(f"Block index {block_index} is not valid. It should be between 0 and {len(self.__data_blocks) - 1}.")
-            return None 
+            return None
 
     def get_number_of_blocks(self):
         """
@@ -97,7 +94,7 @@ class StructureFactorFile:
             int: The index of the default data block.
         """
         return self.__default_block_index
-    
+
     def get_category_object(self, category, block_name=None):
         """
         Retrieves a category object from a data block.
@@ -139,7 +136,7 @@ class StructureFactorFile:
         Returns:
             list: A list of category names.
         """
-        if block_name == "Default" or block_name == None:
+        if block_name == "Default" or block_name is None:
             block_index = self.__default_block_index
             return self.__data_blocks[block_index].getObjNameList()
         else:
@@ -325,7 +322,7 @@ class StructureFactorFile:
         # Create a new block with the same name and type
         new_block = DataContainer(block.getName())
         new_block.setType(block.getType())
-        
+
         # Copy properties from the old block to the new one
         for prop_name in block.getPropCatalog():
             new_block.setProp(prop_name, block.getProp(prop_name))
@@ -362,14 +359,14 @@ class StructureFactorFile:
         # Special case for block equals 0
         if block == 0:
             return f"r{pdbid}sf"
-        
+
         # Set bid
         bid = "_ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789abcdefghijklmnopqrstuvwxyz"
-        
+
         # Calculate rem and mod
         rem = (block - 1) // 36
         mod = (block - 1) % 36
-        
+
         # Conditionally set bname
         if rem > 0:
             return f"r{pdbid}{bid[mod+1]}{bid[rem]}sf"

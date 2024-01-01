@@ -1,5 +1,6 @@
 from mmcif.api.DataCategory import DataCategory
 
+
 def reformat_sfhead(sf_file, logger, DETAIL=None):
     """
     Reformat the structure factor file by performing various operations.
@@ -111,7 +112,7 @@ def reformat_sfhead(sf_file, logger, DETAIL=None):
         "F_squared_meas": "intersity_meas",
         "F_squared_sigma": "intersity_sigma",
         "gsas_i100_meas": "pdbx_gsas_i100_meas"
-        }
+    }
 
     audit = {
         "update_recor": "update_record"
@@ -149,7 +150,6 @@ def reformat_sfhead(sf_file, logger, DETAIL=None):
         }
     }
 
-
     changes_made |= rename_sfhead(sf_file, mapping_dicts, logger)
     changes_made |= remove_sfhead(sf_file, remove_list, logger)
     changes_made |= remove_duplicate_reflections(sf_file)
@@ -170,6 +170,7 @@ def reformat_sfhead(sf_file, logger, DETAIL=None):
         sf_file.reorder_categories_in_block(old_order_copy, block_names[i])
 
     return changes_made
+
 
 def rename_sfhead(sf_file, mapping_dicts, logger):
     """
@@ -201,6 +202,7 @@ def rename_sfhead(sf_file, mapping_dicts, logger):
                 category_object.renameAttributes(renameDict)
     return changes_made
 
+
 def remove_sfhead(sf_file, remove_list, logger):
     """
     Remove categories from the structure factor file based on the provided remove list.
@@ -223,6 +225,7 @@ def remove_sfhead(sf_file, remove_list, logger):
                 logger.pinfo(f"Removing {item} category from block {block.getName()}", 0)
     return changes_made
 
+
 def remove_duplicate_reflections(sf_file):
     """
     Remove duplicate reflections from the structure factor file.
@@ -239,6 +242,7 @@ def remove_duplicate_reflections(sf_file):
         block = sf_file.get_block_by_index(block_index)
         changes_made |= sf_file.remove_duplicates_in_category('refln', block.getName())
     return changes_made
+
 
 def append_attributes(sf_file, category_name, attributes, block_name=None):
     """
@@ -261,7 +265,7 @@ def append_attributes(sf_file, category_name, attributes, block_name=None):
         _, block = sf_file.get_block_by_name(block_name)
     else:
         block = sf_file.get_block_by_index(sf_file.get_default_block_index())
-    
+
     if not block:
         return changes_made
 
@@ -279,6 +283,7 @@ def append_attributes(sf_file, category_name, attributes, block_name=None):
             changes_made = True
 
     return changes_made
+
 
 def modify_attribute_value(sf_file, category_name, attribute_name, new_value, block_name=None):
     """
@@ -300,7 +305,7 @@ def modify_attribute_value(sf_file, category_name, attribute_name, new_value, bl
         _, block = sf_file.get_block_by_name(block_name)
     else:
         block = sf_file.get_block_by_index(sf_file.get_default_block_index())
-    
+
     if not block:
         return False
 

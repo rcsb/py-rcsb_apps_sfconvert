@@ -72,12 +72,13 @@ def guess_sf_format(inpfile):
         n6 = 0
         for line in lines:
             line = line.strip()
-            if (line.startswith("CRYSTAL_MOSAICITY=") or  
-                line.startswith("CRYSTAL_SPACEGROUP=") or
-                line.startswith("CRYSTAL_UNIT_CELL=") or
-                line.startswith("nH") or
-                line.startswith("nK") or
-                line.startswith("nL")):
+            if (
+                    line.startswith("CRYSTAL_MOSAICITY=")
+                    or line.startswith("CRYSTAL_SPACEGROUP=")
+                    or line.startswith("CRYSTAL_UNIT_CELL=")
+                    or line.startswith("nH")
+                    or line.startswith("nK")
+                    or line.startswith("nL")):
                 n6 += 1
                 if n6 > 5:
                     return "DTREK"
@@ -86,9 +87,10 @@ def guess_sf_format(inpfile):
         n7 = 0
         for i, line in enumerate(lines):
             strs = line.split()
-            if ((i == 0 and strs[0] == "1" and len(strs) == 1) or
-                (i == 1 and (strs[0] == "-985" or strs[0] == "-987") and len(strs) == 1) or
-                (i == 2 and '.' in strs[0] and len(line) > 60) and len(strs) == 6):
+            if (
+                    (i == 0 and strs[0] == "1" and len(strs) == 1)
+                    or (i == 1 and (strs[0] == "-985" or strs[0] == "-987") and len(strs) == 1)
+                    or (i == 2 and '.' in strs[0] and len(line) > 60) and len(strs) == 6):
                 n7 += 1
                 if n7 >= 3:
                     return "SCALEPACK"
@@ -108,7 +110,7 @@ def guess_sf_format(inpfile):
                 n9 += 1
                 if n9 >= 200:
                     return "SAINT"
-            
+
     except UnicodeDecodeError:
         try:
             with open(inpfile, 'rb') as file:
@@ -116,7 +118,7 @@ def guess_sf_format(inpfile):
 
             if first_three_bytes == b'MTZ':
                 return "MTZ"
-        except Exception as e:
+        except Exception as _e:  # noqa: F841
             return None
 
     return "Format not recognized"

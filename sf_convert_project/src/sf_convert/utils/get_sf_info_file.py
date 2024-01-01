@@ -1,8 +1,8 @@
 import os
-import logging
 
 # Assuming logger1 and logger2 are already defined
 # and are logging to 'FTMP1.log' and 'FTMP2.log', respectively
+
 
 def get_sf_info(diagfile):
     """

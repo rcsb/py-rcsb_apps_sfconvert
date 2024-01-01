@@ -18,13 +18,13 @@ class TestCifToCnsConversion:
             None
         """
         print("Starting the test...")
-        
+
         output_path = os.path.join(tmp_path, "output.CNS")
-        
+
         print("Reading the input file...")
         sffile = StructureFactorFile()
         sffile.read_file(cif_5pny_data_path)
-        
+
         print("Converting the file...")
         converter = CifToCNSConverter(sffile, output_path, "5pny")
         converter.convert()

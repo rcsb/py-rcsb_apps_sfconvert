@@ -1,5 +1,6 @@
 import re
 
+
 class ProteinDataBank:
     def __init__(self):
         """
@@ -105,7 +106,7 @@ class ProteinDataBank:
             dict: A dictionary containing the extracted attributes.
         """
         pdb_id = wave = nfree = resoh = resol = freerv = symm = None
-        cell = [None]*6
+        cell = [None] * 6
 
         with open(filename, 'r') as file:
             for line in file:

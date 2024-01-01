@@ -1,7 +1,3 @@
-import random
-from pathlib import Path
-from sf_convert.sffile.sf_file import StructureFactorFile as sf_convert
-
 class CifToCNSConverter:
     def __init__(self, sffile, fout_path, pdb_id='xxxx'):
         """
@@ -101,12 +97,12 @@ class CifToCNSConverter:
         if i == 0:
             for attr, var in self.attributes.items():
                 if attr not in attL:
-                    setattr(self, "_CifToCNSConverter__"+var, None)
-                
+                    setattr(self, "_CifToCNSConverter__" + var, None)
+
         for attr, var in self.attributes.items():
             if attr in attL:
                 value = self.__refln_data.getValue(attr, i)
-                setattr(self, "_CifToCNSConverter__"+var, value)
+                setattr(self, "_CifToCNSConverter__" + var, value)
 
         self.__initialize_Io_at_index(i)
         self.__initialize_sIo_at_index(i)
@@ -177,12 +173,12 @@ class CifToCNSConverter:
         # Parse values to integers
         h = int(self.__H)
         k = int(self.__K)
-        l = int(self.__L)
+        l = int(self.__L)  # noqa: E741
 
         # Initialize variables
         f, ssf, i, si, f1, sf1, f2, sf2 = 0, 0, 0, 0, 0, 0, 0, 0
 
-        #sigma
+        # sigma
         si = self.float_or_zero(self.__sIo) if self.__sIo else 0.0
         ssf = self.float_or_zero(self.__sFo_au) if self.__sFo_au else self.float_or_zero(self.__sFo) if self.__sFo else 0.0
 
@@ -301,9 +297,9 @@ class CifToCNSConverter:
                 output_file.write("DECLare NAME=FOM   DOMAin=RECIprocal   TYPE=REAL END\n")
 
             if self.__attr_existence['hla']:
-                output_file.write("DECLare NAME=HLA   DOMAin=RECIprocal   TYPE=REAL END\n")   
+                output_file.write("DECLare NAME=HLA   DOMAin=RECIprocal   TYPE=REAL END\n")
                 output_file.write("DECLare NAME=HLB   DOMAin=RECIprocal   TYPE=REAL END\n")
-                output_file.write("DECLare NAME=HLC   DOMAin=RECIprocal   TYPE=REAL END\n")   
+                output_file.write("DECLare NAME=HLC   DOMAin=RECIprocal   TYPE=REAL END\n")
                 output_file.write("DECLare NAME=HLD   DOMAin=RECIprocal   TYPE=REAL END\n")
 
             # Loop over all the data points

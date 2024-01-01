@@ -1,6 +1,7 @@
 import logging
 import os
 
+
 class PInfoLogger:
     def __init__(self, log_file1_path, log_file2_path):
         """
@@ -14,11 +15,11 @@ class PInfoLogger:
         self.log_file2 = log_file2_path
 
         self.clear_logs()  # Clear the logs if they already exist
-        
+
         # Set up the loggers
         self.logger1 = self._setup_logger('Logger1', self.log_file1)
         self.logger2 = self._setup_logger('Logger2', self.log_file2)
-    
+
     def _setup_logger(self, logger_name, log_file_path):
         """
         Sets up a logger with a file handler.
@@ -36,7 +37,7 @@ class PInfoLogger:
         logger.addHandler(handler)
         logger.setLevel(logging.INFO)  # Log all messages
         return logger
-    
+
     def clear_logs(self):
         """
         Clears the log files.

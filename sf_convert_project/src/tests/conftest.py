@@ -1,6 +1,7 @@
 import os
 import pytest
 
+
 @pytest.fixture
 def data_dir():
     """
@@ -25,6 +26,7 @@ def cns_data_path(data_dir):
     """
     yield os.path.join(data_dir, "cif_files", "cns-sf6.cv")
 
+
 @pytest.fixture
 def cif_5pny_data_path(data_dir):
     """
@@ -37,7 +39,7 @@ def cif_5pny_data_path(data_dir):
         str: The path to the CIF data file.
     """
     yield os.path.join(data_dir, "cif_files", "5pny-sf.cif")
-    
+
 
 @pytest.fixture
 def cns_5pny_data_path(data_dir):

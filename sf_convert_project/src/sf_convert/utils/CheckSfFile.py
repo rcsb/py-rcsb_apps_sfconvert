@@ -1,17 +1,12 @@
 import math
-import os
-import argparse
-from sf_convert.sffile.sf_file import StructureFactorFile
-#from ..sffile.sf_file import SFFile
-#from sf_convert.utils.pinfo_file import pinfo
-#from .pinfo_file import pinfo
+
 from mmcif.api.DataCategory import DataCategory
 from mmcif.api.PdbxContainers import DataContainer
 from mmcif.io.PdbxWriter import PdbxWriter
 
 
 class CheckSfFile:
-    def __init__(self, sffile, logger, fout_path, pinfo_value = 1):
+    def __init__(self, sffile, logger, fout_path, pinfo_value=1):
         """
         Initializes the CheckSfFile object.
 
@@ -121,10 +116,10 @@ class CheckSfFile:
         for attr, var in attributes.items():
             if self.__refln_data.hasAttribute(attr):
                 setattr(self, var, self.__refln_data.getColumn(self.__refln_data.getIndex(attr)))
-                setattr(self, "_CheckSfFile__"+var, self.__refln_data.getColumn(self.__refln_data.getIndex(attr)))
+                setattr(self, "_CheckSfFile__" + var, self.__refln_data.getColumn(self.__refln_data.getIndex(attr)))
 
             else:
-                setattr(self, "_CheckSfFile__"+var, None)
+                setattr(self, "_CheckSfFile__" + var, None)
 
         diffrn_attributes = {
             "intensity_net": "unmerge_i",
@@ -136,9 +131,9 @@ class CheckSfFile:
 
         for attr, var in diffrn_attributes.items():
             if self.__diffrn_refln_data and self.__diffrn_refln_data.hasAttribute(attr):
-                setattr(self, "_CheckSfFile__"+var, self.__diffrn_refln_data.getColumn(self.__diffrn_refln_data.getIndex(attr)))
+                setattr(self, "_CheckSfFile__" + var, self.__diffrn_refln_data.getColumn(self.__diffrn_refln_data.getIndex(attr)))
             else:
-                setattr(self, "_CheckSfFile__"+var, None)
+                setattr(self, "_CheckSfFile__" + var, None)
 
         self.initialize_Io()
         self.initialize_sIo()
@@ -277,7 +272,7 @@ class CheckSfFile:
             gamma = float(data.getValue("angle_gamma"))
 
             cell = [a, b, c, alpha, beta, gamma]
-            
+
             rcell = [0.0] * 6
 
             cosa = math.cos(math.radians(cell[3]))
@@ -287,15 +282,15 @@ class CheckSfFile:
             sinb = math.sin(math.radians(cell[4]))
             sinc = math.sin(math.radians(cell[5]))
 
-            v = cell[0] * cell[1] * cell[2] * math.sqrt(1. - cosa*cosa - cosb*cosb - cosc*cosc + 2.*cosa*cosb*cosc)
+            v = cell[0] * cell[1] * cell[2] * math.sqrt(1. - cosa * cosa - cosb * cosb - cosc * cosc + 2. * cosa * cosb * cosc)
 
             rcell[0] = cell[1] * cell[2] * sina / v
             rcell[1] = cell[0] * cell[2] * sinb / v
             rcell[2] = cell[0] * cell[1] * sinc / v
 
-            cosast = (cosb*cosc - cosa) / (sinb*sinc)
-            cosbst = (cosa*cosc - cosb) / (sina*sinc)
-            coscst = (cosa*cosb - cosc) / (sina*sinb)
+            cosast = (cosb * cosc - cosa) / (sinb * sinc)
+            cosbst = (cosa * cosc - cosb) / (sina * sinc)
+            coscst = (cosa * cosb - cosc) / (sina * sinb)
 
             rcell[3] = math.acos(cosast) / math.radians(1.0)
             rcell[4] = math.acos(cosbst) / math.radians(1.0)
@@ -304,8 +299,9 @@ class CheckSfFile:
             return rcell, cell
         else:
             self.__logger.pinfo("Warning: No cell data found in the mmCIF file.", self.__pinfo_value)
+            # XXXX What to return in this case!
 
-    def get_resolution(self, h, k, l, rcell):
+    def get_resolution(self, h, k, l, rcell):  # noqa: E741
         """
         Calculates the resolution for a given h, k, l and rcell.
 
@@ -353,11 +349,11 @@ class CheckSfFile:
             for i in range(n):
                 h = int(refln_data.getValue("index_h", i))
                 k = int(refln_data.getValue("index_k", i))
-                l = int(refln_data.getValue("index_l", i))
+                l = int(refln_data.getValue("index_l", i))  # noqa: E741
 
                 resolution = self.get_resolution(h, k, l, rcell)
 
-                if resolution > best_resolution:
+                if resolution > best_resolution:   # This might be backwards -- check XXX
                     best_resolution = resolution
 
             self.__logger.pinfo("Best Resolution: {:.2f} Angstroms".format(best_resolution), self.__pinfo_value)
@@ -406,29 +402,28 @@ class CheckSfFile:
         resol = [100]
         RESOH = 0.1
         RESOL = 200
-        
+
         if not (self.__dH or self.__dK or self.__dL or self.__H or self.__K or self.__L):
             self.__logger.pinfo(f"Error: File has no 'index_h, index_k, index_l' (data block= {nblock + 1}).", self.__pinfo_value)
             return
-        
-        if not (self.__Fo_au or self.__Fo or self.__Io or self.__F2o or self.__I_plus or self.__I_minus or
-                self.__F_plus or self.__F_minus or self.__unmerge_i or self.__unmerge_si):
+
+        if not (self.__Fo_au or self.__Fo or self.__Io or self.__F2o or self.__I_plus or self.__I_minus
+                or self.__F_plus or self.__F_minus or self.__unmerge_i or self.__unmerge_si):
             self.__logger.pinfo(f"Error: File has no mandatory items 'F/I/F+/F-/I+/I-' (data block= {nblock + 1}). ", self.__pinfo_value)
             return
 
         if self.__nref < 30 and self.__dnref > 30:
             return  # do not further check the unmerged data!!
-        
+
         if self.__nref < 30:
             self.__logger.pinfo(f"Error: File has too few reflections ({self.__nref}) (data block= {nblock + 1}).", self.__pinfo_value)
             return
 
-        if ((self.__Fo_au and not self.__sFo_au) or (self.__Fo and not self.__sFo) or
-            (self.__Io and not self.__sIo) or (self.__F2o and not self.__sF2o) or
-            (self.__I_plus and not self.__sI_plus) or (self.__I_minus and not self.__sI_minus) or
-            (self.__F_plus and not self.__sF_plus) or (self.__F_minus and not self.__sF_minus) or
-            (self.__unmerge_i and not self.__unmerge_si)):
-
+        if (self.__Fo_au and not self.__sFo_au) or (self.__Fo and not self.__sFo) \
+           or (self.__Io and not self.__sIo) or (self.__F2o and not self.__sF2o) \
+           or (self.__I_plus and not self.__sI_plus) or (self.__I_minus and not self.__sI_minus) \
+           or (self.__F_plus and not self.__sF_plus) or (self.__F_minus and not self.__sF_minus) \
+           or (self.__unmerge_i and not self.__unmerge_si):
             self.__logger.pinfo(f"Error: Sigma values are missing (data block= {nblock + 1})!", self.__pinfo_value)
 
         if self.__status is None:
@@ -438,10 +433,11 @@ class CheckSfFile:
         if refln_data is not None:
             rcell, cell = self.calc_cell_and_recip()
 
-        if (cell[0] > 0.01 and cell[1] > 0.01): key = 1
-        
+        if (cell[0] > 0.01 and cell[1] > 0.01):
+            key = 1
+
         for i in range(nstart, self.__nref):  # check data items
-            #pinfo(f"Checking reflection {i} of {self._nref} (data block= {nblock + 1})")
+            # pinfo(f"Checking reflection {i} of {self._nref} (data block= {nblock + 1})")
             ah = int(self.__H[i])
             ak = int(self.__K[i])
             al = int(self.__L[i])
@@ -454,27 +450,28 @@ class CheckSfFile:
             max_K = max(max_K, ak)
             max_L = max(max_L, al)
 
-            if not ((self.__Fo_au and self.__Fo_au[i] != '?') or
-                    (self.__Io and self.__Io[i] != '?') or
-                    (self.__I_plus and self.__I_plus[i] != '?') or
-                    (self.__I_minus and self.__I_minus[i] != '?') or
-                    (self.__F_plus and self.__F_plus[i] != '?') or
-                    (self.__F_minus and self.__F_minus[i] != '?') or
-                    (self.__unmerge_i and self.__unmerge_i[i] != '?') or
-                    (self.__F2o and self.__F2o[i] != '?') or
-                    (self.__Fo and self.__Fo[i] != '?')):
+            if not ((self.__Fo_au and self.__Fo_au[i] != '?')
+                    or (self.__Io and self.__Io[i] != '?')
+                    or (self.__I_plus and self.__I_plus[i] != '?')
+                    or (self.__I_minus and self.__I_minus[i] != '?')
+                    or (self.__F_plus and self.__F_plus[i] != '?')
+                    or (self.__F_minus and self.__F_minus[i] != '?')
+                    or (self.__unmerge_i and self.__unmerge_i[i] != '?')
+                    or (self.__F2o and self.__F2o[i] != '?')
+                    or (self.__Fo and self.__Fo[i] != '?')):
                 continue
 
             temp_nref += 1
             hkl = f"HKL={ah:4d} {ak:4d} {al:4d}"
 
-            if ((ah == 0 and ak == 0 and al == 0) or
-                    (abs(ah) > 800 or abs(ak) > 800 or abs(al) > 800)):
+            if (
+                    (ah == 0 and ak == 0 and al == 0)
+                    or (abs(ah) > 800 or abs(ak) > 800 or abs(al) > 800)):
                 if n1 == 1:
                     self.__logger.pinfo(f"Error: File has wrong indices ({hkl}).", self.__pinfo_value)
                     n1 += 1
 
-            #--------------------------------------------------------------
+            # --------------------------------------------------------------
 
             def is_float(value):
                 try:
@@ -489,7 +486,6 @@ class CheckSfFile:
             if self.__sIo and i > 0 and is_float(self.__sIo[i - 1]) and is_float(self.__sIo[i]):
                 if float(self.__sIo[i - 1]) == float(self.__sIo[i]):
                     nf_sIo += 1
-
 
             # if self.__sFo_au and i > 0 and float(self.__sFo_au[i - 1]) == float(self.__sFo_au[i]):
             #     nf_sFo += 1
@@ -546,23 +542,23 @@ class CheckSfFile:
                     nnii += 1
 
             if RESOL + 0.01 >= resolution >= RESOH - 0.01:  # for onedep
-                if self.__F_plus and not '?' in self.__F_plus[i]:
+                if self.__F_plus and '?' not in self.__F_plus[i]:
                     nfp += 1
-                if self.__F_minus and not '?' in self.__F_minus[i]:
+                if self.__F_minus and '?' not in self.__F_minus[i]:
                     nfn += 1
-                if self.__I_plus and not '?' in self.__I_plus[i]:
+                if self.__I_plus and '?' not in self.__I_plus[i]:
                     nip += 1
-                if self.__I_minus and not '?' in self.__I_minus[i]:
+                if self.__I_minus and '?' not in self.__I_minus[i]:
                     nin += 1
 
-                if ((self.__Fo and not '?' in self.__Fo[i]) or
-                        (self.__Fo_au and not '?' in self.__Fo_au[i]) or
-                        (self.__Io and not '?' in self.__Io[i]) or
-                        (self.__F2o and not '?' in self.__F2o[i]) or
-                        ((self.__F_plus and not '?' in self.__F_plus[i]) or
-                        (self.__F_minus and not '?' in self.__F_minus[i])) or
-                        ((self.__I_plus and not '?' in self.__I_plus[i]) or
-                        (self.__I_minus and not '?' in self.__I_minus[i]))):
+                if ((self.__Fo and '?' not in self.__Fo[i])
+                    or (self.__Fo_au and '?' not in self.__Fo_au[i])
+                    or (self.__Io and '?' not in self.__Io[i])
+                    or (self.__F2o and '?' not in self.__F2o[i])
+                    or ((self.__F_plus and '?' not in self.__F_plus[i])
+                        or (self.__F_minus and '?' not in self.__F_minus[i]))
+                    or ((self.__I_plus and '?' not in self.__I_plus[i])
+                        or (self.__I_minus and '?' not in self.__I_minus[i]))):
                     if self.__status and 'o' in self.__status[i]:
                         n_obs += 1
                     elif self.__status and 'f' in self.__status[i]:
@@ -574,8 +570,10 @@ class CheckSfFile:
                     self.__n5 += 1
                     self.__logger.pinfo(f"Error: File has negative amplitude (Fo: {self.__Fo_au[i]}) for ({hkl}).", self.__pinfo_value)
 
-                if f < min_F: min_F = f
-                if f > max_F: max_F = f
+                if f < min_F:
+                    min_F = f
+                if f > max_F:
+                    max_F = f
 
                 if self.__sFo_au:
                     sigf = float(self.__sFo_au[i])
@@ -584,13 +582,13 @@ class CheckSfFile:
                         sum_f += f
                         sum_sf += sigf
                         nf_Fo += 1
-                    
-
 
             if self.__F2o:
                 f = float(self.__F2o[i])
-                if f < min_F2: min_F2 = f
-                if f > max_F2: max_F2 = f
+                if f < min_F2:
+                    min_F2 = f
+                if f > max_F2:
+                    max_F2 = f
 
                 if self.__sF2o:
                     sigf = float(self.__sF2o[i])
@@ -602,8 +600,10 @@ class CheckSfFile:
 
             if self.__Io:
                 f = float(self.__Io[i])
-                if f < min_I: min_I = f
-                if f > max_I: max_I = f
+                if f < min_I:
+                    min_I = f
+                if f > max_I:
+                    max_I = f
 
                 if self.__sIo:
                     sigf = float(self.__sIo[i])
@@ -628,7 +628,6 @@ class CheckSfFile:
                     n8 += 1
                     self.__logger.pinfo(f"Warning: File has wrong values of phase ({self.__phase_o[i]}) for ({hkl}).", self.__pinfo_value)
 
-
         if n1 > 0:
             self.__logger.pinfo(f"Error: File has ({n1}) reflections with wrong indices.", self.__pinfo_value)
 
@@ -642,7 +641,7 @@ class CheckSfFile:
             self.__logger.pinfo(f"Error: File has ({n5}) reflections with negative amplitude (Fo).", self.__pinfo_value)
 
         if temp_nref > 10 and ((nf_sFo > 0 and temp_nref - nf_sFo < 3) or (nf_sIo > 0 and temp_nref - nf_sIo < 3)):
-            self.__logger.pinfo(f"Warning! File has Sigma_Fo all the same!", self.__pinfo_value)
+            self.__logger.pinfo("Warning! File has Sigma_Fo all the same!", self.__pinfo_value)
 
         # Following are the messages related to total number of reflections
         self.__logger.pinfo(f"Total number of observed reflections = {(n_obs + n_free)}", self.__pinfo_value)
@@ -657,7 +656,7 @@ class CheckSfFile:
             self.__logger.pinfo(f"Total number of observed F+ = {nfp}", self.__pinfo_value)
             self.__logger.pinfo(f"Total number of observed F- = {nfn}", self.__pinfo_value)
             self.__logger.pinfo(f"Sum of observed F+ and F-  = {(nfn + nfp)}", self.__pinfo_value)
-        
+
         if nfpairI > 10:
             self.__logger.pinfo(f"Total number of Friedel pairs (I+/I-) = {nfpairI}", self.__pinfo_value)
             self.__logger.pinfo(f"Total number of observed I+ = {nip}", self.__pinfo_value)
@@ -665,13 +664,14 @@ class CheckSfFile:
             self.__logger.pinfo(f"Sum of observed I+ and I-  = {(nin + nip)}", self.__pinfo_value)
 
         if key > 0 and self.__cell[0] > 0.001:
-            self.__logger.pinfo(f"Cell = {self.__cell[0]:.2f} {self.__cell[1]:.2f} {self.__cell[2]:.2f} {self.__cell[3]:.2f} {self.__cell[4]:.2f} {self.__cell[5]:.2f}", self.__pinfo_value)
+            self.__logger.pinfo(f"Cell = {self.__cell[0]:.2f} {self.__cell[1]:.2f} {self.__cell[2]:.2f} {self.__cell[3]:.2f} {self.__cell[4]:.2f} {self.__cell[5]:.2f}",
+                                self.__pinfo_value)
             self.__logger.pinfo(f"Lowest resolution= {max_R:.2f} ; corresponding HKL={self.__hkl_max}", self.__pinfo_value)
             self.__logger.pinfo(f"Highest resolution={min_R:.2f} ; corresponding HKL={self.__hkl_min}", self.__pinfo_value)
             if RESOH > 0.11 and abs(RESOH - min_R) > 0.4 and nblock == 0:
-                self.__logger.pinfo(f"Warning: large difference between reported ({RESOH:.2f}) and calculated({min_R:.2f}) resolution.", self.__pinfo_value)
+                self.__logger.pinfo(f"Warning: large difference between reportedre ({RESOH:.2f}) and calculated({min_R:.2f}) resolution.", self.__pinfo_value)
             resol[0] = min_R
-        
+
         self.__logger.pinfo(f"Max indices (Hmax={max_H:4d}  Kmax={max_K:4d}  Lmax={max_L:4d})", self.__pinfo_value)
         self.__logger.pinfo(f"Min indices (Hmin={min_H:4d}  Kmin={min_K:4d}  Lmin={min_L:4d})", self.__pinfo_value)
 
@@ -707,7 +707,7 @@ class CheckSfFile:
         if nnii_low > 10:
             self.__logger.pinfo(f"Use data with resolution >7.0 Angstrom: <I/sigI>_low={ii_sigii_low / nnii_low:.2f}", self.__pinfo_value)
 
-        self.__logger.pinfo(f"\n", self.__pinfo_value)
+        self.__logger.pinfo("\n", self.__pinfo_value)
 
         return
 
@@ -740,7 +740,7 @@ class CheckSfFile:
         """
         sp1 = 0
         sp2 = 0
-        I = 0
+        I = 0  # noqa: E741
         Is = 0
 
         F = 0
@@ -748,7 +748,7 @@ class CheckSfFile:
 
         if self.__Io:  # Io
             if self.__Io[i] != '?':
-                I = float(self.__Io[i])
+                I = float(self.__Io[i])  # noqa: E741
 
                 if I > 0 and self.__sIo:
                     F = math.sqrt(I)
@@ -758,19 +758,19 @@ class CheckSfFile:
             sp1 = -1 if self.__sI_plus[i] == '?' else float(self.__sI_plus[i])
             sp2 = -1 if self.__sI_minus[i] == '?' else float(self.__sI_minus[i])
 
-            I = 0
+            I = 0  # noqa: E741
             Is = 0
 
             if sp1 < 0 and sp2 < 0:
                 pass
             elif sp1 > 0 and sp2 < 0:
-                I = float(self.__I_plus[i])
+                I = float(self.__I_plus[i])  # noqa: E741
                 Is = float(self.__sI_plus[i])
             elif sp1 < 0 and sp2 > 0:
-                I = float(self.__I_minus[i])
+                I = float(self.__I_minus[i])  # noqa: E741
                 Is = float(self.__sI_minus[i])
             elif sp1 > 0 and sp2 > 0:
-                I = (float(self.__I_plus[i]) + float(self.__I_minus[i])) / 2.0
+                I = (float(self.__I_plus[i]) + float(self.__I_minus[i])) / 2.0  # noqa: E741
                 Is = (float(self.__sI_plus[i]) + float(self.__sI_minus[i])) / 2.0
 
             if I > 0:
@@ -796,12 +796,12 @@ class CheckSfFile:
 
         return F, Fs
 
-    def i_to_f(self, i, I, sI, sf_default):
+    def i_to_f(self, idx, I, sI, sf_default):  # noqa: E741
         """
         Converts I column to F and Fs values.
 
         Args:
-            i: The index.
+            idx: The index.
             I: The I value.
             sI: The sI column.
             sf_default: The default value for Fs.
@@ -815,8 +815,8 @@ class CheckSfFile:
 
         if float(I) > 0:
             f = math.sqrt(float(I))
-            if sI and float(sI[i]) > 0:
-                sf = float(sI[i]) / (2.0 * f)
+            if sI and float(sI[idx]) > 0:
+                sf = float(sI[idx]) / (2.0 * f)
             else:
                 sf = sf_default
 
@@ -840,7 +840,6 @@ class CheckSfFile:
 
         file_path = self.__fout_path
 
-
         self.__sf_block = self.__sf_file.get_block_by_index(nblock)
         self.initialize_data()
 
@@ -850,29 +849,30 @@ class CheckSfFile:
         nf, i, ah, ak, al = 0, 0, 0, 0, 0
         F, Fs, sig = 0.0, 0.0, 0.01
         resol, i_sigi, af, afs = 0.0, 0.0, 0.0, 0.0
-        fout = None
+
         # Need to ask Ezra about this
         RESCUT, SIGCUT = 0.0, 0.0
         n = self.__nref
 
         rcell, CELL = self.calc_cell_and_recip()
 
-        if(CELL[0] > 2 and CELL[4] > 2):
+        # XXX This looks strange... Different cutoffs here than below?
+        if CELL[0] > 2 and CELL[4] > 2:
             data = self.__sf_block.getObj("symmetry")
             SYMM = data.getValue("space_group_name_H-M")
             aCat = DataCategory("symmetry")
 
-            if(nblock > 0):
+            if nblock > 0:
                 aCat.appendAttribute("Int_Tables_number")
                 aCat.append((nblock,))
 
-            if(len(SYMM)>1):
+            if len(SYMM) > 1:
                 aCat.appendAttribute("space_group_name_H-M")
                 aCat.append((SYMM,))
 
             curContainer.append(aCat)
-            
-            if(CELL[0] > 0.5 and CELL[2] > 0.5):
+
+            if CELL[0] > 0.5 and CELL[2] > 0.5:
                 bCat = DataCategory("cell")
                 bCat.appendAttribute("length_a")
                 bCat.appendAttribute("length_b")
@@ -882,7 +882,6 @@ class CheckSfFile:
                 bCat.appendAttribute("angle_gamma")
                 bCat.append((CELL[0], CELL[1], CELL[2], CELL[3], CELL[4], CELL[5]))
                 curContainer.append(bCat)
-
 
         cCat = DataCategory("refln")
         cCat.appendAttribute("index_h")
@@ -894,17 +893,17 @@ class CheckSfFile:
         cCat.appendAttribute("d_spacing")
         cCat.appendAttribute("I_over_sigI")
 
-        if(self.__Io and self.__sIo):
+        if self.__Io and self.__sIo:
             cCat.appendAttribute("intensity_meas")
             cCat.appendAttribute("intensity_sigma")
 
-        if(self.__F_plus and self.__sF_plus and self.__F_minus and self.__sF_minus):
+        if self.__F_plus and self.__sF_plus and self.__F_minus and self.__sF_minus:
             cCat.appendAttribute("pdbx_F_plus")
             cCat.appendAttribute("pdbx_F_plus_sigma")
             cCat.appendAttribute("pdbx_F_minus")
             cCat.appendAttribute("pdbx_F_minus_sigma")
 
-        if(self.__I_plus and self.__sI_plus and self.__I_minus and self.__sI_minus):
+        if self.__I_plus and self.__sI_plus and self.__I_minus and self.__sI_minus:
             cCat.appendAttribute("pdbx_I_plus")
             cCat.appendAttribute("pdbx_I_plus_sigma")
             cCat.appendAttribute("pdbx_I_minus")
@@ -915,42 +914,42 @@ class CheckSfFile:
 
         for i in range(n):
 
-            if(self.__status):
-                if(self.__status[i] != "o" and self.__status[i] != "f"):
+            if self.__status:
+                if self.__status[i] != "o" and self.__status[i] != "f":
                     continue
                 flag = self.__status[i]
             else:
                 flag = "o"
 
-            if(self.__Fo_au):
+            if self.__Fo_au:
                 fp = self.__Fo_au[i]
-                if(self.__sFo_au):
-                    if(self.__sFo_au[i] != "?"):
+                if self.__sFo_au:
+                    if self.__sFo_au[i] != "?":
                         sigfp = self.__sFo_au[i]
                     else:
                         sigfp = f"{sig:.4f}"
                 else:
                     sigfp = f"{sig:.4f}"
 
-            elif(self.__Io):
+            elif self.__Io:
                 fp, sigfp = self.i_to_f(i, self.__Io[i], self.__sIo, sig)
 
-            elif(self.__I_plus or self.__F_plus):
+            elif self.__I_plus or self.__F_plus:
                 F, Fs = self.other_to_f(i)
                 fp = f"{F:.4f}"
                 sigfp = f"{Fs:.4f}"
 
-            elif(self.__Fo):
+            elif self.__Fo:
                 fp = self.__Fo[i]
-                if(self.__sFo):
-                    if(float(self.__sFo[i]) > sig):
+                if self.__sFo:
+                    if float(self.__sFo[i]) > sig:
                         sigfp = self.__sFo[i]
                     else:
                         sigfp = f"{sig:.4f}"
                 else:
                     sigfp = f"{sig:.4f}"
 
-            elif(self.__F2o):
+            elif self.__F2o:
                 fp, sigfp = self.i_to_f(i, self.__F2o[i], self.__sF2o, sig)
 
             ah = int(self.__H[i])
@@ -959,16 +958,18 @@ class CheckSfFile:
             resol = self.get_resolution(ah, ak, al, rcell)
 
             i_sigi = 0.0
-            if (self.__Io and self.__sIo and float(self.__sIo[i])>0):
-                i_sigi = float(self.__Io[i])/float(self.__sIo[i])
+            if self.__Io and self.__sIo and float(self.__sIo[i]) > 0:
+                i_sigi = float(self.__Io[i]) / float(self.__sIo[i])
             else:
                 af = self.float_or_zero(fp)
                 afs = self.float_or_zero(sigfp)
-                if (afs>0): 
-                    i_sigi = af/(2*afs)
+                if afs > 0:
+                    i_sigi = af / (2 * afs)
 
-            if(RESCUT > 0.0001 and resol < RESCUT and resol > 0.0001): continue
-            if(abs(SIGCUT) > 0.0001 and i_sigi < SIGCUT): continue
+            if (RESCUT > 0.0001 and resol < RESCUT and resol > 0.0001):
+                continue
+            if (abs(SIGCUT) > 0.0001 and i_sigi < SIGCUT):
+                continue
 
             values_to_append = (self.__H[i], self.__K[i], self.__L[i], flag, fp, sigfp, resol, i_sigi)
 
@@ -989,12 +990,12 @@ class CheckSfFile:
         myDataList.append(curContainer)
 
         with open(file_path, "w") as ofh:
-                pdbxW = PdbxWriter(ofh)
-                pdbxW.setAlignmentFlag(flag=True)
-                pdbxW.write(myDataList)
+            pdbxW = PdbxWriter(ofh)
+            pdbxW.setAlignmentFlag(flag=True)
+            pdbxW.write(myDataList)
 
-        #print("\nNumber of reflections for validation set = %d" % nf)
-    
+        # print("\nNumber of reflections for validation set = %d" % nf)
+
     def check_sf_all_blocks(self, n):
         """
         Checks the SF file for all blocks.
@@ -1006,45 +1007,4 @@ class CheckSfFile:
             None
         """
         for i in range(n):
-            self.check_sf(i)   
-# -------------------------------------------------- MAIN FUNCTION ----------------------------------------------------------- #
-
-
-
-# def main():
-#     parser = argparse.ArgumentParser(description='Process some integers.')
-#     parser.add_argument('--sffile', type=str, required=True, help='Path to the SF file')
-#     parser.add_argument('--pinfo_value', type=int, default=0, help='Value for pinfo')
-#     parser.add_argument('--fout_path', type=str, default=os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))), 'output'), help='Optional path to the output file for write_sf_4_validation')
-#     parser.add_argument('--nblock', type=int, default=0, help='Optional nblock value for write_sf_4_validation')
-#     parser.add_argument('--check_all', action='store_true', help='Check all SF blocks if this flag is set')
-#     parser.add_argument('--write_validation', action='store_true', help='Write SF for validation if this flag is set')
-
-#     args = parser.parse_args()
-
-#     sffile = SFFile()
-#     sffile.readFile(args.sffile)
-#     n = sffile.getBlocksCount()
-
-
-#     pinfo("", 2)
-#     pinfo(f"Total number of data blocks = {n} \n\n", args.pinfo_value)
-
-#     calculator = CheckSfFile(sffile, args.fout_path, args.pinfo_value)
-
-#     if args.write_validation:
-#         calculator.write_sf_4_validation(args.nblock)
-
-#     if args.check_all:
-#         check_sf_all_blocks(calculator, n)
-
-# if __name__ == "__main__":
-#     main()
-
-# -------------------------------------------------- MAIN FUNCTION ----------------------------------------------------------- #
-
-
-# -------------------------------------------------- END OF MAIN FUNCTION ----------------------------------------------------------- #
-
-#python -m src.sf_convert.utils.checksffile --sffile src/sf_convert/cif_files/5pny-sf.cif --write_validation --pinfo_value 1 --check_all
-#python your_script.py --sffile path/to/your/file --pinfo_value 1 --check_all --write_validation --fout_path path/to/your/output/file --nblock 5
+            self.check_sf(i)
