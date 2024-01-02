@@ -500,7 +500,7 @@ class MtzToCifConverter:
         if nfree_value is not None:
             cmd.insert(2, "--nfree=" + str(nfree_value))
 
-        result = subprocess.run(cmd, capture_output=True, text=True)
+        result = subprocess.run(cmd, capture_output=True, text=True, check=False)
 
         # Delete the temporary spec file
         try:

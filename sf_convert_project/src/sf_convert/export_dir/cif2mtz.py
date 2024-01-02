@@ -54,7 +54,7 @@ class CifToMTZConverter:
         Returns:
             list: The column labels of the CIF file.
         """
-        cif_doc = gemmi.cif.read(self.cif_path)
+        cif_doc = gemmi.cif.read(self.cif_path)  # pylint: disable=no-member
         self.rblock = gemmi.as_refln_blocks(cif_doc)[0]
         return self.rblock.column_labels()
 
@@ -67,7 +67,7 @@ class CifToMTZConverter:
         """
         spec_lines = []
         column_labels = self.rblock.column_labels()
-        for key, alternatives in self.mappings.items():
+        for _key, alternatives in self.mappings.items():
             for alternative in alternatives:
                 if alternative[0] in column_labels:
                     spec_line = ' '.join([alternative[0]] + list(map(str, alternative[1:])))

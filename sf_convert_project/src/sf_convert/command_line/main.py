@@ -14,19 +14,19 @@ from sf_convert.sffile.reformat_sfhead import reformat_sfhead
 from sf_convert.utils.pinfo_file import PInfoLogger
 from sf_convert.utils.get_sf_info_file import get_sf_info
 from sf_convert.utils.CheckSfFile import CheckSfFile
-
+from sf_convert.utils.version import get_version
 
 VALID_FORMATS = ["CNS", "MTZ", "mmCIF", "CIF"]
 
 
 class CustomHelpParser(argparse.ArgumentParser):
-    def print_help(self):
+    def print_help(self, file=None):  # pylint: disable=unused-argument
         """
         Prints the custom help message for the sf_convert script.
         """
         custom_help_message = """
     =======================================================================
-                sf_convert (version: x.xxx : 2023-xx-xx )
+                """ + get_version() + """
     =======================================================================
 
     Usage: 'sf_convert  -i input_format -o output_format -sf data_file'

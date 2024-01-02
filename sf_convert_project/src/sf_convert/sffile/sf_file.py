@@ -217,7 +217,7 @@ class StructureFactorFile:
             bool: True if any duplicates were removed, False otherwise.
         """
         if block_name is None:
-            block = self.get_block_by_index(self.default_block_index)
+            block = self.get_block_by_index(self.__default_block_index)
         else:
             _, block = self.get_block_by_name(block_name)
             if block is None:

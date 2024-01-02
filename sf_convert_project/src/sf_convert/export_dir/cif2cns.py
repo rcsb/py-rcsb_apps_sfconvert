@@ -1,5 +1,5 @@
 class CifToCNSConverter:
-    def __init__(self, sffile, fout_path, pdb_id='xxxx'):
+    def __init__(self, sffile, fout_path, pdb_id='xxxx'):  # pylint: disable=unused-argument
         """
         Initializes the CifToCNSConverter object.
 
@@ -8,11 +8,29 @@ class CifToCNSConverter:
             fout_path (str): The path to the output CNS file.
             pdb_id (str, optional): The PDB ID. Defaults to 'xxxx'.
         """
-        self.__pdb_id = pdb_id
+        # self.__pdb_id = pdb_id
         self.__sf_file = sffile
         self.__fout_path = fout_path
         self.__attr_existence = {}
 
+        # Init here
+        self.__status = None
+        self.__Io = None
+        self.__sIo = None
+        self.__nref = 0
+        self.__refln_data = None
+        self.__sf_block = None
+
+        # The following use setattr to init - but simplify for pylint - as we declare what we need
+        self.__hla = self.__hlb = self.__hlc = self.__hld = self.__fom = None
+        self.__F_plus = self.__F_minus = self.__sF_plus = self.__sF_minus = None  
+        self.__I_plus = self.__I_minus = self.__sI_plus = self.__sI_minus = None
+        self.__Fo_au = self.__sFo_au = None
+        self.__F2c = self.__Ic = self.__Fo = self.__sFo = None
+        self.__Fc_au = self.__F2o = self.__Fc = None
+        self.__H = self.__K = self.__L = None
+        
+        
         # Define attributes
         self.attributes = {
             "index_h": "H",

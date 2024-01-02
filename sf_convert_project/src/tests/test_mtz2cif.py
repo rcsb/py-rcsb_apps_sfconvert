@@ -1,5 +1,6 @@
 from sf_convert.import_dir.mtz2cif import MtzToCifConverter
 from sf_convert.utils.pinfo_file import PInfoLogger
+from TestHelper import comp_sfcif
 import os
 
 
@@ -12,7 +13,7 @@ class TestMtzToCifConversion:
             tmp_path: The path to the temporary directory.
             mtz_Ras_NAD_data_path: The path to the MTZ file to be converted.
             cif_Ras_NAD_data_path: The path to the reference CIF file for comparison.
-
+2
         Returns:
             None
         """
@@ -23,15 +24,16 @@ class TestMtzToCifConversion:
         print("Loading and converting the file...")
         logger = PInfoLogger('path_to_log1.log', 'path_to_log2.log')
         converter = MtzToCifConverter(mtz_Ras_NAD_data_path, output_path, "5pny", logger)
-        converter.process_labels()  # if labels are required
+        # converter.process_labels()  # if labels are required
         converter.convert_and_write()
 
         print("Comparing the outputs...")
-        with open(cif_Ras_NAD_data_path, 'r') as f:
-            expected_output = f.read()
-        with open(output_path, 'r') as f:
-            actual_output = f.read()
+        # with open(cif_Ras_NAD_data_path, 'r') as f:
+        #     expected_output = f.read()
+        # with open(output_path, 'r') as f:
+        #     actual_output = f.read()
 
-        assert actual_output == expected_output
+        # assert cif_Ras_NAD_data_path == output_path
+        comp_sfcif(cif_Ras_NAD_data_path, output_path)
 
         print("Test completed.")

@@ -55,16 +55,16 @@ class PInfoLogger:
         try:
             if os.path.exists(file_path):
                 os.remove(file_path)
-        except Exception as e:
+        except Exception as e:  # pylint: disable=broad-exception-caught
             print(f"An error occurred while removing {file_path}: {e}")
 
-    def pinfo(self, info, id):
+    def pinfo(self, info, pid):
         """
         Logs information and prints it to the console.
 
         Args:
             info (str): The information to log and print.
-            id (int): The ID of the logger to use.
+            pid (int): The ID of the logger to use.
 
         Notes:
             - If the information contains "Warning" or "Error", it is logged to the first log file and printed to the console.
@@ -76,10 +76,10 @@ class PInfoLogger:
             self.logger1.info(info)  # Log to FTMP1.log
             print(info)  # Also print to console
         else:
-            if id == 0:
+            if pid == 0:
                 self.logger2.info(info)  # Log to FTMP2.log
                 print(info)  # Also print to console
-            elif id == 1:
+            elif pid == 1:
                 self.logger2.info(info)  # Log to FTMP2.log
-            elif id == 2:
+            elif pid == 2:
                 print(info)  # Only print to console

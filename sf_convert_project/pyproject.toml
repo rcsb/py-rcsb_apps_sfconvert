@@ -28,4 +28,7 @@ dynamic = ["version"]
 sf_convert = "sf_file:main"
 
 [tool.pytest.ini_options]
-pythonpath = "src"
+pythonpath = ["src", "src/tests/helpers"]
+norecursedirs = "src/tests/helpers"
+
+

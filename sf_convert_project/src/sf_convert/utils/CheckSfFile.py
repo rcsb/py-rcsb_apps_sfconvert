@@ -24,6 +24,22 @@ class CheckSfFile:
         self.__fout_path = fout_path
         self.__logger = logger
 
+        # The following use setattr or init later - but simplify for pylint - as we declare what we need
+        self.__hkl_min = self.__hkl_max = "unknown"
+        self.__sf_block = None
+        self.__status = None
+        self.__Io = self.__sIo = None
+        self.__nref = self.__dnref = None
+        self.__cell = self.__rcell = None
+        self.__refln_data = self.__diffrn_refln_data = None
+        self.__H = self.__K = self.__L = []
+        self.__F_plus = self.__sF_plus = self.__F_minus = self.__sF_minus = []
+        self.__I_plus = self.__sI_plus = self.__I_minus = self.__sI_minus = []
+        self.__F2o = self.__sF2o = self.__sFo = self.__Fo = self.__Fo_au = self.__sFo_au = []
+        self.__phase_c = self.__phase_o = self.__fom = []
+        self.__dH = self.__dK = self.__dL = []
+        self.__unmerge_i = self.__unmerge_si = []
+
     def initialize_data(self):
         """
         Initializes the data for the SF file.
@@ -51,7 +67,7 @@ class CheckSfFile:
         """
         self.__refln_data = self.__sf_block.getObj("refln")
         if self.__refln_data is not None:
-            self.__rcell, self.__cell = self.calc_cell_and_recip()
+            self.__rcell, self.__cell = self.__calc_cell_and_recip()
 
     def initialize_diffrn_refln_data(self):
         """
@@ -251,7 +267,7 @@ class CheckSfFile:
                     if self.__status:
                         self.cif_token_change("status_au", "status")
 
-    def calc_cell_and_recip(self):
+    def __calc_cell_and_recip(self):
         """
         Calculates the cell and reciprocal cell.
 
@@ -301,7 +317,7 @@ class CheckSfFile:
             self.__logger.pinfo("Warning: No cell data found in the mmCIF file.", self.__pinfo_value)
             # XXXX What to return in this case!
 
-    def get_resolution(self, h, k, l, rcell):  # noqa: E741
+    def __get_resolution(self, h, k, l, rcell):  # noqa: E741
         """
         Calculates the resolution for a given h, k, l and rcell.
 
@@ -329,36 +345,36 @@ class CheckSfFile:
 
         return resol
 
-    def calc_resolution(self):
-        """
-        Calculates the resolution for the SF file.
+    # def calc_resolution(self):
+    #     """
+    #     Calculates the resolution for the SF file.
 
-        Args:
-            None
+    #     Args:
+    #         None
 
-        Returns:
-            None
-        """
-        refln_data = self._sf_block.getObj("refln")
-        if refln_data is not None:
-            rcell, cell = self.calc_cell_and_recip()
+    #     Returns:
+    #         None
+    #     """
+    #     refln_data = self.__sf_block.getObj("refln")
+    #     if refln_data is not None:
+    #         rcell, _cell = self.__calc_cell_and_recip()
 
-            best_resolution = 0.0
-            n = refln_data.getRowCount()
+    #         best_resolution = 0.0
+    #         n = refln_data.getRowCount()
 
-            for i in range(n):
-                h = int(refln_data.getValue("index_h", i))
-                k = int(refln_data.getValue("index_k", i))
-                l = int(refln_data.getValue("index_l", i))  # noqa: E741
+    #         for i in range(n):
+    #             h = int(refln_data.getValue("index_h", i))
+    #             k = int(refln_data.getValue("index_k", i))
+    #             l = int(refln_data.getValue("index_l", i))  # noqa: E741
 
-                resolution = self.get_resolution(h, k, l, rcell)
+    #             resolution = self.__get_resolution(h, k, l, rcell)
 
-                if resolution > best_resolution:   # This might be backwards -- check XXX
-                    best_resolution = resolution
+    #             if resolution > best_resolution:   # This might be backwards -- check XXX
+    #                 best_resolution = resolution
 
-            self.__logger.pinfo("Best Resolution: {:.2f} Angstroms".format(best_resolution), self.__pinfo_value)
-        else:
-            self.__logger.pinfo("Error: No refln data found in the mmCIF file.", self.__pinfo_value)
+    #         self.__logger.pinfo("Best Resolution: {:.2f} Angstroms".format(best_resolution), self.__pinfo_value)
+    #     else:
+    #         self.__logger.pinfo("Error: No refln data found in the mmCIF file.", self.__pinfo_value)
 
     def cif_token_change(self, old_token, new_token):
         """
@@ -431,7 +447,7 @@ class CheckSfFile:
 
         refln_data = self.__sf_block.getObj("refln")
         if refln_data is not None:
-            rcell, cell = self.calc_cell_and_recip()
+            _rcell, cell = self.__calc_cell_and_recip()
 
         if (cell[0] > 0.01 and cell[1] > 0.01):
             key = 1
@@ -504,7 +520,7 @@ class CheckSfFile:
                 f = float(self.__I_plus[i])
 
             if key > 0:
-                resolution = self.get_resolution(ah, ak, al, self.__rcell)
+                resolution = self.__get_resolution(ah, ak, al, self.__rcell)
 
                 if min_R > resolution:
                     min_R = resolution
@@ -854,7 +870,7 @@ class CheckSfFile:
         RESCUT, SIGCUT = 0.0, 0.0
         n = self.__nref
 
-        rcell, CELL = self.calc_cell_and_recip()
+        rcell, CELL = self.__calc_cell_and_recip()
 
         # XXX This looks strange... Different cutoffs here than below?
         if CELL[0] > 2 and CELL[4] > 2:
@@ -955,7 +971,7 @@ class CheckSfFile:
             ah = int(self.__H[i])
             ak = int(self.__K[i])
             al = int(self.__L[i])
-            resol = self.get_resolution(ah, ak, al, rcell)
+            resol = self.__get_resolution(ah, ak, al, rcell)
 
             i_sigi = 0.0
             if self.__Io and self.__sIo and float(self.__sIo[i]) > 0:
