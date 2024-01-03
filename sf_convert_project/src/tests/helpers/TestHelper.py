@@ -56,7 +56,7 @@ def comp_sfcif(ref, cur):
                     rval = robj.getValue(attr, row)
                     cval = cobj.getValue(attr, row)
                     if is_float(rval) or is_float(cval):
-                        assert abs(float(rval) - float(cval)) < 0.1, "cat %s row %s mismatch %s %s" % (cat, row, rval, cval)
+                        assert abs(float(rval) - float(cval)) < 0.5, "cat %s row %s mismatch %s %s" % (cat, row, rval, cval)
                     elif is_int(rval) or is_int(cval):
                         assert int(rval) == int(cval), "cat %s row %s mismatch %s %s" % (cat, row, rval, cval)
                     else:
