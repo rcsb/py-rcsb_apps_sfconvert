@@ -1,6 +1,7 @@
 from sf_convert.sffile.sf_file import StructureFactorFile
 from sf_convert.utils.version import get_version
 
+
 class TestVersion:
     @staticmethod
     def test_get_version():
@@ -11,7 +12,6 @@ class TestVersion:
             None
         """
         assert get_version() != ""
-
 
     @staticmethod
     def test_instantiate():

@@ -1,7 +1,6 @@
 import os
 import pytest
 
-pythonpath = ["helpers"]
 
 @pytest.fixture(name="data_dir")
 def fixture_data_dir():
@@ -124,4 +123,3 @@ def cif_mmcif_5pny_detail_data_path(data_dir):
         str: The path to the CIF data file.
     """
     yield os.path.join(data_dir, "cif_files", "5pny-sf-detail.cif.mmcif")
-
