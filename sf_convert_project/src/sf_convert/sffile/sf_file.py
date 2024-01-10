@@ -384,3 +384,12 @@ class StructureFactorFile:
             expected_name = self.generate_expected_block_name(pdbid, index)  # Assuming pdbid is the 4 characters after "r"
             if block.getName() != expected_name:
                 block.setName(expected_name)
+
+    def add_block(self, block):
+        """
+        Adds a new data block to existing file
+
+        Args:
+            pdbid (DataContainer): Data container to add
+        """
+        self.__data_blocks.append(block)

@@ -1,7 +1,7 @@
 from collections import defaultdict
 from mmcif.api.DataCategory import DataCategory
 from mmcif.api.PdbxContainers import DataContainer
-from mmcif.io.IoAdapterCore import IoAdapterCore
+from sf_convert.sffile.sf_file import StructureFactorFile as SFFile
 
 
 class CNSToCifConverter:
@@ -16,7 +16,11 @@ class CNSToCifConverter:
     """
 
     def __init__(self, file_path, pdb_id, logger, FREERV=None):
-        self.__FREERV = FREERV
+
+        if FREERV:
+            self.__FREERV = int(FREERV)
+        else:
+            self.__FREERV = FREERV
         self.__pdb_id = pdb_id
         self.__file_path = file_path
         self.__h_values = []
@@ -76,7 +80,7 @@ class CNSToCifConverter:
                 elif 'FREE ' in line:
                     ffg = int(line.split('FREE ')[1].split()[0])
                 if self.__FREERV:
-                    self.__values['status'].append('f' if ffg == self.__FREERV else 'o')
+                    self.__values['status'].append('f' if ffg == int(self.__FREERV) else 'o')
                 else:
                     self.__values['status'].append('f' if ffg == 1 else 'o')
 
@@ -126,7 +130,8 @@ class CNSToCifConverter:
         Rename the keys in the values dictionary.
         """
         self.__values = self.__rename_keys_complete()
-        self.__values['status'] = ['o' if v == 0 else 'f' for v in self.__values['status']]
+        # Not needed here - as conversion already happened
+        # self.__values['status'] = ['o' if v == 0 else 'f' for v in self.__values['status']]
 
     def create_data_categories(self):
         """
@@ -169,11 +174,28 @@ class CNSToCifConverter:
         fCat.appendAttribute('index_h')
         fCat.appendAttribute('index_k')
         fCat.appendAttribute('index_l')
+
+        # Preference order.... status F_meas_au F_meas_sigma_au, pdbx_HL_A, ....
+        pref = ["status", "F_meas_au", "F_meas_sigma_au", "intensity_meas", "intensity_sigma", "phase_meas", "phase_calc",
+                "fom", "F_calc_au", "pdbx_HLA", "pdbx_HLB", "pdbx_HLC", "pdbx_HLD"]
+        cur_key = {}
         for key in self.__values.keys():
+            cur_key[key] = 1
+
+        ordered_keys = []
+        for p in pref:
+            if p in cur_key:
+                ordered_keys.append(p)
+                del cur_key[p]
+
+        for key in cur_key.keys():
+            ordered_keys.append(key)
+
+        for key in ordered_keys:
             fCat.appendAttribute(key)
         for i in range(len(self.__h_values)):
             values_to_append = (1, 1, 1, self.__h_values[i], self.__k_values[i], self.__l_values[i])
-            for key in self.__values.keys():
+            for key in ordered_keys:
                 values_to_append += (self.__values[key][i],)
             fCat.append(values_to_append)
         self.__curContainer.append(fCat)
@@ -185,5 +207,7 @@ class CNSToCifConverter:
         Args:
             output_file_path (str): The path to write the CIF file.
         """
-        myIo = IoAdapterCore()
-        myIo.writeFile(output_file_path, [self.__curContainer])
+        sffile = SFFile()
+        sffile.add_block(self.__curContainer)
+        sffile.correct_block_names(self.__pdb_id)
+        sffile.write_file(output_file_path)

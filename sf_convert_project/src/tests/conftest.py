@@ -56,6 +56,20 @@ def cns_5pny_data_path(data_dir):
 
 
 @pytest.fixture
+def cns_cif_5pny_data_path(data_dir):
+    """
+    Fixture for the path to the CNS to cif conversion data file.
+
+    Args:
+        data_dir (str): The path to the data directory.
+
+    Returns:
+        str: The path to the CNS data file.
+    """
+    yield os.path.join(data_dir, "cif_files", "5pny-sf-CNS.mmcif")
+
+
+@pytest.fixture
 def mtz_Ras_NAD_data_path(data_dir):
     """
     Fixture for the path to the MTZ data file.
@@ -123,3 +137,17 @@ def cif_mmcif_5pny_detail_data_path(data_dir):
         str: The path to the CIF data file.
     """
     yield os.path.join(data_dir, "cif_files", "5pny-sf-detail.cif.mmcif")
+
+
+@pytest.fixture
+def cns_to_mmcif_data_path(data_dir):
+    """
+    Fixture for the path to the CIF data file.
+
+    Args:
+        data_dir (str): The path to the data directory.
+
+    Returns:
+        str: The path to the CIF data file.
+    """
+    yield os.path.join(data_dir, "cif_files", "cns-sf6.cv.mmcif")

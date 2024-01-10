@@ -1,10 +1,11 @@
 from sf_convert.import_dir.cns2cif import CNSToCifConverter
 from sf_convert.utils.pinfo_file import PInfoLogger
+from TestHelper import comp_sfcif
 import os
 
 
 class TestCnsToCifConversion:
-    def test_cns2cif(self, tmp_path, cns_5pny_data_path, cif_5pny_data_path):
+    def test_cns2cif(self, tmp_path, cns_5pny_data_path, cns_cif_5pny_data_path):
         """
         Tests the conversion of a CNS file to CIF format.
 
@@ -18,22 +19,17 @@ class TestCnsToCifConversion:
         """
         print("Starting the test...")
 
-        output_path = os.path.join(tmp_path, "output.mmcif")
+        output_path = os.path.join(tmp_path, "output_cns2cif.mmcif")
 
         print("Loading and converting the file...")
         logger = PInfoLogger('path_to_log1.log', 'path_to_log2.log')
-        processor = CNSToCifConverter(cns_5pny_data_path, "5pny", logger, 1)  # pdb.FREERV: FreeRValue
+        processor = CNSToCifConverter(cns_5pny_data_path, "xxxx", logger, 1)  # pdb.FREERV: FreeRValue
         processor.process_file()
         processor.rename_keys()
         processor.create_data_categories()
         processor.write_to_file(output_path)
 
         print("Comparing the outputs...")
-        with open(cif_5pny_data_path, 'r') as f:
-            expected_output = f.read()
-        with open(output_path, 'r') as f:
-            actual_output = f.read()
-
-        assert actual_output == expected_output
+        comp_sfcif(cns_cif_5pny_data_path, output_path)
 
         print("Test completed.")
