@@ -15,6 +15,7 @@ from sf_convert.utils.pinfo_file import PInfoLogger
 from sf_convert.utils.get_sf_info_file import get_sf_info
 from sf_convert.utils.CheckSfFile import CheckSfFile
 from sf_convert.utils.version import get_version
+from sf_convert.utils.TextUtils import is_cif
 
 VALID_FORMATS = ["CNS", "MTZ", "mmCIF", "CIF"]
 
@@ -62,39 +63,39 @@ class CustomHelpParser(argparse.ArgumentParser):
 
         mmCIF token                    type     data label
 
-    _refln.F_meas_au         	      F           FP
-    _refln.F_meas_sigma_au               Q           SIGFP
-    _refln.intensity_meas    	      J           I
-    _refln.intensity_sigma   	      Q           SIGI
+    _refln.F_meas_au                  F           FP
+    _refln.F_meas_sigma_au            Q           SIGFP
+    _refln.intensity_meas             J           I
+    _refln.intensity_sigma            Q           SIGI
 
-    _refln.F_calc_au            	      F           FC
-    _refln.phase_calc        	      P           PHIC
-    _refln.phase_meas        	      P           PHIB
-    _refln.fom               	      W           FOM
+    _refln.F_calc_au                  F           FC
+    _refln.phase_calc                 P           PHIC
+    _refln.phase_meas                 P           PHIB
+    _refln.fom                        W           FOM
 
-    _refln.pdbx_FWT                       F           FWT
-    _refln.pdbx_PHWT                      P           PHWT
-    _refln.pdbx_DELFWT                    F           DELFWT
-    _refln.pdbx_DELPHWT                   P           DELPHWT
+    _refln.pdbx_FWT                   F           FWT
+    _refln.pdbx_PHWT                  P           PHWT
+    _refln.pdbx_DELFWT                F           DELFWT
+    _refln.pdbx_DELPHWT               P           DELPHWT
 
-    _refln.pdbx_HL_A_iso                 A       	  HLA
-    _refln.pdbx_HL_B_iso                 A       	  HLB
-    _refln.pdbx_HL_C_iso                 A       	  HLC
-    _refln.pdbx_HL_D_iso                 A       	  HLD
+    _refln.pdbx_HL_A_iso              A           HLA
+    _refln.pdbx_HL_B_iso              A           HLB
+    _refln.pdbx_HL_C_iso              A           HLC
+    _refln.pdbx_HL_D_iso              A           HLD
 
-    _refln.pdbx_F_plus         	      G           F(+)
-    _refln.pdbx_F_plus_sigma   	      L           SIGF(+)
-    _refln.pdbx_F_minus        	      G           F(-)
-    _refln.pdbx_F_minus_sigma  	      L           SIGF(-)
-    _refln.pdbx_anom_difference          D           DP
-    _refln.pdbx_anom_difference_sigma    Q           SIGDP
-    _refln.pdbx_I_plus                   K           I(+)
-    _refln.pdbx_I_plus_sigma             M           SIGI(+)
-    _refln.pdbx_I_minus                  K           I(-)
-    _refln.pdbx_I_minus_sigma            M           SIGI(-)
+    _refln.pdbx_F_plus                G           F(+)
+    _refln.pdbx_F_plus_sigma          L           SIGF(+)
+    _refln.pdbx_F_minus               G           F(-)
+    _refln.pdbx_F_minus_sigma         L           SIGF(-)
+    _refln.pdbx_anom_difference       D           DP
+    _refln.pdbx_anom_difference_sigma Q           SIGDP
+    _refln.pdbx_I_plus                K           I(+)
+    _refln.pdbx_I_plus_sigma          M           SIGI(+)
+    _refln.pdbx_I_minus               K           I(-)
+    _refln.pdbx_I_minus_sigma         M           SIGI(-)
 
-    _refln.status            	      I           FREE
-    _refln.pdbx_r_free_flag               I           FLAG
+    _refln.status                     I           FREE
+    _refln.pdbx_r_free_flag           I           FLAG
     ==============================================================================
 
     Example_1: convert any supported format to any output format:
@@ -108,24 +109,24 @@ class CustomHelpParser(argparse.ArgumentParser):
 
     Example_4: convert mtz to mmcif (use labels in mtz, one data set):
             (The labels on the left must be one of mmcif tokens)
-        sf_convert -o mmcif -sf mtzfile -label FP=?, SIGFP=?, FREE=?, \
+        sf_convert -o mmcif -sf mtzfile -label FP=?, SIGFP=?, FREE=?, \\
                 I=?, SIGI=?  -freer 1 -out output_file
 
     Example_5: convert MTZ to mmcif (one data set with anomalous)
             (If label has '(' or ')', the pair must be quoted by ' ')
-        sf_convert  -o mmcif -sf mtz_file -freer 1 -label FP=? ,SIGFP=? , \
+        sf_convert  -o mmcif -sf mtz_file -freer 1 -label FP=? ,SIGFP=? , \\
                 FREE=? , 'F(+)=?' ,'SIGF(+)=?','F(-)=?' ,'SIGF(-)=?'
 
     Example_6: convert MTZ to mmcif (two or more data set using labels)
             (Each data set must be separated by ':' !)
-        sf_convert  -o mmcif -sf mtz_file -freer 1 -label \
-                    FP=? ,SIGFP=? , FREE=? , I=?, SIGI=?, \
-                    'F(+)=?' ,'SIGF(+)=?','F(-)=?' ,'SIGF(-)=?', \
-                    'I(+)=?' ,'SIGI(+)=?','I(-)=?' ,'SIGI(-)=?'  \
-                    :  \
-                    FP=? ,SIGFP=? , FREE=? , I=?, SIGI=?, \
-                    'F(+)=?' ,'SIGF(+)=?','F(-)=?' ,'SIGF(-)=?',  \
-                    'I(+)=?' ,'SIGI(+)=?','I(-)=?' ,'SIGI(-)=?' \
+        sf_convert  -o mmcif -sf mtz_file -freer 1 -label \\
+                    FP=? ,SIGFP=? , FREE=? , I=?, SIGI=?, \\
+                    'F(+)=?' ,'SIGF(+)=?','F(-)=?' ,'SIGF(-)=?', \\
+                    'I(+)=?' ,'SIGI(+)=?','I(-)=?' ,'SIGI(-)=?'  \\
+                    :  \\
+                    FP=? ,SIGFP=? , FREE=? , I=?, SIGI=?, \\
+                    'F(+)=?' ,'SIGF(+)=?','F(-)=?' ,'SIGF(-)=?',  \\
+                    'I(+)=?' ,'SIGI(+)=?','I(-)=?' ,'SIGI(-)=?' \\
                     -out output_file
 
     Example_7: Multiple file auto-conversion. (files separated by ',' or space)
@@ -201,7 +202,7 @@ def get_input_format(args):
     return guess_sf_format(args.sf)
 
 
-def handle_pdb_argument(args, pdb):
+def handle_pdb_argument(args, pdb, logger):
     """
     Handles operations related to the -pdb argument.
 
@@ -217,14 +218,12 @@ def handle_pdb_argument(args, pdb):
         FileNotFoundError: If the PDB file does not exist.
     """
     validate_file_exists(args.pdb)
-    if args.pdb.endswith(".cif"):
+    if is_cif(args.pdb, logger):
         sffile = StructureFactorFile()
-        sffile.readFile(str(Path(args.pdb)))
+        sffile.read_file(str(Path(args.pdb)))
         return pdb.extract_attributes_from_cif(sffile)
-    elif args.pdb.endswith(".pdb"):
-        return pdb.extract_attributes_from_pdb(args.pdb)
     else:
-        raise ValueError("Invalid file format for -pdb argument. Please use either a PDBx/mmCIF Format (.cif) or PDB Format (.pdb) file.")
+        return pdb.extract_attributes_from_pdb(args.pdb)
 
 
 def handle_label_argument(args):
@@ -530,7 +529,7 @@ def main():
         input_format = get_input_format(args)
 
         if args.pdb:
-            handle_pdb_argument(args, pdb)
+            handle_pdb_argument(args, pdb, logger)
 
         if args.label:
             handle_label_argument(args)
