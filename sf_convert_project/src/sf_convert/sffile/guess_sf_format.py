@@ -1,4 +1,4 @@
-def guess_sf_format(inpfile):
+def guess_sf_format(inpfile: str) -> str:
     """
     Guesses the format of a structure factor file based on its content.
 

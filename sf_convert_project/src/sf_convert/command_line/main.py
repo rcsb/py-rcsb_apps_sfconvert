@@ -17,7 +17,7 @@ from sf_convert.utils.CheckSfFile import CheckSfFile
 from sf_convert.utils.version import get_version
 from sf_convert.utils.TextUtils import is_cif
 
-VALID_FORMATS = ["CNS", "MTZ", "mmCIF", "CIF"]
+VALID_FORMATS = ["CNS", "MTZ", "MMCIF", "CIF"]
 
 
 class CustomHelpParser(argparse.ArgumentParser):
@@ -153,7 +153,7 @@ class CustomHelpParser(argparse.ArgumentParser):
         sys.exit(2)
 
 
-def validate_file_exists(filepath):
+def validate_file_exists(filepath: str):
     """
     Validates if a given file exists.
 
@@ -167,7 +167,7 @@ def validate_file_exists(filepath):
         raise FileNotFoundError(f"The file {filepath} does not exist.")
 
 
-def validate_format(file_format):
+def validate_format(file_format: str):
     """
     Validates if the given format is one of the VALID_FORMATS.
 
@@ -177,11 +177,11 @@ def validate_format(file_format):
     Raises:
         ValueError: If the format is not valid.
     """
-    if file_format not in VALID_FORMATS:
+    if file_format.upper() not in VALID_FORMATS:
         raise ValueError(f"Invalid format: {file_format}. Please use one of the following formats: {VALID_FORMATS}")
 
 
-def get_input_format(args):
+def get_input_format(args: argparse.Namespace) -> str:
     """
     Determines the input format either from the provided argument or by guessing.
 
@@ -219,9 +219,7 @@ def handle_pdb_argument(args, pdb, logger):
     """
     validate_file_exists(args.pdb)
     if is_cif(args.pdb, logger):
-        sffile = StructureFactorFile()
-        sffile.read_file(str(Path(args.pdb)))
-        return pdb.extract_attributes_from_cif(sffile)
+        return pdb.extract_attributes_from_cif(args.pdb)
     else:
         return pdb.extract_attributes_from_pdb(args.pdb)
 
@@ -386,7 +384,7 @@ def convert_from_mmCIF_to_CNS(args, pdb):
     CNSexport.convert()
 
 
-def convert_from_mmCIF_to_mmCIF(args):
+def convert_from_mmCIF_to_mmCIF(args, logger):
     """
     Converts from mmCIF format to mmCIF format.
 
@@ -399,6 +397,8 @@ def convert_from_mmCIF_to_mmCIF(args):
     if args.multidatablock:
         validate_block_name(args.multidatablock)
         sffile.correct_block_names(args.multidatablock)
+
+    # XXX We need to handle data cleanup, etc...
 
     sffile.write_file(args.out + ".mmcif")
 
@@ -496,18 +496,24 @@ def convert_files(args, input_format, pdb, logger):
         ValueError: If the conversion from input to output format is not supported.
     """
     output_format = args.o
+    input_format = input_format.upper()
 
-    if input_format == "CNS" and output_format == "mmCIF":
+    if output_format is None:
+        raise ValueError(f"Conversion from {input_format} to {output_format} is not supported.")
+
+    output_format = output_format.upper()
+
+    if input_format == "CNS" and output_format == "MMIF":
         convert_from_CNS_to_mmCIF(args, pdb, logger)
-    elif input_format == "MTZ" and output_format == "mmCIF":
+    elif input_format == "MTZ" and output_format == "MMCIF":
         convert_from_MTZ_to_mmCIF(args, pdb, logger)
-    elif input_format == "mmCIF" and output_format == "MTZ":
+    elif input_format == "MMCIF" and output_format == "MTZ":
         convert_from_mmCIF_to_MTZ(args)
-    elif input_format == "mmCIF" and output_format == "CNS":
+    elif input_format == "MMCIF" and output_format == "CNS":
         convert_from_mmCIF_to_CNS(args, pdb)
     # elif input_format == "mmCIF" and output_format == "mmCIF":
-    elif (input_format in ["mmCIF", "CIF"]) and output_format == "mmCIF":
-        convert_from_mmCIF_to_mmCIF(args)
+    elif (input_format in ["MMCIF", "CIF"]) and output_format == "MMCIF":
+        convert_from_mmCIF_to_mmCIF(args, logger)
     elif input_format == "CNS" and output_format == "MTZ":
         convert_from_CNS_to_MTZ(args, pdb, logger)
     elif input_format == "MTZ" and output_format == "CNS":
@@ -529,7 +535,8 @@ def main():
         input_format = get_input_format(args)
 
         if args.pdb:
-            handle_pdb_argument(args, pdb, logger)
+            pdb_data = handle_pdb_argument(args, pdb, logger)
+            print("XXXX", pdb_data)
 
         if args.label:
             handle_label_argument(args)
@@ -553,7 +560,7 @@ def main():
         sys.exit(2)
 
 
-def parse_arguments():
+def parse_arguments() -> argparse.Namespace:
     """
     Parses and returns the command line arguments.
 

@@ -1,48 +1,38 @@
 import re
 
+from mmcif.io.IoAdapterCore import IoAdapterCore
+
 
 class ProteinDataBank:
     def __init__(self):
         """
         Initializes a new instance of the ProteinDataBank class.
         """
-        self.pdb_id = 'xxxx'
-        self.RESOH = 0.1
-        self.RESOL = 200
-        self.FREERV = None
-        self.WAVE = None
-        self.NFREE = None
-        self.CELL = None
-        self.SYMM = None
-
-    def _update_attributes(self, attributes):
-        """
-        Updates the attributes of the ProteinDataBank object with the provided attributes.
-
-        Args:
-            attributes (dict): A dictionary containing the attribute names and their values.
-        """
-        for key, value in attributes.items():
-            if value is not None:
-                self.__dict__[key] = value
+        self.__attributes = {}
 
     def extract_attributes_from_cif(self, sffile):
         """
         Extracts attributes from a CIF file and updates the ProteinDataBank object.
 
         Args:
-            sffile (StructureFactorFile): The StructureFactorFile object containing the CIF data.
+            sffile (str): Path to PDBx/mmCIF file
 
         Returns:
             dict: A dictionary containing the extracted attributes.
         """
-        container = sffile.get_block_by_index(0)
+        io = IoAdapterCore()
+        cl = io.readFile(sffile)
+        if cl is None:
+            return {}
+        
+        container = cl[0]
         attributes = self._get_cif_attributes(container)
 
         # Group cell parameters together
         attributes['CELL'] = [attributes.pop(key) for key in ['CELL_a', 'CELL_b', 'CELL_c', 'CELL_alpha', 'CELL_beta', 'CELL_gamma'] if key in attributes]
 
-        self._update_attributes(attributes)
+        self.__attributes = attributes
+
         return attributes
 
     def _get_cif_attributes(self, container):
@@ -56,7 +46,7 @@ class ProteinDataBank:
             dict: A dictionary containing the extracted attributes.
         """
         cif_attributes = {
-            'entry': [('id', 'pdb_id')],
+            # 'entry': [('id', 'pdb_id')],
             'reflns': [('d_resolution_high', 'RESOH'), ('d_resolution_low', 'RESOL'), ('free_R_factor', 'FREERV')],
             'diffrn_radiation_wavelength': [('wavelength', 'WAVE')],
             'pdbx_refine': [('free_R_val_test_set_ct_no_cutoff', 'NFREE')],
@@ -79,6 +69,25 @@ class ProteinDataBank:
                 for attr, output_name in attrs:
                     attributes[output_name] = None
 
+
+        # Extract entry from database_2
+        pdb_id = None
+
+        cobj = container.getObj("database_2")
+        if cobj is not None:
+            for row in range(obj.getRowCount()):
+                dbid = cobj.getValue("database_id", row)
+                if dbid == "PDB":
+                    pdb_id = cobj.getValue("database_code", row)
+                    break  # Do not allow check in subsequent loops for NDB
+
+                # Fallback for NDB
+                if dbid == "NDB":
+                    pdb_id = cobj.getValue("database_code", row)
+                    # Do not break - if PDB comes after it will override
+
+        attributes["pdb_id"] = pdb_id
+
         return attributes
 
     def extract_attributes_from_pdb(self, filename):
@@ -92,7 +101,9 @@ class ProteinDataBank:
             dict: A dictionary containing the extracted attributes.
         """
         attributes = self._get_pdb_attributes(filename)
-        self._update_attributes(attributes)
+
+        self.__attributes = attributes
+
         return attributes
 
     def _get_pdb_attributes(self, filename):
