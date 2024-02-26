@@ -1,7 +1,7 @@
 from mmcif.api.DataCategory import DataCategory
 
 
-def reformat_sfhead(sf_file, logger, DETAIL=None):
+def reformat_sfhead(sf_file, pdb_id, logger, DETAIL=None):
     """
     Reformat the structure factor file by performing various operations.
 
@@ -152,23 +152,34 @@ def reformat_sfhead(sf_file, logger, DETAIL=None):
 
     changes_made |= rename_sfhead(sf_file, mapping_dicts, logger)
     changes_made |= remove_sfhead(sf_file, remove_list, logger)
-    changes_made |= remove_duplicate_reflections(sf_file)
+    changes_made |= remove_sfhead(sf_file, ["audit"], logger, 1)  # Remove audit from second and subsequent blocks 
+    changes_made != fix_entry_ids(sf_file, pdb_id)
+    changes_made |= add_audit_if_needed(sf_file, logger)
+    # changes_made |= remove_duplicate_reflections(sf_file)
 
     block_names = sf_file.get_all_block_names()
+
+    # If diffrn category present, add missing attributes
     for i in range(len(block_names)):
-        old_order = sf_file.get_category_names(block_names[i])
+        block_name = block_names[i]
+        old_order = sf_file.get_category_names(block_name)
         old_order_copy = old_order[:]
 
-        attributes_to_append = ["ambient_temp", "crystal_treatment"]
-        changes_made = append_attributes(sf_file, "diffrn", attributes_to_append, block_names[i])
+        _, block = sf_file.get_block_by_name(block_name)
+        cobj = block.getObj("diffrn")
+        if cobj:
+            attributes_to_append = ["ambient_temp", "crystal_treatment"]
+            changes_made = append_attributes(sf_file, "diffrn", attributes_to_append, block_name)
 
-        if DETAIL:
-            changes_made = modify_attribute_value(sf_file, "diffrn", "details", DETAIL, block_names[i])
-            changes_made = modify_attribute_value(sf_file, "diffrn", "crystal_id", 1, block_names[i])
+            if DETAIL:
+                changes_made = modify_attribute_value(sf_file, "diffrn", "details", DETAIL, block_name)
+                changes_made = modify_attribute_value(sf_file, "diffrn", "crystal_id", 1, block_name)
 
-        sf_file.reorder_category_attributes("diffrn", ["id", "crystal_id", "ambient_temp", "crystal_treatment", "details"], block_names[i])
-        sf_file.reorder_categories_in_block(old_order_copy, block_names[i])
+            sf_file.reorder_category_attributes("diffrn", ["id", "crystal_id", "ambient_temp", "crystal_treatment", "details"], block_name)
+            sf_file.reorder_categories_in_block(old_order_copy, block_name)
 
+    # Reorder to ensure we have what we need.
+    changes_made |= reorder_sf_file(sf_file)
     return changes_made
 
 
@@ -203,7 +214,7 @@ def rename_sfhead(sf_file, mapping_dicts, logger):
     return changes_made
 
 
-def remove_sfhead(sf_file, remove_list, logger):
+def remove_sfhead(sf_file, remove_list, logger, start=0):
     """
     Remove categories from the structure factor file based on the provided remove list.
 
@@ -216,32 +227,31 @@ def remove_sfhead(sf_file, remove_list, logger):
         bool: True if any changes were made, False otherwise.
     """
     changes_made = False
-    for item in remove_list:
-        for block_index in range(sf_file.get_number_of_blocks()):
+    for catname in remove_list:
+        for block_index in range(start, sf_file.get_number_of_blocks()):
             block = sf_file.get_block_by_index(block_index)
-            removed_flag = sf_file.remove_category_by_name(item, block.getName())
+            removed_flag = sf_file.remove_category_by_name(catname, block.getName())
             if removed_flag:
                 changes_made = True
-                logger.pinfo(f"Removing {item} category from block {block.getName()}", 0)
+                logger.pinfo(f"Removing {catname} category from block {block.getName()}", 0)
     return changes_made
 
+# def remove_duplicate_reflections(sf_file):
+#     """
+#     Remove duplicate reflections from the structure factor file.
 
-def remove_duplicate_reflections(sf_file):
-    """
-    Remove duplicate reflections from the structure factor file.
+#     Args:
+#         sf_file (StructureFactorFile): The structure factor file object.
 
-    Args:
-        sf_file (StructureFactorFile): The structure factor file object.
-
-    Returns:
-        bool: True if any changes were made, False otherwise.
-    """
-    changes_made = False
-    total_blocks = sf_file.get_number_of_blocks()
-    for block_index in range(total_blocks):
-        block = sf_file.get_block_by_index(block_index)
-        changes_made |= sf_file.remove_duplicates_in_category('refln', block.getName())
-    return changes_made
+#     Returns:
+#         bool: True if any changes were made, False otherwise.
+#     """
+#     changes_made = False
+#     total_blocks = sf_file.get_number_of_blocks()
+#     for block_index in range(total_blocks):
+#         block = sf_file.get_block_by_index(block_index)
+#         changes_made |= sf_file.remove_duplicates_in_category('refln', block.getName())
+#     return changes_made
 
 
 def append_attributes(sf_file, category_name, attributes, block_name=None):
@@ -322,3 +332,119 @@ def modify_attribute_value(sf_file, category_name, attribute_name, new_value, bl
         return num_replaced > 0
 
     return False
+
+def fix_entry_ids(sf_file, pdbid):
+    """Corrects entry ids where needed:
+
+        Args:
+        sf_file (StructureFactorFile): The structure factor file object.
+        pdbid (str): The pdb_id
+        logger: The logger object for logging messages.
+
+    Returns:
+        bool: True if the value was modified, False otherwise.
+    """
+
+    updates = [["entry", "id"],
+               ["cell", "entry_id"],
+               ["symmetry", "entry_id"],
+               ["reflns", "entry_id"],               
+               ]
+               
+    
+    changes = False
+    for idx in range(sf_file.get_number_of_blocks()):
+        blk = sf_file.get_block_by_index(idx)
+
+        for upd in updates:
+            cat = upd[0]
+            attr = upd[1]
+            cobj = blk.getObj(cat)
+            if not cobj:
+                continue
+            if not cobj.hasAttribute(attr):
+                continue
+
+            # Should only be a single row for these categories - but let's be aggressive
+            for row in range(cobj.getRowCount()):
+                val = cobj.getValue(attr, row)
+                if val != pdbid:
+                    cobj.setValue(pdbid, attr, row)
+                    changes = True
+
+    return changes
+
+def add_audit_if_needed(sf_file, logger):
+    """Add audit record if missing from first block
+
+        Args:
+        sf_file (StructureFactorFile): The structure factor file object.
+        logger: The logger object for logging messages.
+
+    Returns:
+        bool: True if the value was modified, False otherwise.
+    """    
+
+    blk = sf_file.get_block_by_index(0)
+    cobj = blk.getObj("audit")
+    if cobj:
+        return False
+
+    aCat = DataCategory("audit")
+    aCat.appendAttribute("revision_id")
+    aCat.appendAttribute("creation_date")
+    aCat.appendAttribute("update_record")
+    aCat.append(["1_0", "?", "Initial release"])
+
+    blk.append(aCat)
+    
+    logger.pinfo(f'Note: File has no _audit. (auto added)', 0)
+    return True
+
+def reorder_sf_file(sf_file):
+    """Reorders sf_file with a few key items on top in specific order
+
+    Args:
+        sf_file (StructureFactorFile): The structure factor file object.
+
+    """
+
+    earlyorder = ["audit", "cell", "diffrn", "diffrn_radiation_wavelength", "entry", "exptl_crystal", "reflns_scale", "symmetry"]
+    lateorder = ["refln", "diffrn_refln"]
+
+    allbnames = sf_file.get_all_block_names()
+
+    modified = False
+    for bname in allbnames:
+        catnames = sf_file.get_category_names(bname)
+
+        ordered = []
+        used = {}
+
+        # First ones
+        for cat in earlyorder:
+            if cat in catnames:
+                ordered.append(cat)
+                used[cat] = True
+
+        # Get middle
+        for cat in catnames:
+            if cat in lateorder:
+                continue
+            if cat in used:
+                continue
+            ordered.append(cat)
+            used[cat] = True
+
+        # Late
+        for cat in lateorder:
+            if cat in catnames and cat not in used:
+                ordered.append(cat)
+                used[cat] = True
+
+        if catnames != ordered:
+            # Reorder
+            sf_file.reorder_categories_in_block(ordered, bname)
+            modified = True
+
+    return modified

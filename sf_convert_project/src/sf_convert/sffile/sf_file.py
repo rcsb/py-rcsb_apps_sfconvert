@@ -393,3 +393,19 @@ class StructureFactorFile:
             pdbid (DataContainer): Data container to add
         """
         self.__data_blocks.append(block)
+
+    def extract_pdbid_from_block(self):
+        """
+        Retrieves pdb id from first block name
+
+        Returns PDB id or "xxxx"
+        """
+        b0name = self.__data_blocks[0].getName()
+
+        if len(b0name) > 1:
+            pdbid = b0name[1:5]
+        else:
+            pdbid = "xxxx"
+
+        return pdbid
+        

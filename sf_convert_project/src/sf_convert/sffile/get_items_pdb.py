@@ -182,20 +182,20 @@ class ProteinDataBank:
         cell_values = line[6:].split()[:6]
         return [float(val) for val in cell_values]
 
-    def update_FREERV(self, new_freerv):
-        """
-        Updates the FREERV attribute with a new value.
+    # def update_FREERV(self, new_freerv):
+    #     """
+    #     Updates the FREERV attribute with a new value.
 
-        Args:
-            new_freerv: The new value for FREERV.
-        """
-        self.FREERV = new_freerv
+    #     Args:
+    #         new_freerv: The new value for FREERV.
+    #     """
+    #     self.FREERV = new_freerv
 
-    def update_WAVE(self, new_wave):
-        """
-        Updates the WAVE attribute with a new value.
+    # def update_WAVE(self, new_wave):
+    #     """
+    #     Updates the WAVE attribute with a new value.
 
-        Args:
-            new_wave: The new value for WAVE.
-        """
-        self.WAVE = new_wave
+    #     Args:
+    #         new_wave: The new value for WAVE.
+    #     """
+    #     self.WAVE = new_wave

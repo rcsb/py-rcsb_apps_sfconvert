@@ -10,7 +10,7 @@ from sf_convert.import_dir.cns2cif import CNSToCifConverter
 from sf_convert.export_dir.cif2cns import CifToCNSConverter
 from sf_convert.export_dir.cif2mtz import CifToMTZConverter
 from sf_convert.sffile.guess_sf_format import guess_sf_format
-from sf_convert.sffile.reformat_sfhead import reformat_sfhead
+from sf_convert.sffile.reformat_sfhead import reformat_sfhead, reorder_sf_file
 from sf_convert.utils.pinfo_file import PInfoLogger
 from sf_convert.utils.get_sf_info_file import get_sf_info
 from sf_convert.utils.CheckSfFile import CheckSfFile
@@ -19,6 +19,48 @@ from sf_convert.utils.TextUtils import is_cif
 
 VALID_FORMATS = ["CNS", "MTZ", "MMCIF", "CIF"]
 
+
+class SFConvertMain:
+    """Main class to perform conversion steps."""
+    def __init__(self, logger):
+        self.__logger = logger
+
+    def mmCIF_to_mmCIF(self, pdict, logger):
+        """
+        Converts from mmCIF format to mmCIF format.
+
+        Args:
+        pdict: request dictionary
+        """
+        sfin =  pdict["sfin"]
+        output = pdict["output"]
+        pdb_data = pdict.get("pdb_data", {})
+
+
+        sffile = StructureFactorFile()
+
+    
+        sffile.read_file(sfin)
+
+        # PDB id comes from
+        #  sffile block name - unless coordinate file used - and then use that
+        pdbid = pdb_data.get("pdb_id", None)
+        if not pdbid:
+            pdbid = sffile.extract_pdbid_from_block()
+        
+
+        # Wavelnegth, cell, audit record....
+
+        sffile.correct_block_names(pdbid)
+
+        reformat_sf_header(sffile, pdbid, logger)
+        reorder_sf_file(sffile)
+        
+        # Reorder?
+        
+
+        sffile.write_file(output)
+        
 
 class CustomHelpParser(argparse.ArgumentParser):
     def print_help(self, file=None):  # pylint: disable=unused-argument
@@ -384,25 +426,6 @@ def convert_from_mmCIF_to_CNS(args, pdb):
     CNSexport.convert()
 
 
-def convert_from_mmCIF_to_mmCIF(args, logger):
-    """
-    Converts from mmCIF format to mmCIF format.
-
-    Args:
-        args: The command line arguments.
-    """
-    sffile = StructureFactorFile()
-    sffile.read_file(args.sf)
-
-    if args.multidatablock:
-        validate_block_name(args.multidatablock)
-        sffile.correct_block_names(args.multidatablock)
-
-    # XXX We need to handle data cleanup, etc...
-
-    sffile.write_file(args.out + ".mmcif")
-
-
 def convert_from_CNS_to_MTZ(args, pdb, logger):
     """
     Converts from CNS format to MTZ format through mmCIF.
@@ -453,19 +476,17 @@ def convert_from_MTZ_to_CNS(args, pdb, logger):
     os.remove(intermediate_mmcif)
 
 
-def reformat_sf_header(sffile, args, logger):
+def reformat_sf_header(sffile, pdbid, logger, detail=None):
     """
     Reformats the SF header.
 
     Args:
         sffile: The StructureFactorFile object.
-        args: The command line arguments.
+        pdbid: the pdb id to set
         logger: The PInfoLogger object.
+        detail: Any details
     """
-    if args.detail:
-        _ = reformat_sfhead(sffile, logger, args.detail)
-    else:
-        _ = reformat_sfhead(sffile, logger)
+    _ = reformat_sfhead(sffile, pdbid, logger, detail)
 
 
 def validate_block_name(block_name):
@@ -482,7 +503,7 @@ def validate_block_name(block_name):
         raise ValueError(f"Block name must be 4 characters long. {block_name} is not valid.")
 
 
-def convert_files(args, input_format, pdb, logger):
+def convert_files(args, input_format, pdb_data, logger):
     """
     Converts files based on input and output formats.
 
@@ -503,7 +524,27 @@ def convert_files(args, input_format, pdb, logger):
 
     output_format = output_format.upper()
 
-    if input_format == "CNS" and output_format == "MMIF":
+    # Setup dictionary of what we would like done
+    pdict = {}
+    pdict["sfin"] = args.sf
+
+    if args.out is not None:
+        output = args.out
+    else:
+        output = f"{args.sf}.{args.o}"
+
+    pdict["output"] = output
+    pdict["pdb_data"] = pdb_data
+
+    # Maybe come from SF if set originally?
+    #pdbid = "xxxx"
+    #validate_block_name(pdbid)
+
+    #pdict["pdbid"] = pdbid
+
+    sfc = SFConvertMain(logger)
+    
+    if input_format == "CNS" and output_format == "MMCIF":
         convert_from_CNS_to_mmCIF(args, pdb, logger)
     elif input_format == "MTZ" and output_format == "MMCIF":
         convert_from_MTZ_to_mmCIF(args, pdb, logger)
@@ -513,7 +554,7 @@ def convert_files(args, input_format, pdb, logger):
         convert_from_mmCIF_to_CNS(args, pdb)
     # elif input_format == "mmCIF" and output_format == "mmCIF":
     elif (input_format in ["MMCIF", "CIF"]) and output_format == "MMCIF":
-        convert_from_mmCIF_to_mmCIF(args, logger)
+        sfc.mmCIF_to_mmCIF(pdict, logger)
     elif input_format == "CNS" and output_format == "MTZ":
         convert_from_CNS_to_MTZ(args, pdb, logger)
     elif input_format == "MTZ" and output_format == "CNS":
@@ -536,8 +577,11 @@ def main():
 
         if args.pdb:
             pdb_data = handle_pdb_argument(args, pdb, logger)
-            print("XXXX", pdb_data)
+        else:
+            pdb_data = {}
 
+        # Wavelength, etc - not pdb_data - need to know where comes from
+            
         if args.label:
             handle_label_argument(args)
 
@@ -553,7 +597,7 @@ def main():
         if args.valid:
             handle_valid_argument(args, logger)
 
-        convert_files(args, input_format, pdb, logger)
+        convert_files(args, input_format, pdb_data, logger)
 
     except ValueError as e:
         print(f"Error: {e}")
@@ -572,7 +616,7 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument('-i', type=str, help='Input format')
     parser.add_argument('-o', type=str, help='Output format. Accepted values are mmCIF, CNS, MTZ')
     parser.add_argument('-sf', type=str, help='Source file')
-    parser.add_argument('-out', type=str, default='output', help='Output file name (if not given, default by program)')
+    parser.add_argument('-out', type=str, default=None, help='Output file name (if not given, default by program)')
     parser.add_argument('-label', type=str, help='Label name for CNS & MTZ')
     parser.add_argument('-pdb', type=str, help='PDB file (add items to the converted SF file if missing)')
     parser.add_argument('-freer', type=int, help='Free test number in the reflection (SF) file')

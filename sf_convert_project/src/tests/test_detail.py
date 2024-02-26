@@ -28,7 +28,7 @@ class TestMmcifConversion:
         sffile = StructureFactorFile()
         sffile.read_file(cif_5pny_data_path)
         logger = PInfoLogger('path_to_log1.log', 'path_to_log2.log')
-        _ = reformat_sfhead(sffile, logger, DETAIL)
+        _ = reformat_sfhead(sffile, "5pny", logger, DETAIL)
         sffile.write_file(output_path)
 
         # Read the expected output file and filter out comment lines
