@@ -10,12 +10,13 @@ from sf_convert.import_dir.cns2cif import CNSToCifConverter
 from sf_convert.export_dir.cif2cns import CifToCNSConverter
 from sf_convert.export_dir.cif2mtz import CifToMTZConverter
 from sf_convert.sffile.guess_sf_format import guess_sf_format
-from sf_convert.sffile.reformat_sfhead import reformat_sfhead, reorder_sf_file
+from sf_convert.sffile.reformat_sfhead import reformat_sfhead, reorder_sf_file, update_exptl_crystal
 from sf_convert.utils.pinfo_file import PInfoLogger
 from sf_convert.utils.get_sf_info_file import get_sf_info
 from sf_convert.utils.CheckSfFile import CheckSfFile
 from sf_convert.utils.version import get_version
 from sf_convert.utils.TextUtils import is_cif
+from mmcif.api.DataCategory import DataCategory
 
 VALID_FORMATS = ["CNS", "MTZ", "MMCIF", "CIF"]
 
@@ -35,7 +36,8 @@ class SFConvertMain:
         sfin =  pdict["sfin"]
         output = pdict["output"]
         pdb_data = pdict.get("pdb_data", {})
-
+        pdb_wave = pdb_data.get("WAVE", None)
+        wave_arg = pdict.get("wave_cmdline", None)        
 
         sffile = StructureFactorFile()
 
@@ -47,20 +49,89 @@ class SFConvertMain:
         pdbid = pdb_data.get("pdb_id", None)
         if not pdbid:
             pdbid = sffile.extract_pdbid_from_block()
+
+        if pdbid:
+            pdbid = pdbid.lower()
+
+            
+        self.__handle_wavelength(sffile, pdbid, pdb_wave, wave_arg, logger)
+        # Wavelnegth, cell, audit
+
+        # Cleanup exptl_crystal. Only leave id
         
-
-        # Wavelnegth, cell, audit record....
-
+        update_exptl_crystal(sffile, logger)
+        
         sffile.correct_block_names(pdbid)
-
         reformat_sf_header(sffile, pdbid, logger)
-        reorder_sf_file(sffile)
-        
-        # Reorder?
-        
 
-        sffile.write_file(output)
+        # reorder_sf_file(sffile)  -  not needed handled
         
+        sffile.write_file(output)
+
+    def __handle_wavelength(self, sf_file, pdb_id, pdb_wave, wave_arg, logger):
+        """
+        Handles addirion of wavelength to the SF file if needed
+
+        Args:
+        sffile: SFFile object
+        pdb_wave: Wavelength in model file if proveded
+        wave_arg: If command line -wave argument provided
+        logger: pfile object
+
+        Logic:
+        If command line - then use
+        If SF file has and model file - use model file and warn
+        If SF has - leave alone
+        Else write empty
+        """
+
+        cat = "diffrn_radiation_wavelength"
+        for idx in range(sf_file.get_number_of_blocks()):
+            blk = sf_file.get_block_by_index(idx)
+
+            cObj = blk.getObj(idx)
+            if cObj:
+                # Have wavelength
+                curwave = cObj.getValue("wavelength", 0)
+            else:
+                curwave = None
+
+            setwl = "."
+            try:
+                if wave_arg:
+                    setwl = float(wave_arg)
+                elif pdb_wave not in [".", "?", None]:
+                    setwl = float(pdb_wave)
+            except ValueError:
+                logger(f"Error: trying to set wavelength to non integer", 0)
+                
+            if curwave:
+                if curwave not in ["?", "."]:
+                    try:
+                        wave = float(curwave)
+                        if wave > 2.0 or wave < 0.6:
+                            logger.pinfo(f"Warning: ({pdb_id} nblock={idx} wavelength value (curwave) is abnormal (double check)!", 0);
+
+                        if setwl != ".":
+                            if setwl > 0.8 and setwl < 1.8 and setwl != 1.0:
+                                if abs(setwl - curwave) > 0.0001 and idx == 0:
+                                    logger.pinfo(f"Warning: ({pdb_id} nblock={idx}) wavelength mismatch (pdb= {setwl} : sf= {curwave})!", 0)
+                                elif setwl > 0 and abs(setwl - wave) > 0.0001 and idx == 0:
+                                    logger.pinfo("Warning: ({pdb_id} nblock={idx}) wavelength mismatch (pdb= {setwl} : sf= {curwave}). (double check!)", 0)
+                            
+                    except ValueError:
+                        logger.pinfo(f"Wavelnegth not a float {curwave}", 0)
+
+                    # Set the values....
+                    for row in range(cObj.getRowCount()):
+                        cObj.setValue(row + 1, "id", row)
+                        cObj.setValue(row + 1, "wavelength", row)
+
+            else:
+                # Create category
+                cObj = DataCategory(cat, ["id", "wavelength"], [["1", "."]])
+                blk.append(cObj)
+                logger.pinfo(f"Creating {cat} in nblock={idx}", 0)
 
 class CustomHelpParser(argparse.ArgumentParser):
     def print_help(self, file=None):  # pylint: disable=unused-argument
@@ -312,8 +383,6 @@ def handle_wave_argument(args, pdb):
     """
     if args.wave <= 0.0:
         raise ValueError("-wave argument must be a positive float.")
-    pdb.update_WAVE(args.wave)
-
 
 def handle_diags_argument(args):
     """
@@ -536,6 +605,9 @@ def convert_files(args, input_format, pdb_data, logger):
     pdict["output"] = output
     pdict["pdb_data"] = pdb_data
 
+    if args.wave is not None:
+        pdict["wave_cmdline"] = float(args.wave)   #  Type checked in argument parser
+        
     # Maybe come from SF if set originally?
     #pdbid = "xxxx"
     #validate_block_name(pdbid)

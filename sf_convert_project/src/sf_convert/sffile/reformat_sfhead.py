@@ -409,7 +409,7 @@ def reorder_sf_file(sf_file):
 
     """
 
-    earlyorder = ["audit", "cell", "diffrn", "diffrn_radiation_wavelength", "entry", "exptl_crystal", "reflns_scale", "symmetry"]
+    earlyorder = ["audit", "cell", "diffrn", "diffrn_radiation", "diffrn_radiation_wavelength", "entry", "exptl_crystal", "reflns_scale", "symmetry"]
     lateorder = ["refln", "diffrn_refln"]
 
     allbnames = sf_file.get_all_block_names()
@@ -447,4 +447,38 @@ def reorder_sf_file(sf_file):
             sf_file.reorder_categories_in_block(ordered, bname)
             modified = True
 
+    return modified
+
+def update_exptl_crystal(sf_file, logger):
+    """If exptl_crystal present, remove everything but id
+
+        Args:
+        sf_file (StructureFactorFile): The structure factor file object.
+        logger: The logger object for logging messages.
+
+    Returns:
+        bool: True if the value was modified, False otherwise.
+    """    
+
+    allbnames = sf_file.get_all_block_names()
+
+    modified = False
+    for idx in range(sf_file.get_number_of_blocks()):
+        blk = sf_file.get_block_by_index(idx)
+
+        cObj = blk.getObj("exptl_crystal")
+        if not cObj:
+            continue
+
+        attrNames = cObj.getAttributeList()
+        # We do not want to to be updating while removing
+        for attr in attrNames:
+            if attr not in ["id"]:
+                modified = True
+                cObj.removeAttribute(attr)
+
+        if len(cObj.getAttributeList()) == 0:
+            blk.remove("exptl_crystal")
+            modified = True
+                
     return modified
