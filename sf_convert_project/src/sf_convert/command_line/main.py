@@ -52,9 +52,20 @@ class SFConvertMain:
 
         if pdbid:
             pdbid = pdbid.lower()
-
             
-        self.__handle_wavelength(sffile, pdbid, pdb_wave, wave_arg, logger)
+        # Logic:
+        #  If command line - then use
+        #  If SF file has and model file - use model file and warn
+        #  If SF has - leave alone
+        #  Else write empty
+
+        setwlarg = None
+        if wave_arg:
+            setwlarg = wave_arg
+        elif pdb_wave not in [".", "?", None]:
+            setwlarg = pdb_wave
+            
+        self.__handle_wavelength(sffile, pdbid, setwlarg, logger)
         # Wavelnegth, cell, audit
 
         # Cleanup exptl_crystal. Only leave id
@@ -68,21 +79,14 @@ class SFConvertMain:
         
         sffile.write_file(output)
 
-    def __handle_wavelength(self, sf_file, pdb_id, pdb_wave, wave_arg, logger):
+    def __handle_wavelength(self, sf_file, pdb_id, setwlarg, logger):
         """
-        Handles addirion of wavelength to the SF file if needed
+        Handles addition of wavelength to the SF file if needed
 
         Args:
         sffile: SFFile object
-        pdb_wave: Wavelength in model file if proveded
-        wave_arg: If command line -wave argument provided
+        setlwarg: Wavelength to set
         logger: pfile object
-
-        Logic:
-        If command line - then use
-        If SF file has and model file - use model file and warn
-        If SF has - leave alone
-        Else write empty
         """
 
         cat = "diffrn_radiation_wavelength"
@@ -97,11 +101,11 @@ class SFConvertMain:
                 curwave = None
 
             setwl = "."
+
             try:
-                if wave_arg:
-                    setwl = float(wave_arg)
-                elif pdb_wave not in [".", "?", None]:
-                    setwl = float(pdb_wave)
+                if setwlarg:
+                    setwl = setwlarg
+                    setwlf = float(setwlarg)
             except ValueError:
                 logger(f"Error: trying to set wavelength to non integer", 0)
                 
@@ -115,11 +119,11 @@ class SFConvertMain:
                         logger.pinfo(f"Wavelength not a float {curwave}", 0)
 
                     if setwl != ".":
-                        if setwl > 0.8 and setwl < 1.8 and setwl != 1.0:
-                            if abs(setwl - curwave) > 0.0001 and idx == 0:
-                                logger.pinfo(f"Warning: ({pdb_id} nblock={idx}) wavelength mismatch (pdb= {setwl} : sf= {curwave})!", 0)
-                            elif setwl > 0 and abs(setwl - wave) > 0.0001 and idx == 0:
-                                logger.pinfo("Warning: ({pdb_id} nblock={idx}) wavelength mismatch (pdb= {setwl} : sf= {curwave}). (double check!)", 0)
+                        if setwlf > 0.8 and setwlf < 1.8 and setwlf != 1.0:
+                            if abs(setwlf - curwave) > 0.0001 and idx == 0:
+                                logger.pinfo(f"Warning: ({pdb_id} nblock={idx}) wavelength mismatch (pdb= {setwlf} : sf= {curwave})!", 0)
+                            elif setwlf > 0 and abs(setwlf - wave) > 0.0001 and idx == 0:
+                                logger.pinfo("Warning: ({pdb_id} nblock={idx}) wavelength mismatch (pdb= {setwlf} : sf= {curwave}). (double check!)", 0)
 
                         # Set the values....
                         for row in range(cObj.getRowCount()):
