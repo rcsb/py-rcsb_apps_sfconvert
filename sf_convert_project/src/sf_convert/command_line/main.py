@@ -89,7 +89,7 @@ class SFConvertMain:
         for idx in range(sf_file.get_number_of_blocks()):
             blk = sf_file.get_block_by_index(idx)
 
-            cObj = blk.getObj(idx)
+            cObj = blk.getObj(cat)
             if cObj:
                 # Have wavelength
                 curwave = cObj.getValue("wavelength", 0)
@@ -111,26 +111,36 @@ class SFConvertMain:
                         wave = float(curwave)
                         if wave > 2.0 or wave < 0.6:
                             logger.pinfo(f"Warning: ({pdb_id} nblock={idx} wavelength value (curwave) is abnormal (double check)!", 0);
-
-                        if setwl != ".":
-                            if setwl > 0.8 and setwl < 1.8 and setwl != 1.0:
-                                if abs(setwl - curwave) > 0.0001 and idx == 0:
-                                    logger.pinfo(f"Warning: ({pdb_id} nblock={idx}) wavelength mismatch (pdb= {setwl} : sf= {curwave})!", 0)
-                                elif setwl > 0 and abs(setwl - wave) > 0.0001 and idx == 0:
-                                    logger.pinfo("Warning: ({pdb_id} nblock={idx}) wavelength mismatch (pdb= {setwl} : sf= {curwave}). (double check!)", 0)
-                            
                     except ValueError:
-                        logger.pinfo(f"Wavelnegth not a float {curwave}", 0)
+                        logger.pinfo(f"Wavelength not a float {curwave}", 0)
 
-                    # Set the values....
-                    for row in range(cObj.getRowCount()):
-                        cObj.setValue(row + 1, "id", row)
-                        cObj.setValue(row + 1, "wavelength", row)
+                    if setwl != ".":
+                        if setwl > 0.8 and setwl < 1.8 and setwl != 1.0:
+                            if abs(setwl - curwave) > 0.0001 and idx == 0:
+                                logger.pinfo(f"Warning: ({pdb_id} nblock={idx}) wavelength mismatch (pdb= {setwl} : sf= {curwave})!", 0)
+                            elif setwl > 0 and abs(setwl - wave) > 0.0001 and idx == 0:
+                                logger.pinfo("Warning: ({pdb_id} nblock={idx}) wavelength mismatch (pdb= {setwl} : sf= {curwave}). (double check!)", 0)
+
+                        # Set the values....
+                        for row in range(cObj.getRowCount()):
+                            cObj.setValue(setwl, "wavelength", row)
 
             else:
-                # Create category
-                cObj = DataCategory(cat, ["id", "wavelength"], [["1", "."]])
-                blk.append(cObj)
+                # Create category - for dictionary compliance purposes. Might not be needed depending on data.
+                # Decision to instantiate always for backwards compatibility - for potential outsider use.
+
+                # Ensure proper values produced if existing data present
+                cObj = blk.getObj("refln")
+                if cObj and "wavelength_id" in cObj.getAttributeList():
+                    values = cObj.getAttributeUniqueValueList("wavelength_id")
+                    data = []
+                    for val in values:
+                        data.append([val, "."])
+                else:
+                    data = [["1", "."]]
+                
+                newObj = DataCategory(cat, ["id", "wavelength"], data)
+                blk.append(newObj)
                 logger.pinfo(f"Creating {cat} in nblock={idx}", 0)
 
 class CustomHelpParser(argparse.ArgumentParser):
