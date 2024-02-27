@@ -9,6 +9,7 @@ from sf_convert.import_dir.mtz2cif import MtzToCifConverter
 from sf_convert.import_dir.cns2cif import CNSToCifConverter
 from sf_convert.export_dir.cif2cns import CifToCNSConverter
 from sf_convert.export_dir.cif2mtz import CifToMTZConverter
+from sf_convert.export_dir.cif2cif import CifToCifConverter
 from sf_convert.sffile.guess_sf_format import guess_sf_format
 from sf_convert.sffile.reformat_sfhead import reformat_sfhead, reorder_sf_file, update_exptl_crystal
 from sf_convert.utils.pinfo_file import PInfoLogger
@@ -16,7 +17,6 @@ from sf_convert.utils.get_sf_info_file import get_sf_info
 from sf_convert.utils.CheckSfFile import CheckSfFile
 from sf_convert.utils.version import get_version
 from sf_convert.utils.TextUtils import is_cif
-from mmcif.api.DataCategory import DataCategory
 
 VALID_FORMATS = ["CNS", "MTZ", "MMCIF", "CIF"]
 
@@ -25,6 +25,7 @@ class SFConvertMain:
     """Main class to perform conversion steps."""
     def __init__(self, logger):
         self.__logger = logger
+        self.__legacy = True  # old sf_convert behaviour
 
     def mmCIF_to_mmCIF(self, pdict, logger):
         """
@@ -47,6 +48,7 @@ class SFConvertMain:
         # PDB id comes from
         #  sffile block name - unless coordinate file used - and then use that
         pdbid = pdb_data.get("pdb_id", None)
+
         if not pdbid:
             pdbid = sffile.extract_pdbid_from_block()
 
@@ -64,88 +66,22 @@ class SFConvertMain:
             setwlarg = wave_arg
         elif pdb_wave not in [".", "?", None]:
             setwlarg = pdb_wave
-            
-        self.__handle_wavelength(sffile, pdbid, setwlarg, logger)
-        # Wavelnegth, cell, audit
+
+        c2c = CifToCifConverter(self.__legacy)
+        
+        c2c.annotate_wavelength(sffile, pdbid, setwlarg, logger)
+        # cell
 
         # Cleanup exptl_crystal. Only leave id
+
         
         update_exptl_crystal(sffile, logger)
         
         sffile.correct_block_names(pdbid)
         reformat_sf_header(sffile, pdbid, logger)
 
-        # reorder_sf_file(sffile)  -  not needed handled
-        
         sffile.write_file(output)
 
-    def __handle_wavelength(self, sf_file, pdb_id, setwlarg, logger):
-        """
-        Handles addition of wavelength to the SF file if needed
-
-        Args:
-        sffile: SFFile object
-        setlwarg: Wavelength to set
-        logger: pfile object
-        """
-
-        cat = "diffrn_radiation_wavelength"
-        for idx in range(sf_file.get_number_of_blocks()):
-            blk = sf_file.get_block_by_index(idx)
-
-            cObj = blk.getObj(cat)
-            if cObj:
-                # Have wavelength
-                curwave = cObj.getValue("wavelength", 0)
-            else:
-                curwave = None
-
-            setwl = "."
-
-            try:
-                if setwlarg:
-                    setwl = setwlarg
-                    setwlf = float(setwlarg)
-            except ValueError:
-                logger(f"Error: trying to set wavelength to non integer", 0)
-                
-            if curwave:
-                if curwave not in ["?", "."]:
-                    try:
-                        wave = float(curwave)
-                        if wave > 2.0 or wave < 0.6:
-                            logger.pinfo(f"Warning: ({pdb_id} nblock={idx} wavelength value (curwave) is abnormal (double check)!", 0);
-                    except ValueError:
-                        logger.pinfo(f"Wavelength not a float {curwave}", 0)
-
-                    if setwl != ".":
-                        if setwlf > 0.8 and setwlf < 1.8 and setwlf != 1.0:
-                            if abs(setwlf - curwave) > 0.0001 and idx == 0:
-                                logger.pinfo(f"Warning: ({pdb_id} nblock={idx}) wavelength mismatch (pdb= {setwlf} : sf= {curwave})!", 0)
-                            elif setwlf > 0 and abs(setwlf - wave) > 0.0001 and idx == 0:
-                                logger.pinfo("Warning: ({pdb_id} nblock={idx}) wavelength mismatch (pdb= {setwlf} : sf= {curwave}). (double check!)", 0)
-
-                        # Set the values....
-                        for row in range(cObj.getRowCount()):
-                            cObj.setValue(setwl, "wavelength", row)
-
-            else:
-                # Create category - for dictionary compliance purposes. Might not be needed depending on data.
-                # Decision to instantiate always for backwards compatibility - for potential outsider use.
-
-                # Ensure proper values produced if existing data present
-                cObj = blk.getObj("refln")
-                if cObj and "wavelength_id" in cObj.getAttributeList():
-                    values = cObj.getAttributeUniqueValueList("wavelength_id")
-                    data = []
-                    for val in values:
-                        data.append([val, "."])
-                else:
-                    data = [["1", "."]]
-                
-                newObj = DataCategory(cat, ["id", "wavelength"], data)
-                blk.append(newObj)
-                logger.pinfo(f"Creating {cat} in nblock={idx}", 0)
 
 class CustomHelpParser(argparse.ArgumentParser):
     def print_help(self, file=None):  # pylint: disable=unused-argument
