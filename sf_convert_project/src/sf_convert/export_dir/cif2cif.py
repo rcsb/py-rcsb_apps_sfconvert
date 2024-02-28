@@ -117,6 +117,8 @@ class CifToCifConverter:
         
         if self.__legacy:
             self.__handle_legacy_attributes()
+
+        self.__update_reflns_scale()
         
         self.__sffile.correct_block_names(pdbid)
         reformat_sfhead(self.__sffile, pdbid, logger, detail)
@@ -174,3 +176,28 @@ class CifToCifConverter:
                     cObj.removeAttribute(r2[1])
                 
     
+    def __update_reflns_scale(self):
+        """ If reflns_scale missing in datablock add if needed"""
+
+        cat = "reflns_scale"
+        for idx in range(self.__sffile.get_number_of_blocks()):
+            blk = self.__sffile.get_block_by_index(idx)
+
+            if cat in blk.getObjNameList():
+                continue
+
+            if "refln" not in blk.getObjNameList():
+                continue
+            
+            # See if need to instantiate
+            cObj = blk.getObj("refln")
+            if cObj and "scale_group_code" in cObj.getAttributeList():
+                    values = cObj.getAttributeUniqueValueList("scale_group_code")
+                    data = []
+                    for val in values:
+                        data.append([val])
+                    newObj = DataCategory(cat, ["group_code"], data)
+                    blk.append(newObj)
+                    
+
+                
