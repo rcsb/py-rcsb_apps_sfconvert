@@ -1,3 +1,7 @@
+import os
+import traceback
+import re
+
 from mmcif.io.IoAdapterCore import IoAdapterCore
 from mmcif.api.PdbxContainers import DataContainer
 from mmcif.api.DataCategoryBase import DataCategoryBase
@@ -53,14 +57,25 @@ class StructureFactorFile:
         """
         return len(self.__data_blocks)
 
-    def write_file(self, filename):
+    def write_file(self, filename, endcomments=False):
         """
         Writes the structure factor file to disk.
 
         Args:
             filename (str): The path to the output file.
+            endcomments (bool): Whether to include #END and #END_OF_DATA
         """
-        self.__file_io.writeFile(filename, self.__data_blocks)
+        for b in self.__data_blocks:
+            print("Write ", b.getObjNameList())
+
+        if endcomments:
+            tempfile = filename + ".tmp." + str(os.getpid())
+            self.__file_io.writeFile(tempfile, self.__data_blocks)
+            if os.path.exists(tempfile):
+                self.__insertComments(tempfile, filename)
+                os.remove(tempfile)
+        else:
+            self.__file_io.writeFile(filename, self.__data_blocks)
 
     def get_all_block_names(self):
         """
@@ -409,3 +424,21 @@ class StructureFactorFile:
 
         return pdbid
         
+    def __insertComments(self, inpFn, outFn):
+        """Insert end of block/file comments in the input file --"""
+        #
+        try:
+            pattern = r"[\r\n]+data_"
+            replacement = r"\n#END\ndata_"
+            reObj = re.compile(pattern, re.MULTILINE | re.DOTALL | re.VERBOSE)
+            # Flush changes made to the in-memory copy of the file back to disk
+            with open(outFn, "w") as ofh:
+                with open(inpFn, "r") as ifh:
+                    ofh.write(reObj.sub(replacement, ifh.read()) + "\n#END OF REFLECTIONS\n")
+            return True
+        except:  # noqa: E722 pylint: disable=bare-except
+            # What to do?
+            #if self.__verbose:
+            print("Failure to add END blocks")
+            traceback.print_exc()
+            return False

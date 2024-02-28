@@ -126,7 +126,7 @@ class CifToCifConverter:
     def write_file(self, pathOut):
         """Writes SF file to output"""
 
-        self.__sffile.write_file(pathOut)
+        self.__sffile.write_file(pathOut, True)
 
 
     def __handle_legacy_attributes(self):
@@ -198,6 +198,3 @@ class CifToCifConverter:
                         data.append([val])
                     newObj = DataCategory(cat, ["group_code"], data)
                     blk.append(newObj)
-                    
-
-                
