@@ -4,7 +4,6 @@ import re
 import sys
 from pathlib import Path
 from sf_convert.sffile.get_items_pdb import ProteinDataBank
-from sf_convert.sffile.sf_file import StructureFactorFile
 from sf_convert.import_dir.mtz2cif import MtzToCifConverter
 from sf_convert.import_dir.cns2cif import CNSToCifConverter
 from sf_convert.export_dir.cif2cns import CifToCNSConverter
@@ -40,17 +39,16 @@ class SFConvertMain:
         pdb_wave = pdb_data.get("WAVE", None)
         wave_arg = pdict.get("wave_cmdline", None)        
 
-        sffile = StructureFactorFile()
-
-    
-        sffile.read_file(sfin)
+        c2c = CifToCifConverter(self.__legacy)
+        
+        c2c.load_input(sfin)
 
         # PDB id comes from
         #  sffile block name - unless coordinate file used - and then use that
         pdbid = pdb_data.get("pdb_id", None)
 
         if not pdbid:
-            pdbid = sffile.extract_pdbid_from_block()
+            pdbid = c2c.get_pdbid()
 
         if pdbid:
             pdbid = pdbid.lower()
@@ -67,20 +65,15 @@ class SFConvertMain:
         elif pdb_wave not in [".", "?", None]:
             setwlarg = pdb_wave
 
-        c2c = CifToCifConverter(self.__legacy)
-        
-        c2c.annotate_wavelength(sffile, pdbid, setwlarg, logger)
+        c2c.annotate_wavelength(pdbid, setwlarg, logger)
         # cell
 
         # Cleanup exptl_crystal. Only leave id
 
         
-        update_exptl_crystal(sffile, logger)
+        c2c.handle_standard(pdbid, logger)
         
-        sffile.correct_block_names(pdbid)
-        reformat_sf_header(sffile, pdbid, logger)
-
-        sffile.write_file(output)
+        c2c.write_file(output)
 
 
 class CustomHelpParser(argparse.ArgumentParser):
