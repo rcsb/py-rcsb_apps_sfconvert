@@ -101,7 +101,10 @@ class SfCorrect:
             self.__handle_legacy_attributes(sffile)
 
         self.__update_reflns_scale(sffile)
-        
+
+        if self.__legacy:
+            self.__update_pdbx_r_free_flag(sffile)
+
         sffile.correct_block_names(pdbid)
         reformat_sfhead(sffile, pdbid, logger, detail)
 
@@ -176,3 +179,21 @@ class SfCorrect:
                     newObj = DataCategory(cat, ["group_code"], data)
                     blk.append(newObj)
     
+    def __update_pdbx_r_free_flag(self, sffile):
+        """Old sf_convert used to use atom(value) -- for "?" this converts to 0.  Luckily appears only for map coefficients
+        """
+        
+        for idx in range(sffile.get_number_of_blocks()):
+            blk = sffile.get_block_by_index(idx)
+
+            if "refln" not in blk.getObjNameList():
+                continue
+
+            cObj = blk.getObj("refln")
+            if cObj is None:
+                continue  # should never happen
+                
+            if "pdbx_r_free_flag" in cObj.getAttributeList():
+                cObj.replaceValue("?", "0", "pdbx_r_free_flag")
+                
+                        
