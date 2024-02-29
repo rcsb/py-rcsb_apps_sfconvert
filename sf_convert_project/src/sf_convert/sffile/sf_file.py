@@ -65,9 +65,6 @@ class StructureFactorFile:
             filename (str): The path to the output file.
             endcomments (bool): Whether to include #END and #END_OF_DATA
         """
-        for b in self.__data_blocks:
-            print("Write ", b.getObjNameList())
-
         if endcomments:
             tempfile = filename + ".tmp." + str(os.getpid())
             self.__file_io.writeFile(tempfile, self.__data_blocks)

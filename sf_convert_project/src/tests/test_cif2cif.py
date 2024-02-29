@@ -1,7 +1,7 @@
 import os
 import difflib
 from sf_convert.sffile.sf_file import StructureFactorFile
-from sf_convert.sffile.reformat_sfhead import reformat_sfhead
+from sf_convert.utils.reformat_sfhead import reformat_sfhead
 from sf_convert.utils.pinfo_file import PInfoLogger
 
 

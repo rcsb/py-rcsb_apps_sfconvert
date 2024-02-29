@@ -9,9 +9,9 @@ from sf_convert.import_dir.import_cif import ImportCif
 from sf_convert.import_dir.cns2cif import CNSToCifConverter
 from sf_convert.export_dir.cif2cns import CifToCNSConverter
 from sf_convert.export_dir.cif2mtz import CifToMTZConverter
-from sf_convert.export_dir.cif2cif import CifToCifConverter
+from sf_convert.export_dir.export_cif import CifToCifConverter
 from sf_convert.sffile.guess_sf_format import guess_sf_format
-from sf_convert.sffile.reformat_sfhead import reformat_sfhead, reorder_sf_file, update_exptl_crystal
+from sf_convert.utils.reformat_sfhead import reformat_sfhead, reorder_sf_file, update_exptl_crystal
 from sf_convert.utils.pinfo_file import PInfoLogger
 from sf_convert.utils.get_sf_info_file import get_sf_info
 from sf_convert.utils.CheckSfFile import CheckSfFile
