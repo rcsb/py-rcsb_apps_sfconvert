@@ -133,6 +133,10 @@ class SfCorrect:
 
             added = False
 
+            # For new data coming from staraniso, these attributes are not added
+            if "pdbx_audit_conform" in blk.getObjNameList():
+                continue
+
             cObj = blk.getObj("refln")
             if not cObj:
                 continue
