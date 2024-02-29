@@ -121,6 +121,8 @@ class SfCorrect:
         if self.__legacy:
             self.__update_pdbx_r_free_flag(sffile)
 
+        self.__update_status(sffile)            
+
         sffile.correct_block_names(pdbid)
         reformat_sfhead(sffile, pdbid, logger, detail)
 
@@ -200,7 +202,7 @@ class SfCorrect:
                     blk.append(newObj)
     
     def __update_pdbx_r_free_flag(self, sffile):
-        """Old sf_convert used to use atom(value) -- for "?" this converts to 0.  Luckily appears only for map coefficients
+        """Old sf_convert used to use atoi(value) -- for "?" this converts to 0.  Luckily appears only for map coefficients
         """
         
         for idx in range(sffile.get_number_of_blocks()):
@@ -215,5 +217,23 @@ class SfCorrect:
                 
             if "pdbx_r_free_flag" in cObj.getAttributeList():
                 cObj.replaceValue("?", "0", "pdbx_r_free_flag")
+
+    def __update_status(self, sffile):
+        """Old sf_convert used to use assume empty data is x.
+        """
+        
+        for idx in range(sffile.get_number_of_blocks()):
+            blk = sffile.get_block_by_index(idx)
+
+            if "refln" not in blk.getObjNameList():
+                continue
+
+            cObj = blk.getObj("refln")
+            if cObj is None:
+                continue  # should never happen
+                
+            if "status" in cObj.getAttributeList():
+                cObj.replaceValue("?", "x", "status")
+                cObj.replaceValue(".", "x", "status")                
                 
                         
