@@ -5,6 +5,7 @@ import sys
 from pathlib import Path
 from sf_convert.sffile.get_items_pdb import ProteinDataBank
 from sf_convert.import_dir.mtz2cif import MtzToCifConverter
+from sf_convert.import_dir.import_cif import ImportCif
 from sf_convert.import_dir.cns2cif import CNSToCifConverter
 from sf_convert.export_dir.cif2cns import CifToCNSConverter
 from sf_convert.export_dir.cif2mtz import CifToMTZConverter
@@ -40,8 +41,10 @@ class SFConvertMain:
         wave_arg = pdict.get("wave_cmdline", None)        
 
         c2c = CifToCifConverter(self.__legacy)
+        ic = ImportCif(logger)
+        ic.import_files(sfin)
         
-        c2c.load_input(sfin)
+        c2c.set_sf(ic.get_sf())
 
         # PDB id comes from
         #  sffile block name - unless coordinate file used - and then use that
@@ -98,7 +101,8 @@ class CustomHelpParser(argparse.ArgumentParser):
 
             mmCIF, MTZ, CNS.
 
-    -sf  <datafile> : Give  the  Input Structure Factor File Name.
+    -sf  <datafile> : Give the Input Structure Factor File Name.
+    -sf  <datafile> <datafile>: Provide multiple input files. Types will be based on first
 
     -out <output_file> :  Give output file name (if not given, default by program).
 
@@ -255,7 +259,7 @@ def get_input_format(args: argparse.Namespace) -> str:
         return args.i
     if args.sf is None:
         raise ValueError("Source file (-sf) must be provided.")
-    return guess_sf_format(args.sf)
+    return guess_sf_format(args.sf[0])
 
 
 def handle_pdb_argument(args, pdb, logger):
@@ -543,7 +547,7 @@ def convert_files(args, input_format, pdb_data, logger):
     if args.out is not None:
         output = args.out
     else:
-        output = f"{args.sf}.{args.o}"
+        output = f"{args.sf[0]}.{args.o}"
 
     pdict["output"] = output
     pdict["pdb_data"] = pdb_data
@@ -630,7 +634,7 @@ def parse_arguments() -> argparse.Namespace:
 
     parser.add_argument('-i', type=str, help='Input format')
     parser.add_argument('-o', type=str, help='Output format. Accepted values are mmCIF, CNS, MTZ')
-    parser.add_argument('-sf', type=str, help='Source file')
+    parser.add_argument('-sf', type=str, nargs="+", help='Source file')
     parser.add_argument('-out', type=str, default=None, help='Output file name (if not given, default by program)')
     parser.add_argument('-label', type=str, help='Label name for CNS & MTZ')
     parser.add_argument('-pdb', type=str, help='PDB file (add items to the converted SF file if missing)')

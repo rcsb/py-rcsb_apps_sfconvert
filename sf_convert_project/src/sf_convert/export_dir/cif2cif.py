@@ -32,6 +32,18 @@ class CifToCifConverter:
 
         self.__sffile.read_file(pathIn)
 
+    def set_sf(self, sfobj):
+        """
+        Loads PDBx/mmCIF SF file
+
+        Args:
+        sf: StructureFactorFile - object with data
+
+        Returns:
+        Nothing
+        """
+        self.__sffile = sfobj
+
     def get_pdbid(self):
         """Returns the PDB id from datablock name
         """

@@ -442,3 +442,31 @@ class StructureFactorFile:
             print("Failure to add END blocks")
             traceback.print_exc()
             return False
+
+    def merge_sf(self, sfnew):
+        """Merge new StructureFactorFile into existing definition.
+           Care is made to ensure unique data block names
+
+           Args:
+             sfnew (StructureFactorFile): Object to merge
+        """
+
+                        
+        for idx in range(sfnew.get_number_of_blocks()):
+            blk = sfnew.get_block_by_index(idx)
+
+            # Check if block name in use
+            blkname = blk.getName()
+            origname = blkname
+            cnt = 1
+            while blkname in self.get_all_block_names():
+                blkname = origname + str(cnt)
+                cnt += 1
+
+            if blkname != origname:
+                blk.setName(blkname)
+
+            # Add
+            self.add_block(blk)
+
+            
