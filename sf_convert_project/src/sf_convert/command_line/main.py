@@ -9,9 +9,10 @@ from sf_convert.import_dir.import_cif import ImportCif
 from sf_convert.import_dir.cns2cif import CNSToCifConverter
 from sf_convert.export_dir.cif2cns import CifToCNSConverter
 from sf_convert.export_dir.cif2mtz import CifToMTZConverter
-from sf_convert.export_dir.export_cif import CifToCifConverter
+from sf_convert.export_dir.export_cif import ExportCif
 from sf_convert.sffile.guess_sf_format import guess_sf_format
 from sf_convert.utils.reformat_sfhead import reformat_sfhead, reorder_sf_file, update_exptl_crystal
+from sf_convert.utils.sf_correct import SfCorrect
 from sf_convert.utils.pinfo_file import PInfoLogger
 from sf_convert.utils.get_sf_info_file import get_sf_info
 from sf_convert.utils.CheckSfFile import CheckSfFile
@@ -40,18 +41,18 @@ class SFConvertMain:
         pdb_wave = pdb_data.get("WAVE", None)
         wave_arg = pdict.get("wave_cmdline", None)        
 
-        c2c = CifToCifConverter(self.__legacy)
         ic = ImportCif(logger)
         ic.import_files(sfin)
-        
-        c2c.set_sf(ic.get_sf())
+        sffile = ic.get_sf()
 
+        sfc = SfCorrect(self.__logger)
+        
         # PDB id comes from
         #  sffile block name - unless coordinate file used - and then use that
         pdbid = pdb_data.get("pdb_id", None)
 
         if not pdbid:
-            pdbid = c2c.get_pdbid()
+            pdbid = sfc.get_pdbid(sffile)  # XXX should be a utility function somewhere else
 
         if pdbid:
             pdbid = pdbid.lower()
@@ -68,15 +69,18 @@ class SFConvertMain:
         elif pdb_wave not in [".", "?", None]:
             setwlarg = pdb_wave
 
-        c2c.annotate_wavelength(pdbid, setwlarg, logger)
+        sfc.annotate_wavelength(sffile, pdbid, setwlarg, logger)
         # cell
 
         # Cleanup exptl_crystal. Only leave id
 
         
-        c2c.handle_standard(pdbid, logger)
+        sfc.handle_standard(sffile, pdbid, logger)
         
-        c2c.write_file(output)
+        ec = ExportCif(self.__legacy)
+        ec.set_sf(sffile)
+        
+        ec.write_file(output)
 
 
 class CustomHelpParser(argparse.ArgumentParser):
