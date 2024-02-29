@@ -121,9 +121,19 @@ class SfCorrect:
         if self.__legacy:
             self.__update_pdbx_r_free_flag(sffile)
 
-        self.__update_status(sffile)            
+        self.__update_status(sffile)
 
+        if self.__legacy:
+            self.__remove_categories(sffile)
+
+        self.__ensure_catkeys(sffile, pdbid)
+            
+        self.__instantiate_exptl_crystal(sffile)
+
+        self.__instantiate_entry(sffile, pdbid)
+        
         sffile.correct_block_names(pdbid)
+
         reformat_sfhead(sffile, pdbid, logger, detail)
 
 
@@ -237,3 +247,63 @@ class SfCorrect:
                 cObj.replaceValue(".", "x", "status")                
                 
                         
+
+    def __remove_categories(self, sffile):
+        """Backwards compatibility - remove some categories"""
+
+        cats = ["space_group", "space_group_symop"]
+        for idx in range(sffile.get_number_of_blocks()):
+            blk = sffile.get_block_by_index(idx)
+
+            for cat in cats:
+                if cat in blk.getObjNameList():
+                    blk.remove(cat)
+                    
+
+    def __ensure_catkeys(self, sffile, pdbid):
+        """Sometimes categories come in without the entry_id.  Add"""
+
+        cats = ["cell", "symmetry"]
+
+        for idx in range(sffile.get_number_of_blocks()):
+            blk = sffile.get_block_by_index(idx)
+
+            for cat in cats:
+                if cat in blk.getObjNameList():
+                    cObj = blk.getObj(cat)
+                    if "entry_id" not in cObj.getAttributeList():
+                        cObj.appendAttributeExtendRows("entry_id", pdbid)
+                        # entry_id first in category
+                        sffile.reorder_category_attributes(cat, ["entry_id"], blk.getName())
+
+    def __instantiate_exptl_crystal(self, sffile):
+        """If refln.crystal_id is present, exptl_crystal must be present"""
+
+        for idx in range(sffile.get_number_of_blocks()):
+            blk = sffile.get_block_by_index(idx)
+
+            if "refln" in blk.getObjNameList():
+                cObj = blk.getObj("refln")
+                if "crystal_id" not in cObj.getAttributeList():
+                    continue
+
+                if "exptl_crystal" not in blk.getObjNameList():
+                    values = cObj.getAttributeUniqueValueList("crystal_id")
+                    data = []
+                    for val in values:
+                        data.append([val])
+
+                    newObj = DataCategory("exptl_crystal", ["id"], data)
+                    blk.append(newObj)
+
+
+    
+    def __instantiate_entry(self, sffile, pdb_id):
+        """If entry category is not present, create"""
+
+        for idx in range(sffile.get_number_of_blocks()):
+            blk = sffile.get_block_by_index(idx)
+
+            if "entry" not in blk.getObjNameList():
+                newObj = DataCategory("entry", ["id"], [[pdb_id]])
+                blk.append(newObj)
