@@ -10,10 +10,26 @@ class SfCorrect:
         self.__legacy = legacy
         self.__stdorder = ["crystal_id", "wavelength_id", "scale_group_code",
                            "index_h", "index_k", "index_l", "status", "pdbx_r_free_flag",
-                           "F_meas_au", "F_meas_sigma_au", "F_calc", "phase_calc",
+                           "F_meas_au", "F_meas_sigma_au",
+                           "intensity_calc", "intensity_meas", "intensity_sigma",
+                           "F_calc", "F_calc_au",
+                           "F_squared_meas", "F_squared_calc", "F_squared_sigma",
+                           "phase_calc", "phase_meas",
+                           "pdbx_I_plus", "pdbx_I_plus_sigma", "pdbx_I_minus", "pdbx_I_minus_sigma",
+                           "pdbx_F_plus", "pdbx_F_plus_sigma", "pdbx_F_minus", "pdbx_F_minus_sigma",
                            "pdbx_HL_A_iso", "pdbx_HL_B_iso", "pdbx_HL_C_iso", "pdbx_HL_D_iso",
-                           "pdbx_FWT", "pdbx_PHWT", "pdbx_DELFWT", "pdbx_DELPHWT", "fom"]
-
+                           "pdbx_anom_difference", "pdbx_anom_difference_sigma",
+                           "d_spacing", "A_calc", "B_calc",
+                           "F_meas_sigma_uncorrected", "F_meas_uncorrected"
+                           "pdbx_gsas_i100_meas",
+                           "intensity_meas_unknown", "intensity_sigma_unknown",
+                           "pdbx_phase_calc_part_solvent", "pdbx_F_calc_part_solvent", "pdbx_F_calc_with_solvent",
+                           "pdbx_phase_calc_with_solvent",
+                           "pdbx_FWT", "pdbx_PHWT", "pdbx_DELFWT", "pdbx_DELPHWT", "fom",                           
+                           "pdbx_fiber_coordinate", "pdbx_fiber_F_meas_au", "pdbx_fiber_layer",
+                           "weight",
+                           ]
+        
     def get_pdbid(self, sffile):
         """Returns the PDB id from datablock name of sf
         """
