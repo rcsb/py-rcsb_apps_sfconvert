@@ -77,7 +77,7 @@ class SfCorrect:
 
                     if setwl != ".":
                         if setwlf > 0.8 and setwlf < 1.8 and setwlf != 1.0:
-                            if abs(setwlf - curwave) > 0.0001 and idx == 0:
+                            if abs(setwlf - wave) > 0.0001 and idx == 0:
                                 logger.pinfo(f"Warning: ({pdb_id} nblock={idx}) wavelength mismatch (pdb= {setwlf} : sf= {curwave})!", 0)
                             elif setwlf > 0 and abs(setwlf - wave) > 0.0001 and idx == 0:
                                 logger.pinfo("Warning: ({pdb_id} nblock={idx}) wavelength mismatch (pdb= {setwlf} : sf= {curwave}). (double check!)", 0)
@@ -92,14 +92,16 @@ class SfCorrect:
 
                 # Ensure proper values produced if existing data present
                 cObj = blk.getObj("refln")
+                wl = setwlarg if setwlarg else "."
+                
                 if cObj and "wavelength_id" in cObj.getAttributeList():
                     values = cObj.getAttributeUniqueValueList("wavelength_id")
                     data = []
                     for val in values:
-                        data.append([val, "."])
+                        data.append([val, wl])
                 else:
-                    data = [["1", "."]]
-                
+                    data = [["1", wl]]
+
                 newObj = DataCategory(cat, ["id", "wavelength"], data)
                 blk.append(newObj)
                 logger.pinfo(f"Creating {cat} in nblock={idx}", 0)
@@ -325,7 +327,7 @@ class SfCorrect:
             attrlist = list(cObj.getAttributeList())  # ensure not an iterator that might get changed
 
             for attr in attrlist:
-                if attr not in ["entry_id", "space_group_name_H-M"]:
+                if attr not in ["entry_id", "space_group_name_H-M", "Int_Tables_number"]:
                     cObj.removeAttribute(attr)
 
             # Remove "empty" category
