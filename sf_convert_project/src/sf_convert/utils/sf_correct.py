@@ -126,12 +126,15 @@ class SfCorrect:
         if self.__legacy:
             self.__remove_categories(sffile)
 
+        if self.__legacy:
+            self.__cleanup_symmetry(sffile)
+
         self.__ensure_catkeys(sffile, pdbid)
             
         self.__instantiate_exptl_crystal(sffile)
 
         self.__instantiate_entry(sffile, pdbid)
-        
+
         sffile.correct_block_names(pdbid)
 
         reformat_sfhead(sffile, pdbid, logger, detail)
@@ -307,3 +310,26 @@ class SfCorrect:
             if "entry" not in blk.getObjNameList():
                 newObj = DataCategory("entry", ["id"], [[pdb_id]])
                 blk.append(newObj)
+
+    def __cleanup_symmetry(self, sffile):
+        """If symmetry is present, we only allow entry_id and space_group_name_H-M"""
+
+        for idx in range(sffile.get_number_of_blocks()):
+            blk = sffile.get_block_by_index(idx)
+
+            if "symmetry" not in blk.getObjNameList():
+                continue
+            
+            cObj = blk.getObj("symmetry")
+
+            attrlist = list(cObj.getAttributeList())  # ensure not an iterator that might get changed
+
+            for attr in attrlist:
+                if attr not in ["entry_id", "space_group_name_H-M"]:
+                    cObj.removeAttribute(attr)
+
+            # Remove "empty" category
+            attrlist = cObj.getAttributeList()
+            if len(attrlist) == 0 or attrlist == ["entry_id"]:
+                blk.remove("symmetry")
+                
