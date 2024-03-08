@@ -137,6 +137,9 @@ class SfCorrect:
 
         self.__instantiate_entry(sffile, pdbid)
 
+        self. __handle_diffrn(sffile, pdbid, logger, details=detail)
+
+
         sffile.correct_block_names(pdbid)
 
         reformat_sfhead(sffile, pdbid, logger, detail)
@@ -335,3 +338,65 @@ class SfCorrect:
             if len(attrlist) == 0 or attrlist == ["entry_id"]:
                 blk.remove("symmetry")
                 
+
+    def __handle_diffrn(self, sffile, pdbid, logger, details=None):
+        """Instantiate diffrn category if needed, see diffrn.id if needed."""
+
+        for idx in range(sffile.get_number_of_blocks()):
+            blk = sffile.get_block_by_index(idx)
+
+            # Assemble list of possible diffrn_ids needed
+
+            # Get diffrn ids if present...
+            difids = set()
+
+            needdiffrn = False
+            for cat in ["diffrn_refln", "diffrn_radiation", "diffrn_reflns"]:
+                if cat in blk.getObjNameList():
+                    cObj2 = blk.getObj(cat)
+                    if "diffrn_id" in cObj2.getAttributeList():
+                        values = cObj2.getAttributeUniqueValueList("diffrn_id")
+                        difids.update(values)
+                        needdiffrn = True
+
+
+            if len(difids) == 0:
+                difids.add("1")
+            diffidsl = sorted([int(x) for x in list(difids)])
+
+            # Crystal id
+            if "refln" in blk.getObjNameList():
+                cObj2 = blk.getObj("refln")
+                if "crystal_id" not in cObj2.getAttributeList():
+                    crystids =["1"]
+                else:
+                    crystids = cObj2.getAttributeUniqueValueList("crystal_id")
+
+            # If we need to instantiate do it
+            if "diffrn" not in blk.getObjNameList() and needdiffrn is False and details is None:
+                continue
+
+            cObj = blk.getObj("diffrn")
+            if cObj is None:
+                # Instantiate category
+                rows = []
+                if details is None:
+                    details = "?"
+                for d in diffidsl:
+                    for c in crystids:
+                        rows.append([d, c, details])
+                newObj = DataCategory("diffrn", ["id", "crystal_id", "details"], rows)
+                blk.append(newObj)
+                continue
+
+            # Update existing copy
+            # XXX Someday - instantiate all values
+            if "id" not in cObj.getAttributeList():
+                cObj.appendAttributeExtendRows("id", diffidsl[0])
+            if "crystal_id" not in cObj.getAttributeList():
+                cObj.appendAttributeExtendRows("crystal_id", crystids[0])
+            if details and "details" not in cObj.getAttributeList():
+                cObj.appendAttributeExtendRows("details", details)
+                
+                
+            sffile.reorder_category_attributes("diffrn", ["id", "crystal_id", "ambient_temp", "crystal_treatment", "details"], blk.getName())
