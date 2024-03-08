@@ -420,7 +420,7 @@ class StructureFactorFile:
             pdbid = "xxxx"
 
         return pdbid
-        
+
     def __insertComments(self, inpFn, outFn):
         """Insert end of block/file comments in the input file --"""
         #
@@ -435,7 +435,6 @@ class StructureFactorFile:
             return True
         except:  # noqa: E722 pylint: disable=bare-except
             # What to do?
-            #if self.__verbose:
             print("Failure to add END blocks")
             traceback.print_exc()
             return False
@@ -446,9 +445,7 @@ class StructureFactorFile:
 
            Args:
              sfnew (StructureFactorFile): Object to merge
-        """
-
-                        
+        """                        
         for idx in range(sfnew.get_number_of_blocks()):
             blk = sfnew.get_block_by_index(idx)
 
@@ -465,5 +462,3 @@ class StructureFactorFile:
 
             # Add
             self.add_block(blk)
-
-            

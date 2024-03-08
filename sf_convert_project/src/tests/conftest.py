@@ -40,6 +40,7 @@ def cif_5pny_data_path(data_dir):
     """
     yield os.path.join(data_dir, "cif_files", "5pny-sf.cif")
 
+
 @pytest.fixture
 def cif_5pny_coordinate_path(data_dir):
     """
@@ -52,6 +53,7 @@ def cif_5pny_coordinate_path(data_dir):
         str: The path to the CIF data file.
     """
     yield os.path.join(data_dir, "cif_files", "5pny.cif")
+
 
 @pytest.fixture
 def cif_5pny_nodb2_coordinate_path(data_dir):
@@ -66,6 +68,7 @@ def cif_5pny_nodb2_coordinate_path(data_dir):
     """
     yield os.path.join(data_dir, "cif_files", "5pny_nodb2.cif")
 
+
 @pytest.fixture
 def cif_5pny_coordinate_pdb_path(data_dir):
     """
@@ -78,6 +81,7 @@ def cif_5pny_coordinate_pdb_path(data_dir):
         str: The path to the CIF data file.
     """
     yield os.path.join(data_dir, "pdb_files", "5pny.pdb")
+
 
 @pytest.fixture
 def cns_5pny_data_path(data_dir):

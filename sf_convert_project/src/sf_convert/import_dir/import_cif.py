@@ -3,6 +3,7 @@
 import os
 from sf_convert.sffile.sf_file import StructureFactorFile
 
+
 class ImportCif:
 
     def __init__(self, logger):
@@ -23,7 +24,7 @@ class ImportCif:
 
         for fpath in fileList:
             if not os.path.exists(fpath):
-                logger(f"File {fpath} does not exist", 0)
+                self.__logger(f"File {fpath} does not exist", 0)
                 self.__sf = None
                 return None
 

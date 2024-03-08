@@ -152,7 +152,7 @@ def reformat_sfhead(sf_file, pdb_id, logger, DETAIL=None):
 
     changes_made |= rename_sfhead(sf_file, mapping_dicts, logger)
     changes_made |= remove_sfhead(sf_file, remove_list, logger)
-    changes_made |= remove_sfhead(sf_file, ["audit"], logger, 1)  # Remove audit from second and subsequent blocks 
+    changes_made |= remove_sfhead(sf_file, ["audit"], logger, 1)  # Remove audit from second and subsequent blocks
     changes_made != fix_entry_ids(sf_file, pdb_id)
     changes_made |= add_audit_if_needed(sf_file, logger)
     # changes_made |= remove_duplicate_reflections(sf_file)
@@ -333,6 +333,7 @@ def modify_attribute_value(sf_file, category_name, attribute_name, new_value, bl
 
     return False
 
+
 def fix_entry_ids(sf_file, pdbid):
     """Corrects entry ids where needed:
 
@@ -348,10 +349,9 @@ def fix_entry_ids(sf_file, pdbid):
     updates = [["entry", "id"],
                ["cell", "entry_id"],
                ["symmetry", "entry_id"],
-               ["reflns", "entry_id"],               
+               ["reflns", "entry_id"],
                ]
-               
-    
+
     changes = False
     for idx in range(sf_file.get_number_of_blocks()):
         blk = sf_file.get_block_by_index(idx)
@@ -374,6 +374,7 @@ def fix_entry_ids(sf_file, pdbid):
 
     return changes
 
+
 def add_audit_if_needed(sf_file, logger):
     """Add audit record if missing from first block
 
@@ -383,7 +384,7 @@ def add_audit_if_needed(sf_file, logger):
 
     Returns:
         bool: True if the value was modified, False otherwise.
-    """    
+    """
 
     blk = sf_file.get_block_by_index(0)
     cobj = blk.getObj("audit")
@@ -397,9 +398,10 @@ def add_audit_if_needed(sf_file, logger):
     aCat.append(["1_0", "?", "Initial release"])
 
     blk.append(aCat)
-    
-    logger.pinfo(f'Note: File has no _audit. (auto added)', 0)
+
+    logger.pinfo("Note: File has no _audit. (auto added)", 0)
     return True
+
 
 def reorder_sf_file(sf_file):
     """Reorders sf_file with a few key items on top in specific order
@@ -449,6 +451,7 @@ def reorder_sf_file(sf_file):
 
     return modified
 
+
 def update_exptl_crystal(sf_file, logger):
     """If exptl_crystal present, remove everything but id
 
@@ -458,10 +461,7 @@ def update_exptl_crystal(sf_file, logger):
 
     Returns:
         bool: True if the value was modified, False otherwise.
-    """    
-
-    allbnames = sf_file.get_all_block_names()
-
+    """
     modified = False
     for idx in range(sf_file.get_number_of_blocks()):
         blk = sf_file.get_block_by_index(idx)
@@ -480,5 +480,5 @@ def update_exptl_crystal(sf_file, logger):
         if len(cObj.getAttributeList()) == 0:
             blk.remove("exptl_crystal")
             modified = True
-                
+
     return modified

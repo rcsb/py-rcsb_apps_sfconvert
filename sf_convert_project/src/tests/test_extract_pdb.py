@@ -1,5 +1,6 @@
 from sf_convert.sffile.get_items_pdb import ProteinDataBank
 
+
 class TestExtractCoordinate:
     def test_cif(self, cif_5pny_coordinate_path, cif_5pny_nodb2_coordinate_path):
         """
@@ -41,6 +42,3 @@ class TestExtractCoordinate:
 
         assert db['pdb_id'] == "5PNY"
         assert db['RESOH'] == 1.48
-
-        
-        

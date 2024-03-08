@@ -2,7 +2,7 @@
 
 from mmcif.api.DataCategory import DataCategory
 
-from sf_convert.utils.reformat_sfhead import reformat_sfhead, reorder_sf_file, update_exptl_crystal
+from sf_convert.utils.reformat_sfhead import reformat_sfhead, update_exptl_crystal
 
 
 class SfCorrect:
@@ -25,17 +25,16 @@ class SfCorrect:
                            "intensity_meas_unknown", "intensity_sigma_unknown",
                            "pdbx_phase_calc_part_solvent", "pdbx_F_calc_part_solvent", "pdbx_F_calc_with_solvent",
                            "pdbx_phase_calc_with_solvent",
-                           "pdbx_FWT", "pdbx_PHWT", "pdbx_DELFWT", "pdbx_DELPHWT", "fom",                           
+                           "pdbx_FWT", "pdbx_PHWT", "pdbx_DELFWT", "pdbx_DELPHWT", "fom",
                            "pdbx_fiber_coordinate", "pdbx_fiber_F_meas_au", "pdbx_fiber_layer",
                            "weight",
                            ]
-        
+
     def get_pdbid(self, sffile):
         """Returns the PDB id from datablock name of sf
         """
         return sffile.extract_pdbid_from_block()
 
-    
     def annotate_wavelength(self, sffile, pdb_id, setwlarg, logger):
         """
         Handles addition of wavelength to the SF file if needed
@@ -64,14 +63,14 @@ class SfCorrect:
                     setwl = setwlarg
                     setwlf = float(setwlarg)
             except ValueError:
-                logger(f"Error: trying to set wavelength to non integer", 0)
-                
+                logger("Error: trying to set wavelength to non float", 0)
+
             if curwave:
                 if curwave not in ["?", "."]:
                     try:
                         wave = float(curwave)
                         if wave > 2.0 or wave < 0.6:
-                            logger.pinfo(f"Warning: ({pdb_id} nblock={idx} wavelength value (curwave) is abnormal (double check)!", 0);
+                            logger.pinfo(f"Warning: ({pdb_id} nblock={idx} wavelength value (curwave) is abnormal (double check)!", 0)
                     except ValueError:
                         logger.pinfo(f"Wavelength not a float {curwave}", 0)
 
@@ -93,7 +92,7 @@ class SfCorrect:
                 # Ensure proper values produced if existing data present
                 cObj = blk.getObj("refln")
                 wl = setwlarg if setwlarg else "."
-                
+
                 if cObj and "wavelength_id" in cObj.getAttributeList():
                     values = cObj.getAttributeUniqueValueList("wavelength_id")
                     data = []
@@ -114,7 +113,7 @@ class SfCorrect:
 
         if self.__legacy:
             self.__remove_similar_refln_attr(sffile)
-        
+
         if self.__legacy:
             self.__handle_legacy_attributes(sffile)
 
@@ -132,18 +131,16 @@ class SfCorrect:
             self.__cleanup_symmetry(sffile)
 
         self.__ensure_catkeys(sffile, pdbid)
-            
+
         self.__instantiate_exptl_crystal(sffile)
 
         self.__instantiate_entry(sffile, pdbid)
 
         self. __handle_diffrn(sffile, pdbid, logger, details=detail)
 
-
         sffile.correct_block_names(pdbid)
 
         reformat_sfhead(sffile, pdbid, logger, detail)
-
 
     def __handle_legacy_attributes(self, sffile):
         """ Adds in _refln.crystal_id, refln.wavelength_id and refln.scale_group_code if need be"""
@@ -160,18 +157,17 @@ class SfCorrect:
             cObj = blk.getObj("refln")
             if not cObj:
                 continue
-            
+
             for attr in ["crystal_id", "wavelength_id", "scale_group_code"]:
                 if attr not in cObj.getAttributeList():
                     added = True
                     cObj.appendAttributeExtendRows(attr, "1")
             if added:
                 self.__reorder_refln(sffile, blk.getName())
-            
+
     def __reorder_refln(self, sffile, blockname):
         """Reorders the refln block"""
         sffile.reorder_category_attributes("refln", self.__stdorder, blockname)
-        
 
     def __remove_similar_refln_attr(self, sffile):
         """ Remove common "similar" columns"""
@@ -194,8 +190,7 @@ class SfCorrect:
                 if r1[0] in attrlist and r1[1] in attrlist and r2[0] in attrlist and r2[1] in attrlist:
                     cObj.removeAttribute(r2[0])
                     cObj.removeAttribute(r2[1])
-                
-    
+
     def __update_reflns_scale(self, sffile):
         """ If reflns_scale missing in datablock add if needed"""
 
@@ -208,21 +203,20 @@ class SfCorrect:
 
             if "refln" not in blk.getObjNameList():
                 continue
-            
+
             # See if need to instantiate
             cObj = blk.getObj("refln")
             if cObj and "scale_group_code" in cObj.getAttributeList():
-                    values = cObj.getAttributeUniqueValueList("scale_group_code")
-                    data = []
-                    for val in values:
-                        data.append([val])
-                    newObj = DataCategory(cat, ["group_code"], data)
-                    blk.append(newObj)
-    
+                values = cObj.getAttributeUniqueValueList("scale_group_code")
+                data = []
+                for val in values:
+                    data.append([val])
+                newObj = DataCategory(cat, ["group_code"], data)
+                blk.append(newObj)
+
     def __update_pdbx_r_free_flag(self, sffile):
         """Old sf_convert used to use atoi(value) -- for "?" this converts to 0.  Luckily appears only for map coefficients
         """
-        
         for idx in range(sffile.get_number_of_blocks()):
             blk = sffile.get_block_by_index(idx)
 
@@ -232,14 +226,14 @@ class SfCorrect:
             cObj = blk.getObj("refln")
             if cObj is None:
                 continue  # should never happen
-                
+
             if "pdbx_r_free_flag" in cObj.getAttributeList():
                 cObj.replaceValue("?", "0", "pdbx_r_free_flag")
 
     def __update_status(self, sffile):
         """Old sf_convert used to use assume empty data is x.
         """
-        
+
         for idx in range(sffile.get_number_of_blocks()):
             blk = sffile.get_block_by_index(idx)
 
@@ -249,12 +243,10 @@ class SfCorrect:
             cObj = blk.getObj("refln")
             if cObj is None:
                 continue  # should never happen
-                
+
             if "status" in cObj.getAttributeList():
                 cObj.replaceValue("?", "x", "status")
-                cObj.replaceValue(".", "x", "status")                
-                
-                        
+                cObj.replaceValue(".", "x", "status")
 
     def __remove_categories(self, sffile):
         """Backwards compatibility - remove some categories"""
@@ -266,7 +258,6 @@ class SfCorrect:
             for cat in cats:
                 if cat in blk.getObjNameList():
                     blk.remove(cat)
-                    
 
     def __ensure_catkeys(self, sffile, pdbid):
         """Sometimes categories come in without the entry_id.  Add"""
@@ -304,8 +295,6 @@ class SfCorrect:
                     newObj = DataCategory("exptl_crystal", ["id"], data)
                     blk.append(newObj)
 
-
-    
     def __instantiate_entry(self, sffile, pdb_id):
         """If entry category is not present, create"""
 
@@ -324,7 +313,7 @@ class SfCorrect:
 
             if "symmetry" not in blk.getObjNameList():
                 continue
-            
+
             cObj = blk.getObj("symmetry")
 
             attrlist = list(cObj.getAttributeList())  # ensure not an iterator that might get changed
@@ -337,7 +326,6 @@ class SfCorrect:
             attrlist = cObj.getAttributeList()
             if len(attrlist) == 0 or attrlist == ["entry_id"]:
                 blk.remove("symmetry")
-                
 
     def __handle_diffrn(self, sffile, pdbid, logger, details=None):
         """Instantiate diffrn category if needed, see diffrn.id if needed."""
@@ -359,7 +347,6 @@ class SfCorrect:
                         difids.update(values)
                         needdiffrn = True
 
-
             if len(difids) == 0:
                 difids.add("1")
             diffidsl = sorted([int(x) for x in list(difids)])
@@ -368,7 +355,7 @@ class SfCorrect:
             if "refln" in blk.getObjNameList():
                 cObj2 = blk.getObj("refln")
                 if "crystal_id" not in cObj2.getAttributeList():
-                    crystids =["1"]
+                    crystids = ["1"]
                 else:
                     crystids = cObj2.getAttributeUniqueValueList("crystal_id")
 
@@ -397,6 +384,5 @@ class SfCorrect:
                 cObj.appendAttributeExtendRows("crystal_id", crystids[0])
             if details and "details" not in cObj.getAttributeList():
                 cObj.appendAttributeExtendRows("details", details)
-                
-                
+
             sffile.reorder_category_attributes("diffrn", ["id", "crystal_id", "ambient_temp", "crystal_treatment", "details"], blk.getName())

@@ -2,6 +2,7 @@ import os
 import re
 import sys
 
+
 def is_cif(fpath, pinfo):
     """Determine if the contents fpath looks like a cif file.  Quick and dirty.
 
@@ -15,7 +16,7 @@ def is_cif(fpath, pinfo):
         pinfo.pinfo("%s does not exist" % fpath, 1)
         return False
 
-    regexp = re.compile("^_[a-zA-Z0-9_]+\.[a-zA-Z0-9_]+")
+    regexp = re.compile("^_[a-zA-Z0-9_]+\\.[a-zA-Z0-9_]+")
 
     found = 0
     threshold = 60

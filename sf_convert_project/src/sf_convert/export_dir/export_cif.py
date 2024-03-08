@@ -11,7 +11,7 @@ class ExportCif:
         """
         self.__legacy = legacy
         self.__sffile = None
-        
+
     def load_input(self, pathIn):
         """
         Loads PDBx/mmCIF SF file
@@ -44,4 +44,3 @@ class ExportCif:
         # Legacy requires END and END OF DATA comments
         endc = True if self.__legacy else False
         self.__sffile.write_file(pathOut, endcomments=endc)
-

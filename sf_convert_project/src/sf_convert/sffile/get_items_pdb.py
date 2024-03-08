@@ -24,7 +24,7 @@ class ProteinDataBank:
         cl = io.readFile(sffile)
         if cl is None:
             return {}
-        
+
         container = cl[0]
         attributes = self._get_cif_attributes(container)
 
@@ -68,7 +68,6 @@ class ProteinDataBank:
             else:
                 for attr, output_name in attrs:
                     attributes[output_name] = None
-
 
         # Extract entry from database_2
         pdb_id = None
