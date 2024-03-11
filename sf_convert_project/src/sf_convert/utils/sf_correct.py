@@ -138,9 +138,12 @@ class SfCorrect:
 
         self. __handle_diffrn(sffile, pdbid, logger, details=detail)
 
+        self.__cleanup_audit(sffile, logger)
+
         sffile.correct_block_names(pdbid)
 
         reformat_sfhead(sffile, pdbid, logger, detail)
+
 
     def __handle_legacy_attributes(self, sffile):
         """ Adds in _refln.crystal_id, refln.wavelength_id and refln.scale_group_code if need be"""
@@ -386,3 +389,34 @@ class SfCorrect:
                 cObj.appendAttributeExtendRows("details", details)
 
             sffile.reorder_category_attributes("diffrn", ["id", "crystal_id", "ambient_temp", "crystal_treatment", "details"], blk.getName())
+
+    def __cleanup_audit(self, sffile, logger):
+        """Cleanup audit records that should not be present
+
+        Args:
+            sffile (StructureFactorFile): The structure factor file object.
+            logger: The logger object for logging messages.
+
+        Returns:
+            None: True if the value was modified, False otherwise.
+        """
+
+        blk = sffile.get_block_by_index(0)
+
+        cat = "audit"
+        cObj = blk.getObj(cat)
+        if cObj is None:
+            return False
+
+        curlist = cObj.getAttributeList()
+
+        allowed = ["revision_id", "creation_date", "update_record"]
+
+        upd = False
+        for attr in curlist:
+            if attr not in allowed:
+                cObj.removeAttribute(attr)
+                logger.pinfo(f"Warning: block has unwanted CIF item _{cat}.{attr} and is removed", 0)
+                upd = True
+
+        return upd
