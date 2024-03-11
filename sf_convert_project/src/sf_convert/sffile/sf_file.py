@@ -445,7 +445,7 @@ class StructureFactorFile:
 
            Args:
              sfnew (StructureFactorFile): Object to merge
-        """                        
+        """
         for idx in range(sfnew.get_number_of_blocks()):
             blk = sfnew.get_block_by_index(idx)
 

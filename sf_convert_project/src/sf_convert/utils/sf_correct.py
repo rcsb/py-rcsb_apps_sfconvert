@@ -136,14 +136,16 @@ class SfCorrect:
 
         self.__instantiate_entry(sffile, pdbid)
 
-        self. __handle_diffrn(sffile, pdbid, logger, details=detail)
-
         self.__cleanup_audit(sffile, logger)
+
+        self.__handle_reflns(sffile, logger)
+
+        self.__handle_diffrn(sffile, pdbid, logger, details=detail)
 
         sffile.correct_block_names(pdbid)
 
+        # This reorders categories as well
         reformat_sfhead(sffile, pdbid, logger, detail)
-
 
     def __handle_legacy_attributes(self, sffile):
         """ Adds in _refln.crystal_id, refln.wavelength_id and refln.scale_group_code if need be"""
@@ -420,3 +422,79 @@ class SfCorrect:
                 upd = True
 
         return upd
+
+    def __handle_reflns(self, sffile, logger):
+        """Handles reflns and diffrn_reflns data
+
+        Assumption: diffrn_id is 1 if not provided
+
+        diffrn_reflns and reflns are merged to diffrn_reflns
+        """
+        def get_val(attr_ref, attr_dif):
+            val = None
+            if cObjref and attr_ref in cObjref.getAttributeList():
+                val = cObjref.getValue(attr_ref, 0)
+            if val is None and cObjdif and attr_dif in cObjdif.getAttributeList():
+                val = cObjdif.getValue(attr_dif, 0)
+
+            return val
+
+        for idx in range(sffile.get_number_of_blocks()):
+            blk = sffile.get_block_by_index(idx)
+
+            cObjdif = blk.getObj("diffrn_reflns")
+            cObjref = blk.getObj("reflns")
+
+            if cObjdif is None and cObjref is None:
+                continue
+
+
+            props = [["resh", "d_resolution_high", "pdbx_d_res_high"],
+                     ["resl", "d_resolution_low", "pdbx_d_res_low"],
+                     ["hmax", "limit_h_max", "limit_h_max"],
+                     ["kmax", "limit_k_max", "limit_k_max"],
+                     ["lmax", "limit_l_max", "limit_l_max"],
+                     ["hmin", "limit_h_min", "limit_h_min"],
+                     ["kmin", "limit_k_min", "limit_k_min"],
+                     ["lmin", "limit_l_min", "limit_l_min"],
+                     ["nall", "number_all", "number"],
+                     ["nobs", "number_obs", "pdbx_number_obs"],
+                     ]
+
+            data = {}
+            for p in props:
+                k = p[0]
+                rk = p[1]
+                rd = p[2]
+                val = get_val(rk, rd)
+                if val:
+                    data[k] = val
+
+            if not data.get("resh", None) and not data.get("nall", None) and not data.get("nobs", None):
+                continue
+
+            if cObjref:
+                blk.remove("reflns")
+
+            create = False
+            if cObjdif is None:
+                cObjdif = DataCategory("diffrn_reflns")
+                create = True
+
+            if "diffrn_id" not in cObjdif.getAttributeList():
+                # appendAttributeExtendRows must have data to use or will not set - until some data present
+                cObjdif.appendAttributeExtendRows("diffrn_id")
+                cObjdif.setValue("1", "diffrn_id", 0)
+
+            for p in props:
+                k = p[0]
+                rd = p[2]
+                if k in data:
+                    val = data[k]
+                    if rd in cObjdif.getAttributeList():
+                        cObjdif.setValue(val, rd, 0)
+                    else:
+                        cObjdif.appendAttributeExtendRows(rd, val)
+
+            if create:
+                blk.append(cObjdif)
