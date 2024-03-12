@@ -151,6 +151,8 @@ class SfCorrect:
         # In case some blocks need updating
         self.__reorder_refln_all(sffile)
 
+        self.__reorder_symmetry(sffile)
+
         self.__reorder_sf_file(sffile)
 
     def __handle_legacy_attributes(self, sffile):
@@ -448,10 +450,10 @@ class SfCorrect:
             props = [["resh", "d_resolution_high", "pdbx_d_res_high"],
                      ["resl", "d_resolution_low", "pdbx_d_res_low"],
                      ["hmax", "limit_h_max", "limit_h_max"],
-                     ["kmax", "limit_k_max", "limit_k_max"],
-                     ["lmax", "limit_l_max", "limit_l_max"],
                      ["hmin", "limit_h_min", "limit_h_min"],
+                     ["kmax", "limit_k_max", "limit_k_max"],
                      ["kmin", "limit_k_min", "limit_k_min"],
+                     ["lmax", "limit_l_max", "limit_l_max"],
                      ["lmin", "limit_l_min", "limit_l_min"],
                      ["nall", "number_all", "number"],
                      ["nobs", "number_obs", "pdbx_number_obs"],
@@ -540,3 +542,15 @@ class SfCorrect:
                 continue
 
             sffile.reorder_category_attributes("refln", self.__stdorder, blk.getName())
+
+    def __reorder_symmetry(self, sffile):
+        """Reorders symmetry category for all blocks"""
+        for idx in range(sffile.get_number_of_blocks()):
+            blk = sffile.get_block_by_index(idx)
+
+            cObj = blk.getObj("symmetry")
+            if not cObj:
+                continue
+
+            sffile.reorder_category_attributes("symmetry", ["entry_id", "space_group_name_H-M", "Int_Tables_number"], blk.getName())
+            
