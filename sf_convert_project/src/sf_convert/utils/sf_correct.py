@@ -2,7 +2,7 @@
 
 from mmcif.api.DataCategory import DataCategory
 
-from sf_convert.utils.reformat_sfhead import reformat_sfhead, update_exptl_crystal
+from sf_convert.utils.reformat_sfhead import reformat_sfhead, reorder_sf_file
 
 
 class SfCorrect:
@@ -109,7 +109,7 @@ class SfCorrect:
         """Handles standard operations"""
 
         detail = None
-        update_exptl_crystal(sffile, logger)
+        self.__update_exptl_crystal(sffile, logger)
 
         if self.__legacy:
             self.__remove_similar_refln_attr(sffile)
@@ -138,22 +138,26 @@ class SfCorrect:
 
         self.__cleanup_audit(sffile, logger)
 
+        # This reorders categories as well
+        reformat_sfhead(sffile, pdbid, logger, detail)
+
+        # Reflns names might have been modified
         self.__handle_reflns(sffile, logger)
 
         self.__handle_diffrn(sffile, pdbid, logger, details=detail)
 
         sffile.correct_block_names(pdbid)
 
-        # This reorders categories as well
-        reformat_sfhead(sffile, pdbid, logger, detail)
+        # In case some blocks need updating
+        self.__reorder_refln_all(sffile)
+
+        self.__reorder_sf_file(sffile)
 
     def __handle_legacy_attributes(self, sffile):
         """ Adds in _refln.crystal_id, refln.wavelength_id and refln.scale_group_code if need be"""
 
         for idx in range(sffile.get_number_of_blocks()):
             blk = sffile.get_block_by_index(idx)
-
-            added = False
 
             # For new data coming from staraniso, these attributes are not added
             if "pdbx_audit_conform" in blk.getObjNameList():
@@ -165,14 +169,7 @@ class SfCorrect:
 
             for attr in ["crystal_id", "wavelength_id", "scale_group_code"]:
                 if attr not in cObj.getAttributeList():
-                    added = True
                     cObj.appendAttributeExtendRows(attr, "1")
-            if added:
-                self.__reorder_refln(sffile, blk.getName())
-
-    def __reorder_refln(self, sffile, blockname):
-        """Reorders the refln block"""
-        sffile.reorder_category_attributes("refln", self.__stdorder, blockname)
 
     def __remove_similar_refln_attr(self, sffile):
         """ Remove common "similar" columns"""
@@ -448,7 +445,6 @@ class SfCorrect:
             if cObjdif is None and cObjref is None:
                 continue
 
-
             props = [["resh", "d_resolution_high", "pdbx_d_res_high"],
                      ["resl", "d_resolution_low", "pdbx_d_res_low"],
                      ["hmax", "limit_h_max", "limit_h_max"],
@@ -498,3 +494,49 @@ class SfCorrect:
 
             if create:
                 blk.append(cObjdif)
+
+    def __reorder_sf_file(self, sffile):
+        """Reorders sf_file"""
+        reorder_sf_file(sffile)
+
+    def __update_exptl_crystal(self, sf_file, logger):
+        """If exptl_crystal present, remove everything but id
+
+           Args:
+              sf_file (StructureFactorFile): The structure factor file object.
+              logger: The logger object for logging messages.
+
+           Returns:
+              bool: True if the value was modified, False otherwise.
+        """
+        modified = False
+        for idx in range(sf_file.get_number_of_blocks()):
+            blk = sf_file.get_block_by_index(idx)
+
+            cObj = blk.getObj("exptl_crystal")
+            if not cObj:
+                continue
+
+            attrNames = cObj.getAttributeList()
+            # We do not want to to be updating while removing
+            for attr in attrNames:
+                if attr not in ["id"]:
+                    modified = True
+                    cObj.removeAttribute(attr)
+
+            if len(cObj.getAttributeList()) == 0:
+                blk.remove("exptl_crystal")
+                modified = True
+
+        return modified
+
+    def __reorder_refln_all(self, sffile):
+        """Reorders refln category for all blocks"""
+        for idx in range(sffile.get_number_of_blocks()):
+            blk = sffile.get_block_by_index(idx)
+
+            cObj = blk.getObj("refln")
+            if not cObj:
+                continue
+
+            sffile.reorder_category_attributes("refln", self.__stdorder, blk.getName())

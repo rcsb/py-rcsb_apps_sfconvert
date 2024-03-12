@@ -2,7 +2,7 @@ import argparse
 import os
 import re
 import sys
-from pathlib import Path
+
 from sf_convert.sffile.get_items_pdb import ProteinDataBank
 from sf_convert.import_dir.mtz2cif import MtzToCifConverter
 from sf_convert.import_dir.import_cif import ImportCif
@@ -11,7 +11,7 @@ from sf_convert.export_dir.cif2cns import CifToCNSConverter
 from sf_convert.export_dir.cif2mtz import CifToMTZConverter
 from sf_convert.export_dir.export_cif import ExportCif
 from sf_convert.sffile.guess_sf_format import guess_sf_format
-from sf_convert.utils.reformat_sfhead import reformat_sfhead, reorder_sf_file, update_exptl_crystal
+from sf_convert.utils.reformat_sfhead import reformat_sfhead
 from sf_convert.utils.sf_correct import SfCorrect
 from sf_convert.utils.pinfo_file import PInfoLogger
 from sf_convert.utils.get_sf_info_file import get_sf_info
