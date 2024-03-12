@@ -23,17 +23,13 @@ class TestMtzToCifConversion:
 
         print("Loading and converting the file...")
         logger = PInfoLogger('path_to_log1.log', 'path_to_log2.log')
-        converter = MtzToCifConverter(mtz_Ras_NAD_data_path, output_path, "5pny", logger)
+        converter = MtzToCifConverter(mtz_Ras_NAD_data_path, output_path, logger)
         # converter.process_labels()  # if labels are required
-        converter.convert_and_write()
+        converter.convert()
+        sffile = converter.get_sf()
+        sffile.write_file(output_path)
 
         print("Comparing the outputs...")
-        # with open(cif_Ras_NAD_data_path, 'r') as f:
-        #     expected_output = f.read()
-        # with open(output_path, 'r') as f:
-        #     actual_output = f.read()
-
-        # assert cif_Ras_NAD_data_path == output_path
         comp_sfcif(cif_Ras_NAD_data_path, output_path)
 
         print("Test completed.")
