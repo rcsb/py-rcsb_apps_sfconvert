@@ -7,7 +7,7 @@ from sf_convert.sffile.sf_file import StructureFactorFile as SFFile
 
 
 class MtzToCifConverter:
-    def __init__(self, mtz_file_path, output_file_path, pdb_id, logger):
+    def __init__(self, mtz_file_path, output_file_path, logger):
         """
         Initializes the MtzToCifConverter object.
 
@@ -17,7 +17,6 @@ class MtzToCifConverter:
             pdb_id (str): The PDB ID.
             logger (Logger): The logger object for logging messages.
         """
-        self.pdb_id = pdb_id
         self.__pinfo_value = 0
         self.mtz_file_path = mtz_file_path
         self.output_file_path = output_file_path
@@ -220,6 +219,12 @@ class MtzToCifConverter:
         """
         spec_lines = ['\t'.join(line) for line in self.spec_file_content]
         self.mtz2cif.spec_lines = spec_lines
+
+    def set_free(self, free):
+        """
+        Sets the free R value for the MtzToCif object.
+        """
+        self.mtz2cif.free_flag_value = free
 
     def convert_mtz_to_cif(self):
         """
@@ -453,7 +458,7 @@ class MtzToCifConverter:
         filtered_results = [(type_, label, full_label) for label, type_, full_label in results if full_label != "Unknown Label"]
         return filtered_results + self.CUSTOM_END
 
-    def convert_and_write(self):
+    def convert(self):
         """
         Converts the MTZ file to CIF format and writes it to the output file.
         """
@@ -467,48 +472,12 @@ class MtzToCifConverter:
         with open(temp_file, 'w') as f:
             f.write(cif_doc)
         self.read_cif_file(temp_file)
+        os.remove(temp_file)
         self.add_category(self.categories)
 
         new_order = ['audit', 'cell', 'diffrn_radiation_wavelength', 'entry', 'exptl_crystal', 'reflns_scale', 'symmetry', 'refln']
         self.sffile.reorder_categories_in_block(new_order)
         self.sffile.correct_block_names("xxxx")  # XXXX assumes entry.id = xxxx - need to be able to specify pdb id
-        self.sffile.write_file(self.output_file_path)
-        os.remove(temp_file)
 
-    def convert_for_nfree(self, nfree_value: int = None):
-        """
-        Converts the MTZ file to CIF format with the specified nfree value.
-
-        Args:
-            nfree_value (int): The nfree value.
-
-        Returns:
-            None
-        """
-        cmd = ["gemmi", "mtz2cif", self.mtz_file_path, self.output_file_path]
-
-        # Create a temporary spec file from self.spec_file_content
-        with tempfile.NamedTemporaryFile('w', delete=False, suffix='.spec') as temp_spec:
-            for line in self.spec_file_content:
-                temp_spec.write(' '.join(line) + '\n')
-            spec_file_path = temp_spec.name
-
-        # Add spec file to command
-        cmd.insert(2, "--spec=" + spec_file_path)
-
-        # Add nfree value if provided
-        if nfree_value is not None:
-            cmd.insert(2, "--nfree=" + str(nfree_value))
-
-        result = subprocess.run(cmd, capture_output=True, text=True, check=False)
-
-        # Delete the temporary spec file
-        try:
-            os.remove(spec_file_path)
-        except Exception as e:
-            self.__logger.pinfo(f"Error deleting temp spec file: {e}", 2)
-
-        if result.returncode != 0:
-            self.__logger.pinfo(f"Error occurred: {result.stderr}", 2)
-        else:
-            self.__logger.pinfo("Conversion successful!", 2)
+    def get_sf(self):
+        return self.sffile

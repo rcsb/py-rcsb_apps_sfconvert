@@ -71,9 +71,7 @@ class SFConvertMain:
 
         sfc.annotate_wavelength(sffile, pdbid, setwlarg, logger)
         # cell
-
-        # Cleanup exptl_crystal. Only leave id
-
+        # XXXX
         
         sfc.handle_standard(sffile, pdbid, logger)
         
@@ -82,7 +80,57 @@ class SFConvertMain:
         
         ec.write_file(output)
 
+    def MTZ_to_mmCIF(self, pdict, logger):
+        """
+        Converts from MTZ format to mmCIF format.
 
+        Args:
+        pdict: request dictionary
+        """
+        sfin =  pdict["sfin"][0]
+        output = pdict["output"]
+        pdb_data = pdict.get("pdb_data", {})
+
+        sfc = SfCorrect(self.__logger)
+
+        # pdb_wave = pdb_data.get("WAVE", None)
+        # wave_arg = pdict.get("wave_cmdline", None)        
+
+        converter = MtzToCifConverter(sfin, output, logger)
+
+        if pdict.get("label", None):
+            converter.process_labels(pdict["label"])
+
+        free = pdict.get("free", None)
+        if free:
+            converter.set_free(free)
+
+        converter.convert()
+
+        sffile = converter.get_sf()
+
+        # PDB id comes from
+        #  sffile block name - unless coordinate file used - and then use that
+        pdbid = pdb_data.get("pdb_id", None)
+
+        if not pdbid:
+            pdbid = sfc.get_pdbid(sffile)  # XXX should be a utility function somewhere else
+
+        if pdbid:
+            pdbid = pdbid.lower()
+
+        reformat_sf_header(sffile, pdbid, logger)
+
+        sffile.correct_block_names(pdbid)
+        
+        ec = ExportCif(self.__legacy)
+        ec.set_sf(sffile)
+        
+        ec.write_file(output)
+
+        
+
+        
 class CustomHelpParser(argparse.ArgumentParser):
     def print_help(self, file=None):  # pylint: disable=unused-argument
         """
@@ -317,7 +365,7 @@ def handle_freer_argument(args, pdb, logger):
     """
     if args.freer <= 0:
         raise ValueError("-freer argument must be a positive integer.")
-    pdb.update_FREERV(args.freer)
+    # pdb.update_FREERV(args.freer)
     logger.pinfo(f"Note: {args.freer} is used for free data set.", 0)
 
 
@@ -389,34 +437,34 @@ def convert_from_CNS_to_mmCIF(args, pdb, logger):
     os.remove(args.out)
 
 
-def convert_from_MTZ_to_mmCIF(args, pdb, logger):
-    """
-    Converts from MTZ format to mmCIF format.
+# def convert_from_MTZ_to_mmCIF(args, pdb, logger):
+#     """
+#     Converts from MTZ format to mmCIF format.
 
-    Args:
-        args: The command line arguments.
-        pdb: The ProteinDataBank object.
-        logger: The PInfoLogger object.
-    """
-    converter = MtzToCifConverter(args.sf, args.out, pdb.pdb_id, logger)
-    if args.label:
-        converter.process_labels(args.label)
-    if pdb.FREERV:
-        converter.convert_for_nfree(pdb.FREERV)
-    else:
-        converter.convert_and_write()
+#     Args:
+#         args: The command line arguments.
+#         pdb: The ProteinDataBank object.
+#         logger: The PInfoLogger object.
+#     """
+#     converter = MtzToCifConverter(args.sf, args.out, pdb.pdb_id, logger)
+#     if args.label:
+#         converter.process_labels(args.label)
+#     if pdb.FREERV:
+#         converter.convert_for_nfree(pdb.FREERV)
+#     else:
+#         converter.convert_and_write()
 
-    sffile = StructureFactorFile()
-    sffile.read_file(args.out)
+#     sffile = StructureFactorFile()
+#     sffile.read_file(args.out)
 
-    reformat_sf_header(sffile, args, logger)
+#     reformat_sf_header(sffile, args, logger)
 
-    if args.multidatablock:
-        validate_block_name(args.multidatablock)
-        sffile.correct_block_names(args.multidatablock)
+#     if args.multidatablock:
+#         validate_block_name(args.multidatablock)
+#         sffile.correct_block_names(args.multidatablock)
 
-    sffile.write_file(args.out + ".mmcif")
-    os.remove(args.out)
+#     sffile.write_file(args.out + ".mmcif")
+#     os.remove(args.out)
 
 
 def convert_from_mmCIF_to_MTZ(args):
@@ -558,6 +606,12 @@ def convert_files(args, input_format, pdb_data, logger):
 
     if args.wave is not None:
         pdict["wave_cmdline"] = float(args.wave)   #  Type checked in argument parser
+
+    if args.label is not None:
+        pdict["label"] is args.label
+
+    if args.freer:
+        pdict["free"] = args.freer
         
     # Maybe come from SF if set originally?
     #pdbid = "xxxx"
@@ -570,7 +624,7 @@ def convert_files(args, input_format, pdb_data, logger):
     if input_format == "CNS" and output_format == "MMCIF":
         convert_from_CNS_to_mmCIF(args, pdb, logger)
     elif input_format == "MTZ" and output_format == "MMCIF":
-        convert_from_MTZ_to_mmCIF(args, pdb, logger)
+        sfc.MTZ_to_mmCIF(pdict, logger)
     elif input_format == "MMCIF" and output_format == "MTZ":
         convert_from_mmCIF_to_MTZ(args)
     elif input_format == "MMCIF" and output_format == "CNS":
