@@ -311,8 +311,8 @@ class StructureFactorFile:
         reordered_category = reorderCategoryAttr(category, new_order)
 
         # Replace the existing category with the reordered one
-        self.remove_category_by_name(category_name, block_name)
-        self.append_category_to_block(reordered_category, block_name)
+        _, block = self.get_block_by_name(block_name)
+        block.replace(reordered_category)
 
     def reorder_categories_in_block(self, new_order, block_name=None):
         """
