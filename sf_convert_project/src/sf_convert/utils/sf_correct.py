@@ -105,6 +105,37 @@ class SfCorrect:
                 blk.append(newObj)
                 logger.pinfo(f"Creating {cat} in nblock={idx}", 0)
 
+    def __instantiate_diffrn_rad_wavelength(self, sffile, logger):
+        """Instantiate diffrn_radiation_wavelength if needed.  In case wavelength is not set, but needed for dictionary purposes"""
+
+        cat = "diffrn_radiation_wavelength"
+        for idx in range(sffile.get_number_of_blocks()):
+            blk = sffile.get_block_by_index(idx)
+
+            cObj = blk.getObj(cat)
+            if cObj:
+                continue
+
+            # Instantiate if needed
+            cObj = blk.getObj("refln")
+            if not cObj:
+                continue
+            if "wavelength_id" not in cObj.getAttributeList():
+                continue
+
+            values = cObj.getAttributeUniqueValueList("wavelength_id")
+
+            data = []
+            for val in values:
+                data.append([val, "."])
+
+            newObj = DataCategory(cat, ["id", "wavelength"], data)
+            blk.append(newObj)
+            logger.pinfo(f"Creating {cat} in nblock={idx}", 0)
+                
+
+
+            
     def handle_standard(self, sffile, pdbid, logger):
         """Handles standard operations"""
 
@@ -145,6 +176,8 @@ class SfCorrect:
         self.__handle_reflns(sffile, logger)
 
         self.__handle_diffrn(sffile, pdbid, logger, details=detail)
+
+        self.__instantiate_diffrn_rad_wavelength(sffile, logger)
 
         sffile.correct_block_names(pdbid)
 
