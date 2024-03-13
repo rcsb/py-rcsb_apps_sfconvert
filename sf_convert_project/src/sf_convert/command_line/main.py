@@ -119,9 +119,10 @@ class SFConvertMain:
         if pdbid:
             pdbid = pdbid.lower()
 
-        reformat_sf_header(sffile, pdbid, logger)
+        sfc.handle_standard(sffile, pdbid, logger)
+#        reformat_sf_header(sffile, pdbid, logger)
 
-        sffile.correct_block_names(pdbid)
+#        sffile.correct_block_names(pdbid)
         
         ec = ExportCif(self.__legacy)
         ec.set_sf(sffile)
