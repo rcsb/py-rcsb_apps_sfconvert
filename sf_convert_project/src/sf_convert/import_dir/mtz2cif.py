@@ -24,7 +24,7 @@ class MtzToCifConverter:
         self.sffile = SFFile()
         self.__logger = logger
         self.assigned_labels = set()
-        self.categories = {
+        self.__categories = {
             "audit": {
                 "revision_id": "1_0",
                 "creation_date": "?",
@@ -38,43 +38,8 @@ class MtzToCifConverter:
             }
         }
         self.__logger.pinfo(f'Note: file {self.mtz_file_path} has no _audit. (auto added)', self.__pinfo_value)
-        self.spec_file_content = [
-            ('H', 'H', 'index_h'),
-            ('K', 'H', 'index_k'),
-            ('L', 'H', 'index_l'),
-            ('? FREE|RFREE|FREER|FreeR_flag|R-free-flags|FreeRflag', 'I', 'status', 'S'),
-            ('? FREE|RFREE|FREER|R-free-flags|FreeRflag', 'I', 'pdbx_r_free_flag'),
-            ('? FreeR_flag', 'I', 'pdbx_r_free_flag'),
-            ('? F_XDSdataset', 'F', 'F_meas_au'),
-            ('? SIGF_XDSdataset', 'Q', 'F_meas_sigma_au'),
-            ('? FC', 'F', 'F_calc_au'),
-            ('? PHIC', 'P', 'phase_calc'),
-            ('? PHIB', 'P', 'phase_meas'),
-            ('? FWT|2FOFCWT', 'F', 'pdbx_FWT'),
-            ('& PHWT|PH2FOFCWT', 'P', 'pdbx_PHWT', '.3f'),
-            ('? DELFWT|FOFCWT', 'F', 'pdbx_DELFWT'),
-            ('& DELPHWT|PHDELWT|PHFOFCWT', 'P', 'pdbx_DELPHWT', '.3f'),
-            ('? IMEAN|I|IOBS|I-obs', 'J', 'intensity_meas'),
-            ('& SIG{prev}', 'Q', 'intensity_sigma'),
-            ('? I(+)|IOBS(+)|I-obs(+)', 'K', 'pdbx_I_plus'),
-            ('& SIG{prev}', 'M', 'pdbx_I_plus_sigma'),
-            ('? I(-)|IOBS(-)|I-obs(-)', 'K', 'pdbx_I_minus'),
-            ('& SIG{prev}', 'M', 'pdbx_I_minus_sigma'),
-            ('? F|FP|FOBS|F-obs', 'F', 'F_meas_au'),
-            ('& SIG{prev}', 'Q', 'F_meas_sigma_au'),
-            ('? F(+)|FOBS(+)|F-obs(+)', 'G', 'pdbx_F_plus'),
-            ('& SIG{prev}', 'L', 'pdbx_F_plus_sigma'),
-            ('? F(-)|FOBS(-)|F-obs(-)', 'G', 'pdbx_F_minus'),
-            ('& SIG{prev}', 'L', 'pdbx_F_minus_sigma'),
-            ('? DP', 'D', 'pdbx_anom_difference'),
-            ('& SIGDP', 'Q', 'pdbx_anom_difference_sigma'),
-            ('? FOM', 'W', 'fom'),
-            ('? HLA', 'A', 'pdbx_HL_A_iso'),
-            ('& HLB', 'A', 'pdbx_HL_B_iso'),
-            ('& HLC', 'A', 'pdbx_HL_C_iso'),
-            ('& HLD', 'A', 'pdbx_HL_D_iso')
-        ]
-        self.labels = [
+
+        self.__labels = [
             ('H', 'H', 'index_h'),
             ('K', 'H', 'index_k'),
             ('L', 'H', 'index_l'),
@@ -148,68 +113,7 @@ class MtzToCifConverter:
             ('&', 'HLD', 'A', 'pdbx_HL_D_iso')
         ]
 
-        self.REVERSE_LABEL_PREDICTIONS = {
-            'F': {
-                'FP': 'F_meas_au',
-                'FC': 'F_calc_au',
-                'FWT': 'pdbx_FWT',
-                'DELFWT': 'pdbx_DELFWT',
-            },
-            'Q': {
-                'SIGFP': 'F_meas_sigma_au',
-                'SIGI': 'intensity_sigma',
-                'SIGDP': 'pdbx_anom_difference_sigma',
-            },
-            'J': {
-                'I': 'intensity_meas'
-            },
-            'P': {
-                'PHIC': 'phase_calc',
-                'PHIB': 'phase_meas',
-                'PHWT': 'pdbx_PHWT',
-                'DELPHWT': 'pdbx_DELPHWT',
-            },
-            'W': {
-                'FOM': 'fom'
-            },
-            'A': {
-                'HLA': 'pdbx_HL_A_iso',
-                'HLB': 'pdbx_HL_B_iso',
-                'HLC': 'pdbx_HL_C_iso',
-                'HLD': 'pdbx_HL_D_iso',
-            },
-            'G': {
-                'F(+)': 'pdbx_F_plus',
-                'F(-)': 'pdbx_F_minus',
-            },
-            'L': {
-                'SIGF(+)': 'pdbx_F_plus_sigma',
-                'SIGF(-)': 'pdbx_F_minus_sigma',
-            },
-            'D': {
-                'DP': 'pdbx_anom_difference'
-            },
-            'K': {
-                'I(+)': 'pdbx_I_plus',
-                'I(-)': 'pdbx_I_minus'
-            },
-            'M': {
-                'SIGI(+)': 'pdbx_I_plus_sigma',
-                'SIGI(-)': 'pdbx_I_minus_sigma'
-            },
-            'I': {
-                'FREE': 'status',
-                'FLAG': 'pdbx_r_free_flag'
-            }
-        }
-
-        self.CUSTOM_START = [
-            ('H', 'H', 'index_h'),
-            ('K', 'H', 'index_k'),
-            ('L', 'H', 'index_l')
-        ]
-
-        self.CUSTOM_END = [
+        self.__CUSTOM_END = [
             ('? FREE|RFREE|FREER|FreeR_flag|R-free-flags|FreeRflag', 'I', 'status', 'S')
         ]
 
@@ -236,7 +140,7 @@ class MtzToCifConverter:
         mtz = gemmi.read_mtz_file(self.mtz_file_path)
         return self.mtz2cif.write_cif_to_string(mtz)
 
-    def read_cif_file(self, cif_file):
+    def __read_cif_file(self, cif_file):
         """
         Reads the CIF file.
 
@@ -245,7 +149,7 @@ class MtzToCifConverter:
         """
         self.sffile.read_file(cif_file)
 
-    def add_category(self, categories):
+    def __add_category(self, categories):
         """
         Adds the specified categories to the CIF file.
 
@@ -258,39 +162,6 @@ class MtzToCifConverter:
                 category.appendAttribute(key)
             category.append(tuple(data_dict.values()))
             self.sffile.append_category_to_block(category)
-
-    def match_replace_and_format_labels(self, input_string):
-        """
-        Matches, replaces, and formats the labels based on the input string.
-
-        Args:
-            input_string (str): The input string containing the key-value pairs.
-
-        Returns:
-            None
-        """
-        key_value_pairs = input_string.split(', ')
-        key_value_dict = {pair.split('=')[0]: pair.split('=')[1] for pair in key_value_pairs}
-
-        replaced_and_formatted_labels = []
-
-        for label in self.labels:
-            if label[0] in ["?", "&"] and label[1] in key_value_dict.keys():
-                replaced_label = (label[0], label[1], label[2], key_value_dict[label[1]])
-                if replaced_label[0] in ["?", "&"]:
-                    replaced_and_formatted_labels.append((f"{replaced_label[0]} {replaced_label[1]}", *replaced_label[2:]))
-                else:
-                    replaced_and_formatted_labels.append(replaced_label)
-            elif label[0] in key_value_dict.keys():
-                replaced_label = (label[0], label[1], key_value_dict[label[0]], *label[3:])
-                if replaced_label[0] in ["?", "&"]:
-                    replaced_and_formatted_labels.append((f"{replaced_label[0]} {replaced_label[1]}", *replaced_label[2:]))
-                else:
-                    replaced_and_formatted_labels.append(replaced_label)
-
-        self.spec_file_content = replaced_and_formatted_labels
-        print(self.spec_file_content)
-        self.convert_and_write()
 
     def process_labels(self, input_string):
         """
@@ -307,7 +178,7 @@ class MtzToCifConverter:
 
         processed_labels = []
 
-        for label in self.labels:
+        for label in self.__labels:
             if label[0] in ["?", "&"] and label[1] in key_value_dict.keys():
                 replaced_label = (label[0], key_value_dict[label[1]], label[2], label[3])
                 processed_label = (f"{replaced_label[0]} {replaced_label[1]}", *replaced_label[2:]) if replaced_label[0] in ["?", "&"] else replaced_label
@@ -436,10 +307,11 @@ class MtzToCifConverter:
         results = []
         for i in range(len(labels_list)):
             generated_label = self.generate_full_label(i, labels_list)
-            results.append((labels_list[i][0], labels_list[i][1], generated_label))
+            results.append((labels_list[i][0], labels_list[i][1],
+                            generated_label))
             if generated_label == "pdbx_r_free_flag":
-                self.CUSTOM_END = []
-                self.CUSTOM_END.append((labels_list[i][1], labels_list[i][0], 'status', 'S'))
+                self.__CUSTOM_END = []
+                self.__CUSTOM_END.append((labels_list[i][1], labels_list[i][0], 'status', 'S'))
         return results
 
     def get_mtz_columns_with_custom_entries(self, mtz_file):
@@ -456,7 +328,7 @@ class MtzToCifConverter:
         labels_list = [(column.type, column.label) for column in mtz.columns]
         results = self.generate_full_labels_for_list(labels_list)
         filtered_results = [(type_, label, full_label) for label, type_, full_label in results if full_label != "Unknown Label"]
-        return filtered_results + self.CUSTOM_END
+        return filtered_results + self.__CUSTOM_END
 
     def convert(self):
         """
@@ -471,9 +343,9 @@ class MtzToCifConverter:
         cif_doc = self.convert_mtz_to_cif()
         with open(temp_file, 'w') as f:
             f.write(cif_doc)
-        self.read_cif_file(temp_file)
+        self.__read_cif_file(temp_file)
         os.remove(temp_file)
-        self.add_category(self.categories)
+        self.__add_category(self.__categories)
 
         new_order = ['audit', 'cell', 'diffrn_radiation_wavelength', 'entry', 'exptl_crystal', 'reflns_scale', 'symmetry', 'refln']
         self.sffile.reorder_categories_in_block(new_order)
