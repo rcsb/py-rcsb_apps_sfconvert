@@ -4,7 +4,7 @@ import re
 import sys
 
 from sf_convert.sffile.get_items_pdb import ProteinDataBank
-from sf_convert.import_dir.mtz2cif import ImportMtz
+from sf_convert.import_dir.import_mtz import ImportMtz
 from sf_convert.import_dir.import_cif import ImportCif
 from sf_convert.import_dir.cns2cif import CNSToCifConverter
 from sf_convert.export_dir.cif2cns import CifToCNSConverter
@@ -27,7 +27,6 @@ class SFConvertMain:
     def __init__(self, logger):
         self.__logger = logger
         self.__legacy = True  # old sf_convert behaviour
-        print("LOGGER", self.__logger)
 
     def mmCIF_to_mmCIF(self, pdict):
         """

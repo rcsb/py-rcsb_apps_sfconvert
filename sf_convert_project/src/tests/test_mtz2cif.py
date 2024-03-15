@@ -1,4 +1,4 @@
-from sf_convert.import_dir.mtz2cif import MtzToCifConverter
+from sf_convert.import_dir.import_mtz import ImportMtz
 from sf_convert.utils.pinfo_file import PInfoLogger
 from TestHelper import comp_sfcif
 import os
@@ -23,9 +23,10 @@ class TestMtzToCifConversion:
 
         print("Loading and converting the file...")
         logger = PInfoLogger('path_to_log1.log', 'path_to_log2.log')
-        converter = MtzToCifConverter(mtz_Ras_NAD_data_path, output_path, logger)
+        converter = ImportMtz(logger)
+                
         # converter.process_labels()  # if labels are required
-        converter.convert()
+        converter.import_files([mtz_Ras_NAD_data_path])
         sffile = converter.get_sf()
         sffile.write_file(output_path)
 
