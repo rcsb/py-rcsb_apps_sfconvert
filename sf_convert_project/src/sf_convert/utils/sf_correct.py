@@ -587,3 +587,33 @@ class SfCorrect:
 
             sffile.reorder_category_attributes("symmetry", ["entry_id", "space_group_name_H-M", "Int_Tables_number"], blk.getName())
             
+
+    def correct_cell_precision(self, sffile):
+        """We limit cell to 3 significant digits
+
+           Used with non cif2cif
+        """
+
+        for idx in range(sffile.get_number_of_blocks()):
+            blk = sffile.get_block_by_index(idx)
+
+            cObj = blk.getObj("cell")
+            if not cObj:
+                continue
+
+            alist = ["length_a", "length_b", "length_c",
+                     "angle_alpha", "angle_beta", "angle_gamma"]
+
+            attrlist = cObj.getAttributeList()
+
+            for attr in alist:
+                if attr in attrlist:
+                    try:
+                        val = float(cObj.getValue(attr, 0))
+                        val = f"{val:.3f}"
+                        cObj.setValue(str(val), attr, 0)
+                    except:
+                        # We ignore if fails
+                        print("OOPS")
+                        pass
+                        
