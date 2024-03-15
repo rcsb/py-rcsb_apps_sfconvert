@@ -1,13 +1,65 @@
 import gemmi
 import os
 from mmcif.api.DataCategory import DataCategory
-import subprocess
 import tempfile
 from sf_convert.sffile.sf_file import StructureFactorFile as SFFile
 
+class ImportMtz:
+    def __init__(self, logger):
+        """Class to import MTZ files - multiple supported"""
+        self.__logger = logger
+        self.__sf = None
+        self.__free = None
+        self.__label = None
+
+    def import_files(self, fileList):
+        """Reads in possibly multiple SF files
+
+
+        Args:
+            fileList (list): List of file names
+
+        Returns:
+             StructureFile object
+        """
+
+        for fpath in fileList:
+            if not os.path.exists(fpath):
+                self.__logger.pinfo(f"File {fpath} does not exist", 0)
+                self.__sf = None
+                return None
+
+            mtz2cif = MtzToCifConverter(fpath, self.__logger)
+            if self.__label:
+                mtz2cif.process_labels(self.__label)
+
+            if self.__free:
+                mtz2cif.set_free(self.__free)
+            
+            mtz2cif.convert()
+            sf = mtz2cif.get_sf()
+
+            if self.__sf:
+                self.__sf.merge_sf(sf)
+            else:
+                self.__sf = sf
+
+    def get_sf(self):
+        return self.__sf
+
+    def set_free(self, free):
+        """Sets free R set"""
+        self.__free = free
+
+    def set_labels(self, label):
+        """Sets free R set"""
+        self.__label = label
+        
+
+    ### Set free, etc
 
 class MtzToCifConverter:
-    def __init__(self, mtz_file_path, output_file_path, logger):
+    def __init__(self, mtz_file_path, logger):
         """
         Initializes the MtzToCifConverter object.
 
@@ -19,7 +71,6 @@ class MtzToCifConverter:
         """
         self.__pinfo_value = 0
         self.mtz_file_path = mtz_file_path
-        self.output_file_path = output_file_path
         self.mtz2cif = gemmi.MtzToCif()
         self.sffile = SFFile()
         self.__logger = logger
@@ -117,11 +168,13 @@ class MtzToCifConverter:
             ('? FREE|RFREE|FREER|FreeR_flag|R-free-flags|FreeRflag', 'I', 'status', 'S')
         ]
 
+        self.__spec_file_content = []
+
     def set_spec(self):
         """
         Sets the spec lines for the MtzToCif object.
         """
-        spec_lines = ['\t'.join(line) for line in self.spec_file_content]
+        spec_lines = ['\t'.join(line) for line in self.__spec_file_content]
         self.mtz2cif.spec_lines = spec_lines
 
     def set_free(self, free):
@@ -188,9 +241,9 @@ class MtzToCifConverter:
                 processed_label = replaced_label
                 processed_labels.append(processed_label)
 
-        self.spec_file_content = processed_labels
+        self.__spec_file_content = processed_labels
 
-    def assign_label(self, desired_label):
+    def __assign_label(self, desired_label):
         """
         Assigns a label to a desired label.
 
@@ -205,7 +258,7 @@ class MtzToCifConverter:
             return desired_label
         return "Unknown Label"
 
-    def generate_full_label(self, i, labels_list):
+    def __generate_full_label(self, i, labels_list):
         """
         Generates the full label based on the label type and content.
 
@@ -220,81 +273,81 @@ class MtzToCifConverter:
 
         # Direct mappings
         if label_type == 'H' and label_content in ['H', 'K', 'L']:
-            return self.assign_label(f"index_{label_content.lower()}")
+            return self.__assign_label(f"index_{label_content.lower()}")
         elif label_type == 'F' and label_content in ['2FOFCWT', 'FWT', 'F_ampl']:
-            return self.assign_label('pdbx_FWT')
+            return self.__assign_label('pdbx_FWT')
         elif label_type == 'P' and label_content in ['PH2FOFCWT', 'PHWT', 'PHIF']:
-            return self.assign_label('pdbx_PHWT')
+            return self.__assign_label('pdbx_PHWT')
         elif label_content in ['FOFCWT', 'DELFWT']:
-            return self.assign_label('pdbx_DELFWT')
+            return self.__assign_label('pdbx_DELFWT')
         elif label_type == 'P' and label_content in ['PHFOFCWT', 'PHDELWT']:
-            return self.assign_label('pdbx_DELPHWT')
+            return self.__assign_label('pdbx_DELPHWT')
         elif label_type == 'I' and any(term in label_content for term in ["free", "R-free-flag", "flag",
                                                                           "TEST", "FREE", "RFREE", "FREER",
                                                                           "FreeR_flag", "FreeRflag"]):  # FREE|RFREE|FREER|FreeR_flag|R-free-flags|FreeRflag
-            return self.assign_label('pdbx_r_free_flag')
+            return self.__assign_label('pdbx_r_free_flag')
         elif label_type == 'D':
-            return self.assign_label('pdbx_anom_difference')
+            return self.__assign_label('pdbx_anom_difference')
         elif label_type == 'A':
             if 'HLA' in label_content:
-                return self.assign_label('pdbx_HL_A_iso')
+                return self.__assign_label('pdbx_HL_A_iso')
             elif 'HLB' in label_content:
-                return self.assign_label('pdbx_HL_B_iso')
+                return self.__assign_label('pdbx_HL_B_iso')
             elif 'HLC' in label_content:
-                return self.assign_label('pdbx_HL_C_iso')
+                return self.__assign_label('pdbx_HL_C_iso')
             elif 'HLD' in label_content:
-                return self.assign_label('pdbx_HL_D_iso')
+                return self.__assign_label('pdbx_HL_D_iso')
         elif label_type == 'W' and 'FOM' in label_content:
-            return self.assign_label('fom')
+            return self.__assign_label('fom')
 
         # Conditional checks based on label content and type of the previous or next label
         if label_type == 'F':
             if label_content in ['FP', 'F-obs-filtered', 'F-obs'] or (i < len(labels_list) - 1 and labels_list[i + 1][0] == 'Q'):
-                return self.assign_label('F_meas_au')
+                return self.__assign_label('F_meas_au')
             elif label_content in ['FC', 'Fcal']:
-                return self.assign_label('F_calc_au')
+                return self.__assign_label('F_calc_au')
         elif label_type == 'Q':
             if i > 0:
                 prev_label_type = labels_list[i - 1][0]
                 if prev_label_type == 'F':
-                    return self.assign_label('F_meas_sigma_au')
+                    return self.__assign_label('F_meas_sigma_au')
                 elif prev_label_type == 'J':
-                    return self.assign_label('intensity_sigma')
+                    return self.__assign_label('intensity_sigma')
                 elif prev_label_type == 'D':
-                    return self.assign_label('pdbx_anom_difference_sigma')
+                    return self.__assign_label('pdbx_anom_difference_sigma')
 
         # Conditional checks for labels that depend on label content alone
         if label_type == 'J':
-            return self.assign_label('intensity_meas')
+            return self.__assign_label('intensity_meas')
         elif label_type == 'G':
             if '(+)' in label_content:
-                return self.assign_label('pdbx_F_plus')
+                return self.__assign_label('pdbx_F_plus')
             elif '(-)' in label_content:
-                return self.assign_label('pdbx_F_minus')
+                return self.__assign_label('pdbx_F_minus')
         elif label_type == 'L':
             if '(+)' in label_content:
-                return self.assign_label('pdbx_F_plus_sigma')
+                return self.__assign_label('pdbx_F_plus_sigma')
             elif '(-)' in label_content:
-                return self.assign_label('pdbx_F_minus_sigma')
+                return self.__assign_label('pdbx_F_minus_sigma')
         elif label_type == 'K':
             if '(+)' in label_content:
-                return self.assign_label('pdbx_I_plus')
+                return self.__assign_label('pdbx_I_plus')
             elif '(-)' in label_content:
-                return self.assign_label('pdbx_I_minus')
+                return self.__assign_label('pdbx_I_minus')
         elif label_type == 'M':
             if '(+)' in label_content:
-                return self.assign_label('pdbx_I_plus_sigma')
+                return self.__assign_label('pdbx_I_plus_sigma')
             elif '(-)' in label_content:
-                return self.assign_label('pdbx_I_minus_sigma')
+                return self.__assign_label('pdbx_I_minus_sigma')
         elif label_type == 'P':
             if 'PHIC' in label_content or 'PHIC_ALL' in label_content or 'AC' in label_content:
-                return self.assign_label('phase_calc')
+                return self.__assign_label('phase_calc')
             elif 'PHIB' in label_content or 'PHIM' in label_content:
-                return self.assign_label('phase_meas')
+                return self.__assign_label('phase_meas')
 
         return "Unknown Label"
 
-    def generate_full_labels_for_list(self, labels_list):
+    def __generate_full_labels_for_list(self, labels_list):
         """
         Generates the full labels for a list of labels.
 
@@ -306,7 +359,7 @@ class MtzToCifConverter:
         """
         results = []
         for i in range(len(labels_list)):
-            generated_label = self.generate_full_label(i, labels_list)
+            generated_label = self.__generate_full_label(i, labels_list)
             results.append((labels_list[i][0], labels_list[i][1],
                             generated_label))
             if generated_label == "pdbx_r_free_flag":
@@ -314,7 +367,7 @@ class MtzToCifConverter:
                 self.__CUSTOM_END.append((labels_list[i][1], labels_list[i][0], 'status', 'S'))
         return results
 
-    def get_mtz_columns_with_custom_entries(self, mtz_file):
+    def __get_mtz_columns_with_custom_entries(self, mtz_file):
         """
         Gets the MTZ columns with custom entries.
 
@@ -326,7 +379,7 @@ class MtzToCifConverter:
         """
         mtz = gemmi.read_mtz_file(mtz_file)
         labels_list = [(column.type, column.label) for column in mtz.columns]
-        results = self.generate_full_labels_for_list(labels_list)
+        results = self.__generate_full_labels_for_list(labels_list)
         filtered_results = [(type_, label, full_label) for label, type_, full_label in results if full_label != "Unknown Label"]
         return filtered_results + self.__CUSTOM_END
 
@@ -334,10 +387,11 @@ class MtzToCifConverter:
         """
         Converts the MTZ file to CIF format and writes it to the output file.
         """
-        temp_file = "temp_file.mmcif"
+        with tempfile.NamedTemporaryFile(prefix="sf_convert", delete=False) as tf:
+            temp_file = tf.name
 
-        spec_lines_result = self.get_mtz_columns_with_custom_entries(self.mtz_file_path)
-        self.spec_file_content = spec_lines_result
+        spec_lines_result = self.__get_mtz_columns_with_custom_entries(self.mtz_file_path)
+        self.__spec_file_content = spec_lines_result
 
         self.set_spec()
         cif_doc = self.convert_mtz_to_cif()

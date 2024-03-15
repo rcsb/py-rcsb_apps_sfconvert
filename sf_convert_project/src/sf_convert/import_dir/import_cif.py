@@ -24,7 +24,7 @@ class ImportCif:
 
         for fpath in fileList:
             if not os.path.exists(fpath):
-                self.__logger(f"File {fpath} does not exist", 0)
+                self.__logger.pinfo(f"File {fpath} does not exist", 0)
                 self.__sf = None
                 return None
 

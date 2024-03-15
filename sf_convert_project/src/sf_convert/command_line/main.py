@@ -4,7 +4,7 @@ import re
 import sys
 
 from sf_convert.sffile.get_items_pdb import ProteinDataBank
-from sf_convert.import_dir.mtz2cif import MtzToCifConverter
+from sf_convert.import_dir.mtz2cif import ImportMtz
 from sf_convert.import_dir.import_cif import ImportCif
 from sf_convert.import_dir.cns2cif import CNSToCifConverter
 from sf_convert.export_dir.cif2cns import CifToCNSConverter
@@ -27,8 +27,9 @@ class SFConvertMain:
     def __init__(self, logger):
         self.__logger = logger
         self.__legacy = True  # old sf_convert behaviour
+        print("LOGGER", self.__logger)
 
-    def mmCIF_to_mmCIF(self, pdict, logger):
+    def mmCIF_to_mmCIF(self, pdict):
         """
         Converts from mmCIF format to mmCIF format.
 
@@ -41,7 +42,7 @@ class SFConvertMain:
         pdb_wave = pdb_data.get("WAVE", None)
         wave_arg = pdict.get("wave_cmdline", None)        
 
-        ic = ImportCif(logger)
+        ic = ImportCif(self.__logger)
         ic.import_files(sfin)
         sffile = ic.get_sf()
 
@@ -69,25 +70,25 @@ class SFConvertMain:
         elif pdb_wave not in [".", "?", None]:
             setwlarg = pdb_wave
 
-        sfc.annotate_wavelength(sffile, pdbid, setwlarg, logger)
+        sfc.annotate_wavelength(sffile, pdbid, setwlarg, self.__logger)
         # cell
         # XXXX
         
-        sfc.handle_standard(sffile, pdbid, logger)
+        sfc.handle_standard(sffile, pdbid, self.__logger)
         
         ec = ExportCif(self.__legacy)
         ec.set_sf(sffile)
         
         ec.write_file(output)
 
-    def MTZ_to_mmCIF(self, pdict, logger):
+    def MTZ_to_mmCIF(self, pdict):
         """
         Converts from MTZ format to mmCIF format.
 
         Args:
         pdict: request dictionary
         """
-        sfin =  pdict["sfin"][0]
+        sfin =  pdict["sfin"]
         output = pdict["output"]
         pdb_data = pdict.get("pdb_data", {})
 
@@ -96,16 +97,17 @@ class SFConvertMain:
         # pdb_wave = pdb_data.get("WAVE", None)
         # wave_arg = pdict.get("wave_cmdline", None)        
 
-        converter = MtzToCifConverter(sfin, output, logger)
+        converter = ImportMtz(self.__logger)
 
         if pdict.get("label", None):
-            converter.process_labels(pdict["label"])
+            converter.set_labels(pdict["label"])
 
         free = pdict.get("free", None)
         if free:
             converter.set_free(free)
 
-        converter.convert()
+            
+        converter.import_files(sfin)
 
         sffile = converter.get_sf()
 
@@ -120,7 +122,7 @@ class SFConvertMain:
             pdbid = pdbid.lower()
 
         sfc.correct_cell_precision(sffile)
-        sfc.handle_standard(sffile, pdbid, logger)
+        sfc.handle_standard(sffile, pdbid, self.__logger)
         
         ec = ExportCif(self.__legacy)
         ec.set_sf(sffile)
@@ -623,14 +625,14 @@ def convert_files(args, input_format, pdb_data, logger):
     if input_format == "CNS" and output_format == "MMCIF":
         convert_from_CNS_to_mmCIF(args, pdb, logger)
     elif input_format == "MTZ" and output_format == "MMCIF":
-        sfc.MTZ_to_mmCIF(pdict, logger)
+        sfc.MTZ_to_mmCIF(pdict)
     elif input_format == "MMCIF" and output_format == "MTZ":
         convert_from_mmCIF_to_MTZ(args)
     elif input_format == "MMCIF" and output_format == "CNS":
         convert_from_mmCIF_to_CNS(args, pdb)
     # elif input_format == "mmCIF" and output_format == "mmCIF":
     elif (input_format in ["MMCIF", "CIF"]) and output_format == "MMCIF":
-        sfc.mmCIF_to_mmCIF(pdict, logger)
+        sfc.mmCIF_to_mmCIF(pdict)
     elif input_format == "CNS" and output_format == "MTZ":
         convert_from_CNS_to_MTZ(args, pdb, logger)
     elif input_format == "MTZ" and output_format == "CNS":
