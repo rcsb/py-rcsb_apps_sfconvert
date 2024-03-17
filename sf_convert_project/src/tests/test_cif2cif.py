@@ -1,9 +1,9 @@
 import os
 import difflib
-from sf_convert.sffile.sf_file import StructureFactorFile
 from sf_convert.utils.reformat_sfhead import reformat_sfhead
 from sf_convert.utils.pinfo_file import PInfoLogger
 from sf_convert.export_dir.export_cif import ExportCif
+from sf_convert.import_dir.import_cif import ImportCif
 
 
 class TestMmcifConversion:
@@ -24,10 +24,13 @@ class TestMmcifConversion:
         # Define the path for the output file
         output_path = os.path.join(tmp_path, "output.mmcif")
 
-        # Read and process the mmCIF file
-        sffile = StructureFactorFile()
-        sffile.read_file(cif_5pny_data_path)
         logger = PInfoLogger('path_to_log1.log', 'path_to_log2.log')
+
+        # Read and process the mmCIF file
+        ic = ImportCif(logger)
+        ic.import_files([cif_5pny_data_path])
+        sffile = ic.get_sf()
+
         _ = reformat_sfhead(sffile, "5pny", logger)
 
         ec = ExportCif(False)
