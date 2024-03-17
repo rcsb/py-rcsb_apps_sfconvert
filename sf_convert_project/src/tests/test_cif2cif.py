@@ -3,6 +3,7 @@ import difflib
 from sf_convert.sffile.sf_file import StructureFactorFile
 from sf_convert.utils.reformat_sfhead import reformat_sfhead
 from sf_convert.utils.pinfo_file import PInfoLogger
+from sf_convert.export_dir.export_cif import ExportCif
 
 
 class TestMmcifConversion:
@@ -28,7 +29,10 @@ class TestMmcifConversion:
         sffile.read_file(cif_5pny_data_path)
         logger = PInfoLogger('path_to_log1.log', 'path_to_log2.log')
         _ = reformat_sfhead(sffile, "5pny", logger)
-        sffile.write_file(output_path)
+
+        ec = ExportCif(False)
+        ec.set_sf(sffile)
+        ec.write_file(output_path)
 
         # Read the expected output file and filter out comment lines
         with open(cif_mmcif_5pny_data_path, 'r') as file:
