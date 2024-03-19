@@ -492,64 +492,6 @@ def handle_valid_argument(args, logger):
     sf_stat.write_sf_4_validation()
 
 
-# def convert_from_CNS_to_mmCIF(args, pdb, logger):
-#     """
-#     Converts from CNS format to mmCIF format.
-
-#     Args:
-#         args: The command line arguments.
-#         pdb: The ProteinDataBank object.
-#         logger: The PInfoLogger object.
-#     """
-#     processor = CNSToCifConverter(args.sf, pdb.pdb_id, logger, pdb.FREERV)
-#     processor.process_file()
-#     processor.rename_keys()
-#     processor.create_data_categories()
-#     processor.write_to_file(args.out)
-
-#     sffile = StructureFactorFile()
-#     sffile.read_file(args.out)
-
-#     reformat_sf_header(sffile, args, logger)
-
-#     if args.multidatablock:
-#         validate_block_name(args.multidatablock)
-#         sffile.correct_block_names(args.multidatablock)
-
-#     sffile.write_file(args.out + ".mmcif")
-#     os.remove(args.out)
-
-
-# def convert_from_MTZ_to_mmCIF(args, pdb, logger):
-#     """
-#     Converts from MTZ format to mmCIF format.
-
-#     Args:
-#         args: The command line arguments.
-#         pdb: The ProteinDataBank object.
-#         logger: The PInfoLogger object.
-#     """
-#     converter = MtzToCifConverter(args.sf, args.out, pdb.pdb_id, logger)
-#     if args.label:
-#         converter.process_labels(args.label)
-#     if pdb.FREERV:
-#         converter.convert_for_nfree(pdb.FREERV)
-#     else:
-#         converter.convert_and_write()
-
-#     sffile = StructureFactorFile()
-#     sffile.read_file(args.out)
-
-#     reformat_sf_header(sffile, args, logger)
-
-#     if args.multidatablock:
-#         validate_block_name(args.multidatablock)
-#         sffile.correct_block_names(args.multidatablock)
-
-#     sffile.write_file(args.out + ".mmcif")
-#     os.remove(args.out)
-
-
 def convert_from_mmCIF_to_MTZ(args):
     """
     Converts from mmCIF format to MTZ format.
@@ -561,26 +503,6 @@ def convert_from_mmCIF_to_MTZ(args):
     converter.load_cif()
     converter.determine_mappings()
     converter.convert_to_mtz(args.out + ".mtz")
-
-
-def convert_from_mmCIF_to_CNS(pdict):
-    """
-    Converts from mmCIF format to CNS format.
-
-    Args:
-        args: The command line arguments.
-        pdb: The ProteinDataBank object.
-    """
-
-    sfin =  pdict["sfin"][0]
-    output = pdict["output"]
-
-    sffile = StructureFactorFile()
-    sffile.read_file(sfin)
-    
-    CNSexport = CifToCNSConverter()
-    CNSexport.set_sf(sffile)
-    CNSexport.write_file(output)
 
 
 def convert_from_CNS_to_MTZ(args, pdb, logger):
@@ -712,17 +634,12 @@ def convert_files(args, input_format, pdb_data, logger):
 
     sfc = SFConvertMain(logger)
 
-    if output_format == "MMCIF":
+    if output_format in  ["MMCIF", "CNS"]:
         sfc.convert(pdict)
     elif input_format == "MMCIF" and output_format == "MTZ":
         convert_from_mmCIF_to_MTZ(pdict)
-    elif input_format == "MMCIF" and output_format == "CNS":
-        sfc.convert(pdict)
-        #convert_from_mmCIF_to_CNS(pdict)
     elif input_format == "CNS" and output_format == "MTZ":
         convert_from_CNS_to_MTZ(args, pdb, logger)
-    elif input_format == "MTZ" and output_format == "CNS":
-        convert_from_MTZ_to_CNS(args, pdb, logger)
     elif args.valid is False:
         raise ValueError(f"Conversion from {input_format} to {output_format} is not supported.")
 
