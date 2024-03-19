@@ -2,7 +2,7 @@ import os
 import difflib
 
 from sf_convert.sffile.sf_file import StructureFactorFile
-from sf_convert.export_dir.cif2cns import ExportCns
+from sf_convert.export_dir.export_cns import ExportCns
 from sf_convert.utils.pinfo_file import PInfoLogger
 
 

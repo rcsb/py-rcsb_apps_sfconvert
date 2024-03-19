@@ -8,7 +8,7 @@ from sf_convert.sffile.get_items_pdb import ProteinDataBank
 from sf_convert.import_dir.import_mtz import ImportMtz
 from sf_convert.import_dir.import_cif import ImportCif
 from sf_convert.import_dir.import_cns import ImportCns
-from sf_convert.export_dir.cif2cns import ExportCns
+from sf_convert.export_dir.export_cns import ExportCns
 from sf_convert.export_dir.cif2mtz import CifToMTZConverter
 from sf_convert.export_dir.export_cif import ExportCif
 from sf_convert.sffile.guess_sf_format import guess_sf_format
