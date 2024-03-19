@@ -492,17 +492,23 @@ def handle_valid_argument(args, logger):
     sf_stat.write_sf_4_validation()
 
 
-def convert_from_mmCIF_to_MTZ(args):
+def convert_from_mmCIF_to_MTZ(pdict, logger):
     """
     Converts from mmCIF format to MTZ format.
 
     Args:
         args: The command line arguments.
     """
-    converter = CifToMTZConverter(args.sf)
-    converter.load_cif()
-    converter.determine_mappings()
-    converter.convert_to_mtz(args.out + ".mtz")
+    sfin =  pdict["sfin"]
+    output = pdict["output"]
+
+    ic = ImportCif(logger)
+    ic.import_files(sfin)
+    sffile = ic.get_sf()
+
+    converter = CifToMTZConverter(logger)
+    converter.set_sf(sffile)
+    converter.write_file(output)
 
 
 def convert_from_CNS_to_MTZ(args, pdb, logger):
@@ -637,7 +643,7 @@ def convert_files(args, input_format, pdb_data, logger):
     if output_format in  ["MMCIF", "CNS"]:
         sfc.convert(pdict)
     elif input_format == "MMCIF" and output_format == "MTZ":
-        convert_from_mmCIF_to_MTZ(pdict)
+        convert_from_mmCIF_to_MTZ(pdict, logger)
     elif input_format == "CNS" and output_format == "MTZ":
         convert_from_CNS_to_MTZ(args, pdb, logger)
     elif args.valid is False:

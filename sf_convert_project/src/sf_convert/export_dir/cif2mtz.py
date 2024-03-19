@@ -1,16 +1,20 @@
+import tempfile
+import os
+
+from sf_convert.sffile.sf_file import StructureFactorFile
 import gemmi
 
 
 class CifToMTZConverter:
-    def __init__(self, cif_path):
+    def __init__(self, logger):
         """
         Initializes a CifToMTZConverter object.
 
         Args:
             cif_path (str): The path to the CIF file.
         """
-        self.cif_path = cif_path
-        self.mappings = {
+        self.__logger = logger
+        self.__mappings = {
             'h_index_mapping' : [['index_h', 'H', 'H', 0]],
             'k_index_mapping' : [['index_k', 'K', 'H', 0]],
             'l_index_mapping' : [['index_l', 'L', 'H', 0]],
@@ -44,21 +48,36 @@ class CifToMTZConverter:
             'pdbx_FWT_mapping' : [['pdbx_FWT', 'FWT', 'F', 1]],
             'pdbx_PHWT_mapping' : [['pdbx_PHWT', 'PHWT', 'P', 1]],
         }
-        self.rblock = None
-        self.cv = gemmi.CifToMtz()
+        self.__rblock = None
+        self.__cv = gemmi.CifToMtz()
+        self.__sf_file = None
 
-    def load_cif(self):
+    def __load_cif(self):
         """
         Loads the CIF file and returns the column labels.
 
         Returns:
             list: The column labels of the CIF file.
         """
-        cif_doc = gemmi.cif.read(self.cif_path)  # pylint: disable=no-member
-        self.rblock = gemmi.as_refln_blocks(cif_doc)[0]
-        return self.rblock.column_labels()
 
-    def determine_mappings(self):
+        # write out a temporary file with first block
+        blk = self.__sf_file.get_block_by_index(0)
+        sftemp = StructureFactorFile()
+        sftemp.add_block(blk)
+        with tempfile.NamedTemporaryFile(prefix="sf_convert", delete=False) as tf:
+            temp_file = tf.name
+
+        sftemp.write_file(temp_file)
+
+
+        cif_doc = gemmi.cif.read(temp_file)  # pylint: disable=no-member
+        self.__rblock = gemmi.as_refln_blocks(cif_doc)[0]
+
+        os.remove(temp_file)
+
+        return self.__rblock.column_labels()
+
+    def __determine_mappings(self):
         """
         Determines the mappings between column labels and MTZ specifications.
 
@@ -66,17 +85,17 @@ class CifToMTZConverter:
             list: The MTZ specification lines.
         """
         spec_lines = []
-        column_labels = self.rblock.column_labels()
-        for _key, alternatives in self.mappings.items():
+        column_labels = self.__rblock.column_labels()
+        for _key, alternatives in self.__mappings.items():
             for alternative in alternatives:
                 if alternative[0] in column_labels:
                     spec_line = ' '.join([alternative[0]] + list(map(str, alternative[1:])))
                     spec_lines.append(spec_line)
                     break
-        self.cv.spec_lines = spec_lines
+        self.__cv.spec_lines = spec_lines
         return spec_lines
 
-    def convert_to_mtz(self, output_path):
+    def __convert_to_mtz(self, output_path):
         """
         Converts the CIF file to MTZ format and writes it to the specified output path.
 
@@ -86,6 +105,26 @@ class CifToMTZConverter:
         Returns:
             list: The column labels of the MTZ file.
         """
-        mtz = self.cv.convert_block_to_mtz(self.rblock)
+        mtz = self.__cv.convert_block_to_mtz(self.__rblock)
         mtz.write_to_file(output_path)
         return [col.label for col in mtz.columns]
+
+    def set_sf(self, sfobj):
+        """
+        Sets PDBx/mmCIF SF file
+
+        Args:
+        sf: StructureFactorFile - object with data
+
+        Returns:
+        Nothing
+        """
+        self.__sf_file = sfobj
+
+    def write_file(self, path_out):
+        """
+        Writes the output MTZ
+        """
+        self.__load_cif()
+        self.__determine_mappings()
+        self.__convert_to_mtz(path_out)

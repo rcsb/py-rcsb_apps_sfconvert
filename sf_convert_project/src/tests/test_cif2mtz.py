@@ -1,5 +1,7 @@
 import os
 from sf_convert.export_dir.cif2mtz import CifToMTZConverter
+from sf_convert.sffile.sf_file import StructureFactorFile
+from sf_convert.utils.pinfo_file import PInfoLogger
 
 
 class TestCifToMtzConversion:
@@ -18,12 +20,15 @@ class TestCifToMtzConversion:
 
         # output_path = tmp_path / "output.mtz"
         output_path = os.path.join(tmp_path, "output.mtz")
+        logger = PInfoLogger('path_to_log1.log', 'path_to_log2.log')
 
         print("Loading and converting the file...")
-        converter = CifToMTZConverter(cif_5pny_data_path)
-        converter.load_cif()
-        converter.determine_mappings()
-        converter.convert_to_mtz(output_path)
+        sffile = StructureFactorFile()
+        sffile.read_file(cif_5pny_data_path)
+
+        converter = CifToMTZConverter(logger)
+        converter.set_sf(sffile)
+        converter.write_file(output_path)
 
         print("Checking the output...")
         assert os.path.isfile(output_path)
