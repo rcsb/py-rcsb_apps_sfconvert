@@ -1,4 +1,4 @@
-from sf_convert.import_dir.cns2cif import ImportCns
+from sf_convert.import_dir.import_cns import ImportCns
 from sf_convert.export_dir.export_cif import ExportCif
 from sf_convert.utils.pinfo_file import PInfoLogger
 from TestHelper import comp_sfcif
