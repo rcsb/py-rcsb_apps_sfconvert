@@ -34,7 +34,7 @@ class ImportSf:
         format_in = pdict["inp_format"].lower()
         format_out = pdict["out_format"]
 
-        if format_in == "mmcif":
+        if format_in in  ["mmcif", "cif"]:
             sf = self.__import_mmcif(pdict)
         elif format_in == "cns":
             sf = self.__import_cns(pdict)
@@ -126,56 +126,8 @@ class ImportSf:
 
         return sffile
 
-class SFConvertMain:
-    """Main class to perform conversion steps."""
-    def __init__(self, logger):
-        self.__logger = logger
-        self.__legacy = True  # old sf_convert behaviour
-
-    def mmCIF_to_mmCIF(self, pdict):
-        """
-        Converts from mmCIF format to mmCIF format.
-
-        Args:
-        pdict: request dictionary
-        """
-        output = pdict["output"]
-
-        impsf = ImportSf(self.__logger)
-        sffile = impsf.import_sf(pdict)
-        
-        ec = ExportCif(self.__legacy)
-        ec.set_sf(sffile)
-        
-        ec.write_file(output)
-
-    def MTZ_to_mmCIF(self, pdict):
-        """
-        Converts from MTZ format to mmCIF format.
-
-        Args:
-        pdict: request dictionary
-        """
-        output = pdict["output"]
-        pdb_data = pdict.get("pdb_data", {})
-
-        impsf = ImportSf(self.__logger)
-        sffile = impsf.import_sf(pdict)
-        
-        ec = ExportCif(self.__legacy)
-        ec.set_sf(sffile)
-        
-        ec.write_file(output)
-
-    def CNS_to_mmCIF(self, pdict):
-        """
-        Converts from CNS format to mmCIF format.
-
-        Args:
-        pdict: request dictionary
-        """
+    def __import_cns(self, pdict):
         sfin =  pdict["sfin"]
-        output = pdict["output"]
         pdb_data = pdict.get("pdb_data", {})
         pdb_wave = pdb_data.get("WAVE", None)
         pdb_cell = pdb_data.get("CELL", None)
@@ -208,10 +160,71 @@ class SFConvertMain:
             fix_entry_ids(sffile, pdbid)
             sffile.correct_block_names(pdbid)
         
+    
+class ExportSf:
+    """Class to import and possibly make corrections"""
+    def __init__(self, logger):
+        self.__logger = logger
+        self.__legacy = True  # old sf_convert behaviour
+
+    def export_sf(self, sffile, pdict):
+        """Exports structures as needed."""
+
+        format_out = pdict["out_format"]
+        output = pdict["output"]
+
+        if format_out == "mmcif":
+            self.__export_mmcif(sffile, pdict)
+        # elif format_in == "cns":
+        #     sf = self.__import_cns(pdict)
+        # elif format_in == "mtz":
+        #     sf = self.__import_mtz(pdict)
+        # else:
+        #     print("Internal error type unknown")
+        #     sys.exit(1)
+
+
+    def __export_mmcif(self, sffile, pdict):
+        output = pdict["output"]
         ec = ExportCif(self.__legacy)
         ec.set_sf(sffile)
         
         ec.write_file(output)
+
+
+class SFConvertMain:
+    """Main class to perform conversion steps."""
+    def __init__(self, logger):
+        self.__logger = logger
+        self.__legacy = True  # old sf_convert behaviour
+
+    def convert(self, pdict):
+        """Handles the conversion as needed"""
+        impsf = ImportSf(self.__logger)
+        sffile = impsf.import_sf(pdict)
+
+        esf = ExportSf(self.__logger)
+        esf.export_sf(sffile, pdict)
+        
+
+    def MTZ_to_mmCIF(self, pdict):
+        """
+        Converts from MTZ format to mmCIF format.
+
+        Args:
+        pdict: request dictionary
+        """
+        output = pdict["output"]
+        pdb_data = pdict.get("pdb_data", {})
+
+        impsf = ImportSf(self.__logger)
+        sffile = impsf.import_sf(pdict)
+        
+        ec = ExportCif(self.__legacy)
+        ec.set_sf(sffile)
+        
+        ec.write_file(output)
+
         
 class CustomHelpParser(argparse.ArgumentParser):
     def print_help(self, file=None):  # pylint: disable=unused-argument
@@ -704,19 +717,13 @@ def convert_files(args, input_format, pdb_data, logger):
     #pdict["pdbid"] = pdbid
 
     sfc = SFConvertMain(logger)
-    
-    if input_format == "CNS" and output_format == "MMCIF":
-        #convert_from_CNS_to_mmCIF(args, pdb, logger)
-        sfc.CNS_to_mmCIF(pdict)
-    elif input_format == "MTZ" and output_format == "MMCIF":
-        sfc.MTZ_to_mmCIF(pdict)
+
+    if output_format == "MMCIF":
+        sfc.convert(pdict)
     elif input_format == "MMCIF" and output_format == "MTZ":
         convert_from_mmCIF_to_MTZ(args)
     elif input_format == "MMCIF" and output_format == "CNS":
         convert_from_mmCIF_to_CNS(args, pdb)
-    # elif input_format == "mmCIF" and output_format == "mmCIF":
-    elif (input_format in ["MMCIF", "CIF"]) and output_format == "MMCIF":
-        sfc.mmCIF_to_mmCIF(pdict)
     elif input_format == "CNS" and output_format == "MTZ":
         convert_from_CNS_to_MTZ(args, pdb, logger)
     elif input_format == "MTZ" and output_format == "CNS":
