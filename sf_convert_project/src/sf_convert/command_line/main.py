@@ -3,11 +3,12 @@ import os
 import re
 import sys
 
+from sf_convert.sffile.sf_file import StructureFactorFile
 from sf_convert.sffile.get_items_pdb import ProteinDataBank
 from sf_convert.import_dir.import_mtz import ImportMtz
 from sf_convert.import_dir.import_cif import ImportCif
 from sf_convert.import_dir.import_cns import ImportCns
-from sf_convert.export_dir.cif2cns import CifToCNSConverter
+from sf_convert.export_dir.cif2cns import ExportCns
 from sf_convert.export_dir.cif2mtz import CifToMTZConverter
 from sf_convert.export_dir.export_cif import ExportCif
 from sf_convert.sffile.guess_sf_format import guess_sf_format
@@ -170,18 +171,18 @@ class ExportSf:
     def export_sf(self, sffile, pdict):
         """Exports structures as needed."""
 
-        format_out = pdict["out_format"]
+        format_out = pdict["out_format"].lower()
         output = pdict["output"]
 
-        if format_out == "mmcif":
+        if format_out in ["mmcif", "cif"]:
             self.__export_mmcif(sffile, pdict)
-        # elif format_in == "cns":
-        #     sf = self.__import_cns(pdict)
-        # elif format_in == "mtz":
-        #     sf = self.__import_mtz(pdict)
-        # else:
-        #     print("Internal error type unknown")
-        #     sys.exit(1)
+        elif format_out == "cns":
+            sf = self.__export_cns(sffile, pdict)
+        # elif format_out == "mtz":
+        #     sf = self.__export_mtz(pdict)
+        else:
+            print("Internal error type unknown", format_out)
+            sys.exit(1)
 
 
     def __export_mmcif(self, sffile, pdict):
@@ -191,6 +192,12 @@ class ExportSf:
         
         ec.write_file(output)
 
+    def __export_cns(self, sffile, pdict):
+        output = pdict["output"]
+
+        CNSexport = ExportCns(self.__logger)
+        CNSexport.set_sf(sffile)
+        CNSexport.write_file(output)
 
 class SFConvertMain:
     """Main class to perform conversion steps."""
@@ -206,25 +213,6 @@ class SFConvertMain:
         esf = ExportSf(self.__logger)
         esf.export_sf(sffile, pdict)
         
-
-    def MTZ_to_mmCIF(self, pdict):
-        """
-        Converts from MTZ format to mmCIF format.
-
-        Args:
-        pdict: request dictionary
-        """
-        output = pdict["output"]
-        pdb_data = pdict.get("pdb_data", {})
-
-        impsf = ImportSf(self.__logger)
-        sffile = impsf.import_sf(pdict)
-        
-        ec = ExportCif(self.__legacy)
-        ec.set_sf(sffile)
-        
-        ec.write_file(output)
-
         
 class CustomHelpParser(argparse.ArgumentParser):
     def print_help(self, file=None):  # pylint: disable=unused-argument
@@ -575,7 +563,7 @@ def convert_from_mmCIF_to_MTZ(args):
     converter.convert_to_mtz(args.out + ".mtz")
 
 
-def convert_from_mmCIF_to_CNS(args, pdb):
+def convert_from_mmCIF_to_CNS(pdict):
     """
     Converts from mmCIF format to CNS format.
 
@@ -583,10 +571,16 @@ def convert_from_mmCIF_to_CNS(args, pdb):
         args: The command line arguments.
         pdb: The ProteinDataBank object.
     """
+
+    sfin =  pdict["sfin"][0]
+    output = pdict["output"]
+
     sffile = StructureFactorFile()
-    sffile.read_file(args.sf)
-    CNSexport = CifToCNSConverter(sffile, args.out + ".CNS", pdb.pdb_id)
-    CNSexport.convert()
+    sffile.read_file(sfin)
+    
+    CNSexport = CifToCNSConverter()
+    CNSexport.set_sf(sffile)
+    CNSexport.write_file(output)
 
 
 def convert_from_CNS_to_MTZ(args, pdb, logger):
@@ -721,9 +715,10 @@ def convert_files(args, input_format, pdb_data, logger):
     if output_format == "MMCIF":
         sfc.convert(pdict)
     elif input_format == "MMCIF" and output_format == "MTZ":
-        convert_from_mmCIF_to_MTZ(args)
+        convert_from_mmCIF_to_MTZ(pdict)
     elif input_format == "MMCIF" and output_format == "CNS":
-        convert_from_mmCIF_to_CNS(args, pdb)
+        sfc.convert(pdict)
+        #convert_from_mmCIF_to_CNS(pdict)
     elif input_format == "CNS" and output_format == "MTZ":
         convert_from_CNS_to_MTZ(args, pdb, logger)
     elif input_format == "MTZ" and output_format == "CNS":

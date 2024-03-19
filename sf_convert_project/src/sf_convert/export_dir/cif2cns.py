@@ -1,16 +1,12 @@
-class CifToCNSConverter:
-    def __init__(self, sffile, fout_path, pdb_id='xxxx'):  # pylint: disable=unused-argument
+class ExportCns:
+    def __init__(self, logger, legacy=False):  # pylint: disable=unused-argument
         """
         Initializes the CifToCNSConverter object.
 
-        Args:
-            sffile (StructureFactorFile): The StructureFactorFile object containing the CIF data.
-            fout_path (str): The path to the output CNS file.
-            pdb_id (str, optional): The PDB ID. Defaults to 'xxxx'.
         """
-        # self.__pdb_id = pdb_id
-        self.__sf_file = sffile
-        self.__fout_path = fout_path
+        self.__legacy = legacy
+        self.__logger = logger
+        self.__sf_file = None
         self.__attr_existence = {}
 
         # Init here
@@ -60,7 +56,7 @@ class CifToCNSConverter:
             "pdbx_HL_D_iso": "hld"
         }
 
-        self.__initialize_data()
+        #self.__initialize_data()
 
     def __initialize_data(self):
         """
@@ -114,12 +110,12 @@ class CifToCNSConverter:
         if i == 0:
             for attr, var in self.attributes.items():
                 if attr not in attL:
-                    setattr(self, "_CifToCNSConverter__" + var, None)
+                    setattr(self, "_ExportCns__" + var, None)
 
         for attr, var in self.attributes.items():
             if attr in attL:
                 value = self.__refln_data.getValue(attr, i)
-                setattr(self, "_CifToCNSConverter__" + var, value)
+                setattr(self, "_ExportCns__" + var, value)
 
         self.__initialize_Io_at_index(i)
         self.__initialize_sIo_at_index(i)
@@ -282,11 +278,11 @@ class CifToCNSConverter:
         except ValueError:
             return 0
 
-    def write_cns_file(self):
+    def write_cns_file(self, pathOut):
         """
         Writes the data to a CNS file.
         """
-        with open(self.__fout_path, 'w') as output_file:
+        with open(pathOut, 'w') as output_file:
             output_file.write("NREFlection= {}\n".format(self.__nref))
             output_file.write("ANOMalous=FALSe { equiv. to HERMitian=TRUE}\n")
             output_file.write("DECLare NAME=FOBS            DOMAin=RECIprocal   TYPE=REAL END\n")
@@ -354,8 +350,25 @@ class CifToCNSConverter:
                     output_file.write("HLA= {:.2f} HLB= {:.2f} HLC= {:.2f} HLD= {:.2f}\n".format(
                         self.float_or_zero(self.__hla), self.float_or_zero(self.__hlb), self.float_or_zero(self.__hlc), self.float_or_zero(self.__hld)))
 
-    def convert(self):
+    def write_file(self, path_out):
         """
-        Converts the CIF data to a CNS file.
+        Args:
+            sffile (StructureFactorFile): The StructureFactorFile object containing the CIF data.
+            fout_path (str): The path to the output CNS file.
+
         """
-        self.write_cns_file()
+        self.__initialize_data()
+        self.write_cns_file(path_out)
+
+        
+    def set_sf(self, sfobj):
+        """
+        Sets PDBx/mmCIF SF file
+
+        Args:
+        sf: StructureFactorFile - object with data
+
+        Returns:
+        Nothing
+        """
+        self.__sf_file = sfobj

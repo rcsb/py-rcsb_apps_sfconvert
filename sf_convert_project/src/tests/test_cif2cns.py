@@ -1,7 +1,9 @@
-from sf_convert.sffile.sf_file import StructureFactorFile
-from sf_convert.export_dir.cif2cns import CifToCNSConverter
 import os
 import difflib
+
+from sf_convert.sffile.sf_file import StructureFactorFile
+from sf_convert.export_dir.cif2cns import ExportCns
+from sf_convert.utils.pinfo_file import PInfoLogger
 
 
 class TestCifToCnsConversion:
@@ -20,14 +22,16 @@ class TestCifToCnsConversion:
         print("Starting the test...")
 
         output_path = os.path.join(tmp_path, "output.CNS")
+        logger = PInfoLogger('path_to_log1.log', 'path_to_log2.log')
 
         print("Reading the input file...")
         sffile = StructureFactorFile()
         sffile.read_file(cif_5pny_data_path)
 
         print("Converting the file...")
-        converter = CifToCNSConverter(sffile, output_path, "5pny")
-        converter.convert()
+        converter = ExportCns(logger)
+        converter.set_sf(sffile)
+        converter.write_file(output_path)
 
         # Read the files
         with open(cns_5pny_data_path, 'r') as file:
