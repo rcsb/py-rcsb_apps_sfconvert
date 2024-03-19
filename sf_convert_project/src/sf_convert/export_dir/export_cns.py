@@ -207,9 +207,14 @@ class ExportCns:
         i = self.float_or_zero(self.__Io) if self.__Io else self.float_or_zero(self.__F2o) if self.__F2o else \
             self.float_or_zero(self.__Ic) if self.__Ic else self.float_or_zero(self.__F2c) if self.__F2c else 0.0
 
-        if not self.__Fo_au and i >= 0:
-            f = i ** 0.5
-            ssf = si / (2. * f)
+        if not self.__Fo_au:
+            if i > 0.0:
+                f = i ** 0.5
+                ssf = si / (2. * f)
+            else:
+                f = 0
+                ssf = 0
+            
 
         # F_plus exist
         if self.__F_plus and not (self.__Fo_au or self.__Io):
