@@ -1,4 +1,5 @@
-from sf_convert.import_dir.cns2cif import CNSToCifConverter
+from sf_convert.import_dir.cns2cif import ImportCns
+from sf_convert.export_dir.export_cif import ExportCif
 from sf_convert.utils.pinfo_file import PInfoLogger
 from TestHelper import comp_sfcif
 import os
@@ -23,11 +24,16 @@ class TestCnsToCifConversion:
 
         print("Loading and converting the file...")
         logger = PInfoLogger('path_to_log1.log', 'path_to_log2.log')
-        processor = CNSToCifConverter(cns_5pny_data_path, "xxxx", logger, 1)  # pdb.FREERV: FreeRValue
-        processor.process_file()
-        processor.rename_keys()
-        processor.create_data_categories()
-        processor.write_to_file(output_path)
+
+        processor = ImportCns(logger)
+        processor.set_free(1)
+        processor.import_files([cns_5pny_data_path])
+
+        sffile = processor.get_sf()
+        ec = ExportCif(False)
+        ec.set_sf(sffile)
+
+        ec.write_file(output_path)
 
         print("Comparing the outputs...")
         comp_sfcif(cns_cif_5pny_data_path, output_path)

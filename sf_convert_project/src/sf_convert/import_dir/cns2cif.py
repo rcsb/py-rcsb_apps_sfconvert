@@ -1,7 +1,51 @@
+import os
+
 from collections import defaultdict
 from mmcif.api.DataCategory import DataCategory
 from mmcif.api.PdbxContainers import DataContainer
 from sf_convert.sffile.sf_file import StructureFactorFile as SFFile
+
+
+class ImportCns:
+
+    def __init__(self, logger):
+        """Class to import CNS files - multiple supported"""
+        self.__logger = logger
+        self.__sf = None
+        self.__free = None
+
+    def import_files(self, fileList):
+        """Reads in possibly multiple SF files
+
+        Args:
+            fileList (list): List of file names
+
+        Returns:
+             StructureFile object
+        """
+
+        for fpath in fileList:
+            if not os.path.exists(fpath):
+                self.__logger.pinfo(f"File {fpath} does not exist", 0)
+                self.__sf = None
+                return None
+
+            cns2cif = CNSToCifConverter(fpath, "xxxx", self.__logger, self.__free)
+            cns2cif.import_file()
+
+            sf = cns2cif.get_sf()
+
+            if self.__sf:
+                self.__sf.merge_sf(sf)
+            else:
+                self.__sf = sf
+
+    def get_sf(self):
+        return self.__sf
+
+    def set_free(self, free):
+        """Sets free R set"""
+        self.__free = free
 
 
 class CNSToCifConverter:
@@ -30,6 +74,16 @@ class CNSToCifConverter:
         self.__curContainer = DataContainer(self.__pdb_id)
         self.__pinfo_value = 0
         self.__logger = logger
+        self.__sffile = None
+
+    def import_file(self):
+        self.process_file()
+        self.rename_keys()
+        self.create_data_categories()
+
+        self.__sffile = SFFile()
+        self.__sffile.add_block(self.__curContainer)
+        self.__sffile.correct_block_names(self.__pdb_id)
 
     def __process_line(self, line):
         """
@@ -200,14 +254,5 @@ class CNSToCifConverter:
             fCat.append(values_to_append)
         self.__curContainer.append(fCat)
 
-    def write_to_file(self, output_file_path):
-        """
-        Write the CIF file to disk.
-
-        Args:
-            output_file_path (str): The path to write the CIF file.
-        """
-        sffile = SFFile()
-        sffile.add_block(self.__curContainer)
-        sffile.correct_block_names(self.__pdb_id)
-        sffile.write_file(output_file_path)
+    def get_sf(self):
+        return self.__sffile

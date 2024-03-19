@@ -132,10 +132,7 @@ class SfCorrect:
             newObj = DataCategory(cat, ["id", "wavelength"], data)
             blk.append(newObj)
             logger.pinfo(f"Creating {cat} in nblock={idx}", 0)
-                
 
-
-            
     def handle_standard(self, sffile, pdbid, logger):
         """Handles standard operations"""
 
@@ -167,7 +164,7 @@ class SfCorrect:
 
         self.__instantiate_entry(sffile, pdbid)
 
-        self.__cleanup_audit(sffile, logger)
+        self._cleanup_audit(sffile, logger)
 
         # This reorders categories as well
         reformat_sfhead(sffile, pdbid, logger, detail)
@@ -295,6 +292,10 @@ class SfCorrect:
             for cat in cats:
                 if cat in blk.getObjNameList():
                     blk.remove(cat)
+
+    def ensure_catkeys(self, sffile, pdbid):
+        """Fix entry_id in categories - public"""
+        self.__ensure_catkeys(sffile, pdbid)
 
     def __ensure_catkeys(self, sffile, pdbid):
         """Sometimes categories come in without the entry_id.  Add"""
@@ -424,7 +425,7 @@ class SfCorrect:
 
             sffile.reorder_category_attributes("diffrn", ["id", "crystal_id", "ambient_temp", "crystal_treatment", "details"], blk.getName())
 
-    def __cleanup_audit(self, sffile, logger):
+    def _cleanup_audit(self, sffile, logger):
         """Cleanup audit records that should not be present
 
         Args:
@@ -534,6 +535,10 @@ class SfCorrect:
         """Reorders sf_file"""
         reorder_sf_file(sffile)
 
+    def reorder_sf_file(self, sffile):
+        """Reorders sf_file"""
+        self.__reorder_sf_file(sffile)
+
     def __update_exptl_crystal(self, sf_file, logger):
         """If exptl_crystal present, remove everything but id
 
@@ -586,7 +591,6 @@ class SfCorrect:
                 continue
 
             sffile.reorder_category_attributes("symmetry", ["entry_id", "space_group_name_H-M", "Int_Tables_number"], blk.getName())
-            
 
     def correct_cell_precision(self, sffile):
         """We limit cell to 3 significant digits
@@ -612,8 +616,53 @@ class SfCorrect:
                         val = float(cObj.getValue(attr, 0))
                         val = f"{val:.3f}"
                         cObj.setValue(str(val), attr, 0)
-                    except:
-                        # We ignore if fails
-                        print("OOPS")
+                    except ValueError:
+                        # Ignore
                         pass
                         
+    def set_cell(self, sffile, cell):
+        """Sets the unit cell -- assumption all blocks"""
+
+        assert len(cell) == 6
+
+        alist = ["length_a", "length_b", "length_c",
+                 "angle_alpha", "angle_beta", "angle_gamma"]
+
+        for idx in range(sffile.get_number_of_blocks()):
+            blk = sffile.get_block_by_index(idx)
+
+            cObj = blk.getObj("cell")
+
+            create = False
+            if not cObj:
+                cObj = DataCategory("cell", alist)
+                create = True
+
+            # Delete unknown
+            attrlist = cObj.getAttributeList()
+
+            for attr in alist:
+                if attr not in attrlist:
+                    cObj.removeAttribute(attr)
+
+            # Now set
+            attrlist = cObj.getAttributeList()
+            for idx, attr in enumerate(alist):
+                if attr not in attrlist:
+                    cObj.appendAttributeExtendRows(attr, cell[idx])
+                else:
+                    cObj.setValue(cell[idx], attr, 0)
+
+            if create:
+                blk.append(cObj)
+
+    def cleanup_extra_audit(self, sffile, logger):
+        """Removes extra audit records from second and more blocks"""
+
+        cat = "audit"
+        for block_index in range(1, sffile.get_number_of_blocks()):
+            blk = sffile.get_block_by_index(block_index)
+            if cat in blk.getObjNameList():
+                blk.remove(cat)
+                logger.pinfo(f"Removing {cat} category from block {blk.getName()}", 0)
+    

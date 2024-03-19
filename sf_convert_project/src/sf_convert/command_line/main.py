@@ -6,12 +6,12 @@ import sys
 from sf_convert.sffile.get_items_pdb import ProteinDataBank
 from sf_convert.import_dir.import_mtz import ImportMtz
 from sf_convert.import_dir.import_cif import ImportCif
-from sf_convert.import_dir.cns2cif import CNSToCifConverter
+from sf_convert.import_dir.cns2cif import ImportCns
 from sf_convert.export_dir.cif2cns import CifToCNSConverter
 from sf_convert.export_dir.cif2mtz import CifToMTZConverter
 from sf_convert.export_dir.export_cif import ExportCif
 from sf_convert.sffile.guess_sf_format import guess_sf_format
-from sf_convert.utils.reformat_sfhead import reformat_sfhead
+from sf_convert.utils.reformat_sfhead import reformat_sfhead, fix_entry_ids
 from sf_convert.utils.sf_correct import SfCorrect
 from sf_convert.utils.pinfo_file import PInfoLogger
 from sf_convert.utils.get_sf_info_file import get_sf_info
@@ -91,7 +91,7 @@ class SFConvertMain:
         output = pdict["output"]
         pdb_data = pdict.get("pdb_data", {})
 
-        sfc = SfCorrect(self.__logger)
+        sfc = SfCorrect(self.__legacy)
 
         # pdb_wave = pdb_data.get("WAVE", None)
         # wave_arg = pdict.get("wave_cmdline", None)        
@@ -128,8 +128,51 @@ class SFConvertMain:
         
         ec.write_file(output)
 
-        
+    def CNS_to_mmCIF(self, pdict):
+        """
+        Converts from CNS format to mmCIF format.
 
+        Args:
+        pdict: request dictionary
+        """
+        sfin =  pdict["sfin"]
+        output = pdict["output"]
+        pdb_data = pdict.get("pdb_data", {})
+        pdb_wave = pdb_data.get("WAVE", None)
+        pdb_cell = pdb_data.get("CELL", None)
+        wave_arg = pdict.get("wave_cmdline", None)        
+
+        pdb_id = "xxxx"
+
+        free = pdict.get("free", None)
+        
+        ic = ImportCns(self.__logger)
+        ic.set_free(free)
+        ic.import_files(sfin)
+        sffile = ic.get_sf()
+
+        sfc = SfCorrect(self.__legacy)
+        if pdb_cell:
+            sfc.set_cell(sffile, pdb_cell)
+            sfc.ensure_catkeys(sffile, "xxxx")
+            sfc.reorder_sf_file(sffile)
+
+        # Remove duplicate audits for multiple imports
+        sfc.cleanup_extra_audit(sffile, self.__logger)
+
+        # PDB id comes from
+        #  sffile block name - unless coordinate file used - and then use that
+        pdbid = pdb_data.get("pdb_id", None)
+
+        if pdbid:
+            pdbid = pdbid.lower()
+            fix_entry_ids(sffile, pdbid)
+            sffile.correct_block_names(pdbid)
+        
+        ec = ExportCif(self.__legacy)
+        ec.set_sf(sffile)
+        
+        ec.write_file(output)
         
 class CustomHelpParser(argparse.ArgumentParser):
     def print_help(self, file=None):  # pylint: disable=unused-argument
@@ -409,32 +452,32 @@ def handle_valid_argument(args, logger):
     sf_stat.write_sf_4_validation()
 
 
-def convert_from_CNS_to_mmCIF(args, pdb, logger):
-    """
-    Converts from CNS format to mmCIF format.
+# def convert_from_CNS_to_mmCIF(args, pdb, logger):
+#     """
+#     Converts from CNS format to mmCIF format.
 
-    Args:
-        args: The command line arguments.
-        pdb: The ProteinDataBank object.
-        logger: The PInfoLogger object.
-    """
-    processor = CNSToCifConverter(args.sf, pdb.pdb_id, logger, pdb.FREERV)
-    processor.process_file()
-    processor.rename_keys()
-    processor.create_data_categories()
-    processor.write_to_file(args.out)
+#     Args:
+#         args: The command line arguments.
+#         pdb: The ProteinDataBank object.
+#         logger: The PInfoLogger object.
+#     """
+#     processor = CNSToCifConverter(args.sf, pdb.pdb_id, logger, pdb.FREERV)
+#     processor.process_file()
+#     processor.rename_keys()
+#     processor.create_data_categories()
+#     processor.write_to_file(args.out)
 
-    sffile = StructureFactorFile()
-    sffile.read_file(args.out)
+#     sffile = StructureFactorFile()
+#     sffile.read_file(args.out)
 
-    reformat_sf_header(sffile, args, logger)
+#     reformat_sf_header(sffile, args, logger)
 
-    if args.multidatablock:
-        validate_block_name(args.multidatablock)
-        sffile.correct_block_names(args.multidatablock)
+#     if args.multidatablock:
+#         validate_block_name(args.multidatablock)
+#         sffile.correct_block_names(args.multidatablock)
 
-    sffile.write_file(args.out + ".mmcif")
-    os.remove(args.out)
+#     sffile.write_file(args.out + ".mmcif")
+#     os.remove(args.out)
 
 
 # def convert_from_MTZ_to_mmCIF(args, pdb, logger):
@@ -622,7 +665,8 @@ def convert_files(args, input_format, pdb_data, logger):
     sfc = SFConvertMain(logger)
     
     if input_format == "CNS" and output_format == "MMCIF":
-        convert_from_CNS_to_mmCIF(args, pdb, logger)
+        #convert_from_CNS_to_mmCIF(args, pdb, logger)
+        sfc.CNS_to_mmCIF(pdict)
     elif input_format == "MTZ" and output_format == "MMCIF":
         sfc.MTZ_to_mmCIF(pdict)
     elif input_format == "MMCIF" and output_format == "MTZ":

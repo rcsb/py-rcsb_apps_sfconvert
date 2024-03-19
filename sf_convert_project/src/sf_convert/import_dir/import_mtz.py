@@ -4,6 +4,7 @@ from mmcif.api.DataCategory import DataCategory
 import tempfile
 from sf_convert.sffile.sf_file import StructureFactorFile as SFFile
 
+
 class ImportMtz:
     def __init__(self, logger):
         """Class to import MTZ files - multiple supported"""
@@ -35,7 +36,7 @@ class ImportMtz:
 
             if self.__free:
                 mtz2cif.set_free(self.__free)
-            
+
             mtz2cif.convert()
             sf = mtz2cif.get_sf()
 
@@ -54,9 +55,7 @@ class ImportMtz:
     def set_labels(self, label):
         """Sets free R set"""
         self.__label = label
-        
 
-    ### Set free, etc
 
 class MtzToCifConverter:
     def __init__(self, mtz_file_path, logger):
