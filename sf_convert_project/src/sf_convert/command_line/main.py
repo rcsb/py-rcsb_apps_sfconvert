@@ -21,22 +21,34 @@ from sf_convert.utils.TextUtils import is_cif
 
 VALID_FORMATS = ["CNS", "MTZ", "MMCIF", "CIF"]
 
-
-class SFConvertMain:
-    """Main class to perform conversion steps."""
+class ImportSf:
+    """Class to import and possibly make corrections"""
     def __init__(self, logger):
         self.__logger = logger
         self.__legacy = True  # old sf_convert behaviour
 
-    def mmCIF_to_mmCIF(self, pdict):
-        """
-        Converts from mmCIF format to mmCIF format.
-
-        Args:
-        pdict: request dictionary
-        """
+    def import_sf(self, pdict):
+        """Imports structures as needed.
+        Returns StructureeFile class object"""
         sfin =  pdict["sfin"]
-        output = pdict["output"]
+        format_in = pdict["inp_format"].lower()
+        format_out = pdict["out_format"]
+
+        if format_in == "mmcif":
+            sf = self.__import_mmcif(pdict)
+        elif format_in == "cns":
+            sf = self.__import_cns(pdict)
+        elif format_in == "mtz":
+            sf = self.__import_mtz(pdict)
+        else:
+            print("Internal error type unknown")
+            sys.exit(1)
+
+        return sf
+
+    def __import_mmcif(self, pdict):
+        sfin =  pdict["sfin"]
+        format_out = pdict["out_format"]
         pdb_data = pdict.get("pdb_data", {})
         pdb_wave = pdb_data.get("WAVE", None)
         wave_arg = pdict.get("wave_cmdline", None)        
@@ -45,52 +57,42 @@ class SFConvertMain:
         ic.import_files(sfin)
         sffile = ic.get_sf()
 
-        sfc = SfCorrect(self.__logger)
+        # We apply corrections if cif -> cif conversion, otherwise bring in
+        if format_out == "MMCIF":
+            sfc = SfCorrect(self.__logger)
         
-        # PDB id comes from
-        #  sffile block name - unless coordinate file used - and then use that
-        pdbid = pdb_data.get("pdb_id", None)
+            # PDB id comes from
+            #  sffile block name - unless coordinate file used - and then use that
+            pdbid = pdb_data.get("pdb_id", None)
 
-        if not pdbid:
-            pdbid = sfc.get_pdbid(sffile)  # XXX should be a utility function somewhere else
+            if not pdbid:
+                pdbid = sfc.get_pdbid(sffile)  # XXX should be a utility function somewhere else
 
-        if pdbid:
-            pdbid = pdbid.lower()
+            if pdbid:
+                pdbid = pdbid.lower()
             
-        # Logic:
-        #  If command line - then use
-        #  If SF file has and model file - use model file and warn
-        #  If SF has - leave alone
-        #  Else write empty
+            # Logic:
+            #  If command line - then use
+            #  If SF file has and model file - use model file and warn
+            #  If SF has - leave alone
+            #  Else write empty
 
-        setwlarg = None
-        if wave_arg:
-            setwlarg = wave_arg
-        elif pdb_wave not in [".", "?", None]:
-            setwlarg = pdb_wave
+            setwlarg = None
+            if wave_arg:
+                setwlarg = wave_arg
+            elif pdb_wave not in [".", "?", None]:
+                setwlarg = pdb_wave
 
-        sfc.annotate_wavelength(sffile, pdbid, setwlarg, self.__logger)
-        # cell
-        # XXXX
+            sfc.annotate_wavelength(sffile, pdbid, setwlarg, self.__logger)
+            # cell
+
+            sfc.handle_standard(sffile, pdbid, self.__logger)
+
+        return sffile
         
-        sfc.handle_standard(sffile, pdbid, self.__logger)
-        
-        ec = ExportCif(self.__legacy)
-        ec.set_sf(sffile)
-        
-        ec.write_file(output)
-
-    def MTZ_to_mmCIF(self, pdict):
-        """
-        Converts from MTZ format to mmCIF format.
-
-        Args:
-        pdict: request dictionary
-        """
+    def __import_mtz(self, pdict):
         sfin =  pdict["sfin"]
-        output = pdict["output"]
         pdb_data = pdict.get("pdb_data", {})
-
         sfc = SfCorrect(self.__legacy)
 
         # pdb_wave = pdb_data.get("WAVE", None)
@@ -104,7 +106,6 @@ class SFConvertMain:
         free = pdict.get("free", None)
         if free:
             converter.set_free(free)
-
             
         converter.import_files(sfin)
 
@@ -122,6 +123,44 @@ class SFConvertMain:
 
         sfc.correct_cell_precision(sffile)
         sfc.handle_standard(sffile, pdbid, self.__logger)
+
+        return sffile
+
+class SFConvertMain:
+    """Main class to perform conversion steps."""
+    def __init__(self, logger):
+        self.__logger = logger
+        self.__legacy = True  # old sf_convert behaviour
+
+    def mmCIF_to_mmCIF(self, pdict):
+        """
+        Converts from mmCIF format to mmCIF format.
+
+        Args:
+        pdict: request dictionary
+        """
+        output = pdict["output"]
+
+        impsf = ImportSf(self.__logger)
+        sffile = impsf.import_sf(pdict)
+        
+        ec = ExportCif(self.__legacy)
+        ec.set_sf(sffile)
+        
+        ec.write_file(output)
+
+    def MTZ_to_mmCIF(self, pdict):
+        """
+        Converts from MTZ format to mmCIF format.
+
+        Args:
+        pdict: request dictionary
+        """
+        output = pdict["output"]
+        pdb_data = pdict.get("pdb_data", {})
+
+        impsf = ImportSf(self.__logger)
+        sffile = impsf.import_sf(pdict)
         
         ec = ExportCif(self.__legacy)
         ec.set_sf(sffile)
@@ -638,7 +677,9 @@ def convert_files(args, input_format, pdb_data, logger):
     # Setup dictionary of what we would like done
     pdict = {}
     pdict["sfin"] = args.sf
-
+    pdict["inp_format"] = input_format
+    pdict["out_format"] = output_format
+    
     if args.out is not None:
         output = args.out
     else:
