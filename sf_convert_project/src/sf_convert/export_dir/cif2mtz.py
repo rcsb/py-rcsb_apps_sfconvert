@@ -69,7 +69,6 @@ class CifToMTZConverter:
 
         sftemp.write_file(temp_file)
 
-
         cif_doc = gemmi.cif.read(temp_file)  # pylint: disable=no-member
         self.__rblock = gemmi.as_refln_blocks(cif_doc)[0]
 

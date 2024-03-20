@@ -56,11 +56,9 @@ class ExportCns:
             "pdbx_HL_D_iso": "hld"
         }
 
-        #self.__initialize_data()
-
     def __initialize_data(self):
         """
-        Initializes the data for the converter.
+        Initializes the data for the converter after SF set
         """
         self.__initialize_refln_data()
         self.__initialize_counts()
@@ -214,7 +212,6 @@ class ExportCns:
             else:
                 f = 0
                 ssf = 0
-            
 
         # F_plus exist
         if self.__F_plus and not (self.__Fo_au or self.__Io):
@@ -365,7 +362,6 @@ class ExportCns:
         self.__initialize_data()
         self.write_cns_file(path_out)
 
-        
     def set_sf(self, sfobj):
         """
         Sets PDBx/mmCIF SF file

@@ -619,7 +619,7 @@ class SfCorrect:
                     except ValueError:
                         # Ignore
                         pass
-                        
+
     def set_cell(self, sffile, cell):
         """Sets the unit cell -- assumption all blocks"""
 
@@ -665,4 +665,3 @@ class SfCorrect:
             if cat in blk.getObjNameList():
                 blk.remove(cat)
                 logger.pinfo(f"Removing {cat} category from block {blk.getName()}", 0)
-    
