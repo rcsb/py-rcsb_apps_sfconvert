@@ -5,7 +5,7 @@ from sf_convert.sffile.sf_file import StructureFactorFile
 import gemmi
 
 
-class CifToMTZConverter:
+class ExportMtz:
     def __init__(self, logger):
         """
         Initializes a CifToMTZConverter object.

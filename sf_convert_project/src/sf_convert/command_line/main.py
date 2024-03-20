@@ -9,7 +9,7 @@ from sf_convert.import_dir.import_mtz import ImportMtz
 from sf_convert.import_dir.import_cif import ImportCif
 from sf_convert.import_dir.import_cns import ImportCns
 from sf_convert.export_dir.export_cns import ExportCns
-from sf_convert.export_dir.cif2mtz import CifToMTZConverter
+from sf_convert.export_dir.export_mtz import ExportMtz
 from sf_convert.export_dir.export_cif import ExportCif
 from sf_convert.sffile.guess_sf_format import guess_sf_format
 from sf_convert.utils.reformat_sfhead import reformat_sfhead, fix_entry_ids
@@ -198,7 +198,7 @@ class ExportSf:
     def __export_mtz(self, sffile, pdict):
         output = pdict["output"]
 
-        MTZexport = CifToMTZConverter(self.__logger)
+        MTZexport = ExportMtz(self.__logger)
         MTZexport.set_sf(sffile)
         MTZexport.write_file(output)
 
