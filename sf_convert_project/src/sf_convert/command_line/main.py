@@ -14,7 +14,7 @@ from sf_convert.export_dir.export_cif import ExportCif
 from sf_convert.sffile.guess_sf_format import guess_sf_format
 from sf_convert.utils.reformat_sfhead import reformat_sfhead, fix_entry_ids
 from sf_convert.utils.sf_correct import SfCorrect
-from sf_convert.utils.pinfo_file import PInfoLogger
+from sf_convert.utils.pinfo_file import PStreamLogger
 from sf_convert.utils.get_sf_info_file import get_sf_info
 from sf_convert.utils.CheckSfFile import CheckSfFile
 from sf_convert.utils.version import get_version
@@ -598,8 +598,7 @@ def main():
 
 
         pdb = ProteinDataBank()
-        logger = PInfoLogger('path_to_log1.log', 'path_to_log2.log')
-        # logger.clear_logs()
+        logger = PStreamLogger()
 
         input_format = get_input_format(args)
 

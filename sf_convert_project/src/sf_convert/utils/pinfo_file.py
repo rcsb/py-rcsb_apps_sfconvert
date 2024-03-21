@@ -1,63 +1,11 @@
-import logging
+import io
 import os
 
-
-class PInfoLogger:
-    def __init__(self, log_file1_path, log_file2_path):
-        """
-        Initializes a new instance of the PInfoLogger class.
-
-        Args:
-            log_file1_path (str): The path to the first log file.
-            log_file2_path (str): The path to the second log file.
-        """
-        self.log_file1 = log_file1_path
-        self.log_file2 = log_file2_path
-
-        self.clear_logs()  # Clear the logs if they already exist
-
-        # Set up the loggers
-        self.logger1 = self._setup_logger('Logger1', self.log_file1)
-        self.logger2 = self._setup_logger('Logger2', self.log_file2)
-
-    def _setup_logger(self, logger_name, log_file_path):
-        """
-        Sets up a logger with a file handler.
-
-        Args:
-            logger_name (str): The name of the logger.
-            log_file_path (str): The path to the log file.
-
-        Returns:
-            logging.Logger: The configured logger.
-        """
-        logger = logging.getLogger(logger_name)
-        handler = logging.FileHandler(log_file_path)
-        handler.setFormatter(logging.Formatter('%(message)s'))
-        logger.addHandler(handler)
-        logger.setLevel(logging.INFO)  # Log all messages
-        return logger
-
-    def clear_logs(self):
-        """
-        Clears the log files.
-        """
-        self._remove_if_exists(self.log_file1)
-        self._remove_if_exists(self.log_file2)
-
-    def _remove_if_exists(self, file_path):
-        """
-        Removes a file if it exists.
-
-        Args:
-            file_path (str): The path to the file.
-        """
-        try:
-            if os.path.exists(file_path):
-                os.remove(file_path)
-        except Exception as e:  # pylint: disable=broad-exception-caught
-            print(f"An error occurred while removing {file_path}: {e}")
-
+class PInfoBase:
+    def __init__(self):
+        self._lf1 = None
+        self._lf2 = None
+        
     def pinfo(self, info, pid):
         """
         Logs information and prints it to the console.
@@ -73,13 +21,70 @@ class PInfoLogger:
             - If the ID is 2, the information is only printed to the console.
         """
         if "Warning" in info or "Error" in info:
-            self.logger1.info(info)  # Log to FTMP1.log
+            self._lf1.write(f"{info}\n")  # Log to FTMP1.log
             print(info)  # Also print to console
         else:
             if pid == 0:
-                self.logger2.info(info)  # Log to FTMP2.log
+                self._lf2.write(f"{info}\n")  # Log to FTMP2.log
                 print(info)  # Also print to console
             elif pid == 1:
-                self.logger2.info(info)  # Log to FTMP2.log
+                self._lf2.write(f"{info}\n")  # Log to FTMP2.log
             elif pid == 2:
                 print(info)  # Only print to console
+
+                                
+class PInfoLogger(PInfoBase):
+    def __init__(self, log_file1_path, log_file2_path):
+        """
+        Initializes a new instance of the PInfoLogger class.
+
+        Args:
+            log_file1_path (str): The path to the first log file.
+            log_file2_path (str): The path to the second log file.
+        """
+        super().__init__()
+
+        self.__log_file1 = log_file1_path
+        self.__log_file2 = log_file2_path
+
+        self.clear_logs()  # Clear the logs if they already exist
+
+        self._lf1 = open(self.__log_file1, "w")
+        self._lf2 = open(self.__log_file2, "w")
+
+
+    def __del__(self):
+        if self._lf1:
+            self._lf1.close()
+        if self._lf2:
+            self._lf1.close()
+            
+    def clear_logs(self):
+        """
+        Clears the log files.
+        """
+        self.__remove_if_exists(self.__log_file1)
+        self.__remove_if_exists(self.__log_file2)
+
+    def __remove_if_exists(self, file_path):
+        """
+        Removes a file if it exists.
+
+        Args:
+            file_path (str): The path to the file.
+        """
+        try:
+            if os.path.exists(file_path):
+                os.remove(file_path)
+        except Exception as e:  # pylint: disable=broad-exception-caught
+            print(f"An error occurred while removing {file_path}: {e}")
+
+
+class PStreamLogger(PInfoBase):
+    def __init__(self):
+        
+        super().__init__()
+        self._lf1 = io.StringIO()
+        self._lf2 = io.StringIO()
+        
+                                
