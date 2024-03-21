@@ -578,6 +578,9 @@ def convert_files(args, input_format, pdb_data, logger):
     elif args.valid is False:
         raise ValueError(f"Conversion from {input_format} to {output_format} is not supported.")
 
+    rdict = {"output": output, "out_format": output_format}
+    return rdict
+    
 
 def main():
     """
@@ -585,6 +588,15 @@ def main():
     """
     try:
         args = parse_arguments()
+
+        version = get_version()
+
+        print("=======================================================================")
+        print(f"              {version}")
+        print("=======================================================================")
+
+
+
         pdb = ProteinDataBank()
         logger = PInfoLogger('path_to_log1.log', 'path_to_log2.log')
         # logger.clear_logs()
@@ -613,7 +625,12 @@ def main():
         if args.valid:
             handle_valid_argument(args, logger)
 
-        convert_files(args, input_format, pdb_data, logger)
+        rdict = convert_files(args, input_format, pdb_data, logger)
+
+        outpath = rdict["output"]
+        outformat = rdict["out_format"].lower()
+        print(f"Output File Name = {outpath} : ({outformat} format)")
+
 
     except ValueError as e:
         print(f"Error: {e}")
