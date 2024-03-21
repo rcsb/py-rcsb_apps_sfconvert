@@ -4,7 +4,7 @@ import re
 
 from mmcif.io.IoAdapterCore import IoAdapterCore
 from mmcif.api.PdbxContainers import DataContainer
-from mmcif.api.DataCategoryBase import DataCategoryBase
+from mmcif.api.DataCategory import DataCategory
 from sf_convert.utils.CifUtils import reorderCategoryAttr
 
 
@@ -116,7 +116,7 @@ class StructureFactorFile:
             block_name (str, optional): The name of the data block. Defaults to None.
 
         Returns:
-            DataCategoryBase: The category object, or None if the category or data block does not exist.
+            DataCategory: The category object, or None if the category or data block does not exist.
         """
         if block_name is None:
             block_index = self.__default_block_index
@@ -162,7 +162,7 @@ class StructureFactorFile:
         Appends a category to a data block.
 
         Args:
-            category (DataCategoryBase): The category to append.
+            category (DataCategory): The category to append.
             block_name (str, optional): The name of the data block. Defaults to None.
         """
         if block_name is None:
@@ -211,7 +211,7 @@ class StructureFactorFile:
             if block is None:
                 print(f"Block {block_name} does not exist.")
                 return
-        new_category = DataCategoryBase(category_name)
+        new_category = DataCategory(category_name)
         for attribute in data_dict.keys():
             new_category.appendAttribute(attribute)
         new_category.append(list(data_dict.values()))

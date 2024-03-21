@@ -220,6 +220,7 @@ class SFConvertMain:
         esf = ExportSf(self.__logger)
         esf.export_sf(sffile, pdict)
 
+        # Generate statistics
 
 class CustomHelpParser(argparse.ArgumentParser):
     def print_help(self, file=None):  # pylint: disable=unused-argument
@@ -626,14 +627,17 @@ def main():
 
         rdict = convert_files(args, input_format, pdb_data, logger)
 
-        outpath = rdict["output"]
-        outformat = rdict["out_format"].lower()
-        print(f"Output File Name = {outpath} : ({outformat} format)")
-
-
     except ValueError as e:
         print(f"Error: {e}")
         sys.exit(2)
+
+    # Write out final files
+
+    outpath = rdict["output"]
+    outformat = rdict["out_format"].lower()
+    print(f"Output File Name = {outpath} : ({outformat} format)")
+
+    logger.output_reports("sf_information.cif")
 
 
 def parse_arguments() -> argparse.Namespace:

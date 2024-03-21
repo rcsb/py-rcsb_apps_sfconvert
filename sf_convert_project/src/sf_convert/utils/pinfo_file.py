@@ -1,6 +1,10 @@
 import io
 import os
 
+from mmcif.api.DataCategory import DataCategory
+from mmcif.api.PdbxContainers import DataContainer
+from mmcif.io.IoAdapterCore import IoAdapterCore
+
 class PInfoBase:
     def __init__(self):
         self._lf1 = None
@@ -32,6 +36,60 @@ class PInfoBase:
             elif pid == 2:
                 print(info)  # Only print to console
 
+    def output_reports(self, sfinfo="sf_information.cif", diag=None):
+        """Output diagnostics file (if requested) and the sf_information.cif file"""
+            
+        if diag:
+            self._lf1.seek(0)
+
+            with open(diag, "w") as fout:
+                num = 0
+                for ln in self._lf1:
+                    ln = ln.strip()
+                    if len(ln):
+                        num += 1
+                        fout.write(f"{ln}\n")
+
+                if num == 0:
+                    fout.write("No Error/Warning messages were found.\n")
+
+        self.__output_sf_info(sfinfo)
+
+
+    def __output_sf_info(self, sfpath):
+        """Outputs sf_info class"""
+
+        self._lf1.seek(0)
+        self._lf2.seek(0)
+
+        err = ""
+        for ln in self._lf1:
+            # Leave new lines
+            err += ln
+
+        if err == "":
+            err = "\n"
+            
+        info = ""
+        for ln in self._lf2:
+            # Leave new lines
+            info += ln
+
+        if info == "":
+            info = "\n"
+        
+        b0 = DataContainer("info")
+        aCat = DataCategory("sf_convert", ("error", "sf_information"))
+        aCat.append((err, info))
+
+        b0.append(aCat)
+
+        cl = [b0]
+
+        io = IoAdapterCore()
+        ok = io.writeFile(sfpath, cl)
+        print("Write ", ok)
+                
                                 
 class PInfoLogger(PInfoBase):
     def __init__(self, log_file1_path, log_file2_path):
@@ -51,7 +109,6 @@ class PInfoLogger(PInfoBase):
 
         self._lf1 = open(self.__log_file1, "w")
         self._lf2 = open(self.__log_file2, "w")
-
 
     def __del__(self):
         if self._lf1:
