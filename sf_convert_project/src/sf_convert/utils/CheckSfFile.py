@@ -6,14 +6,13 @@ from mmcif.io.PdbxWriter import PdbxWriter
 
 
 class CheckSfFile:
-    def __init__(self, sffile, logger, fout_path, pinfo_value=1):
+    def __init__(self, sffile, logger, pinfo_value=1):
         """
         Initializes the CheckSfFile object.
 
         Args:
             sffile: The SFFile object representing the structure factor file.
             logger: The logger object for logging messages.
-            fout_path: The path to the output file for write_sf_4_validation.
             pinfo_value: The value for pinfo.
 
         Returns:
@@ -21,7 +20,6 @@ class CheckSfFile:
         """
         self.__sf_file = sffile
         self.__pinfo_value = pinfo_value
-        self.__fout_path = fout_path
         self.__logger = logger
 
         # The following use setattr or init later - but simplify for pylint - as we declare what we need
@@ -50,6 +48,21 @@ class CheckSfFile:
         Returns:
             None
         """
+        # Reset for new iteration
+
+        self.__hkl_min = self.__hkl_max = "unknown"
+        self.__status = None
+        self.__Io = self.__sIo = None
+        self.__nref = self.__dnref = None
+        self.__cell = self.__rcell = None
+        self.__refln_data = self.__diffrn_refln_data = None
+        self.__H = self.__K = self.__L = []
+        self.__F_plus = self.__sF_plus = self.__F_minus = self.__sF_minus = []
+        self.__I_plus = self.__sI_plus = self.__I_minus = self.__sI_minus = []
+        self.__F2o = self.__sF2o = self.__sFo = self.__Fo = self.__Fo_au = self.__sFo_au = []
+        self.__phase_c = self.__phase_o = self.__fom = []
+        self.__dH = self.__dK = self.__dL = []
+        self.__unmerge_i = self.__unmerge_si = []
         self.initialize_refln_data()
         self.initialize_diffrn_refln_data()
         self.initialize_counts()
@@ -93,6 +106,8 @@ class CheckSfFile:
         """
         if self.__refln_data:
             self.__nref = self.__refln_data.getRowCount()
+        else:
+            self.__nref = 0
         if self.__diffrn_refln_data:
             self.__dnref = self.__diffrn_refln_data.getRowCount()
 
@@ -129,8 +144,12 @@ class CheckSfFile:
             "phase_meas": "phase_o",
         }
 
+        # No data - no analysis
+        #if not self.__refln_data:
+        #    return
+        
         for attr, var in attributes.items():
-            if self.__refln_data.hasAttribute(attr):
+            if self.__refln_data and self.__refln_data.hasAttribute(attr):
                 setattr(self, var, self.__refln_data.getColumn(self.__refln_data.getIndex(attr)))
                 setattr(self, "_CheckSfFile__" + var, self.__refln_data.getColumn(self.__refln_data.getIndex(attr)))
 
@@ -166,14 +185,14 @@ class CheckSfFile:
             None
         """
         # Check if attribute "intensity_meas" is present
-        if self.__refln_data.hasAttribute("intensity_meas"):
+        if self.__refln_data and self.__refln_data.hasAttribute("intensity_meas"):
             self.__Io = self.__refln_data.getColumn(self.__refln_data.getIndex("intensity_meas"))
         else:
             self.__Io = None
 
         # If self.__Io is still None, check for attribute "intensity_meas_au"
         if not self.__Io:
-            if self.__refln_data.hasAttribute("intensity_meas_au"):
+            if self.__refln_data and self.__refln_data.hasAttribute("intensity_meas_au"):
                 self.__Io = self.__refln_data.getColumn(self.__refln_data.getIndex("intensity_meas_au"))
 
             # If attribute "intensity_meas_au" is present and was successfully set to self.__Io, change the token
@@ -182,7 +201,7 @@ class CheckSfFile:
 
         # If self.__Io is still None, check for attribute "intensity"
         if not self.__Io:
-            if self.__refln_data.hasAttribute("intensity"):
+            if self.__refln_data and self.__refln_data.hasAttribute("intensity"):
                 self.__Io = self.__refln_data.getColumn(self.__refln_data.getIndex("intensity"))
 
             # If attribute "intensity" is present and was successfully set to self.__Io, change the token
@@ -200,14 +219,14 @@ class CheckSfFile:
             None
         """
         # Check if attribute "intensity_sigma" is present
-        if self.__refln_data.hasAttribute("intensity_sigma"):
+        if self.__refln_data and self.__refln_data.hasAttribute("intensity_sigma"):
             self.__sIo = self.__refln_data.getColumn(self.__refln_data.getIndex("intensity_sigma"))
         else:
             self.__sIo = None
 
         # If self.__sIo is still None, check for attribute "intensity_sigma_au"
         if not self.__sIo:
-            if self.__refln_data.hasAttribute("intensity_sigma_au"):
+            if self.__refln_data and self.__refln_data.hasAttribute("intensity_sigma_au"):
                 self.__sIo = self.__refln_data.getColumn(self.__refln_data.getIndex("intensity_sigma_au"))
 
             # If attribute "intensity_sigma_au" is present and was successfully set to self.__sIo, change the token
@@ -216,7 +235,7 @@ class CheckSfFile:
 
         # If self.__sIo is still None, check for attribute "intensity_sigm"
         if not self.__sIo:
-            if self.__refln_data.hasAttribute("intensity_sigm"):
+            if self.__refln_data and self.__refln_data.hasAttribute("intensity_sigm"):
                 self.__sIo = self.__refln_data.getColumn(self.__refln_data.getIndex("intensity_sigm"))
 
             # If attribute "intensity_sigm" is present and was successfully set to self.__sIo, change the token
@@ -225,7 +244,7 @@ class CheckSfFile:
 
         # If self.__sIo is still None, check for attribute "intensity_meas_sigma"
         if not self.__sIo:
-            if self.__refln_data.hasAttribute("intensity_meas_sigma"):
+            if self.__refln_data and self.__refln_data.hasAttribute("intensity_meas_sigma"):
                 self.__sIo = self.__refln_data.getColumn(self.__refln_data.getIndex("intensity_meas_sigma"))
 
             # If attribute "intensity_meas_sigma" is present and was successfully set to self.__sIo, change the token
@@ -234,7 +253,7 @@ class CheckSfFile:
 
         # If self.__sIo is still None, check for attribute "intensity_meas_sigma_au"
         if not self.__sIo:
-            if self.__refln_data.hasAttribute("intensity_meas_sigma_au"):
+            if self.__refln_data and self.__refln_data.hasAttribute("intensity_meas_sigma_au"):
                 self.__sIo = self.__refln_data.getColumn(self.__refln_data.getIndex("intensity_meas_sigma_au"))
 
             # If attribute "intensity_meas_sigma_au" is present and was successfully set to self.__sIo, change the token
@@ -251,6 +270,9 @@ class CheckSfFile:
         Returns:
             None
         """
+        if self.__refln_data is None:
+            return
+        
         self.__status = self.__refln_data.getColumn(self.__refln_data.getIndex("status"))
         if not self.__status:
             self.__status = self.__refln_data.getColumn(self.__refln_data.getIndex("R_free_flag"))
@@ -401,7 +423,7 @@ class CheckSfFile:
             None
         """
         self.__sf_block = self.__sf_file.get_block_by_index(nblock)
-        self.__logger.pinfo(f"Data_block_id={self.__sf_block.getName()}, block_number={nblock+1}\n", self.__pinfo_value)
+        self.__logger.pinfo(f"Data_block_id={self.__sf_block.getName()}, block_number={nblock+1}\n", 0)  # self.__pinfo_value)
         self.initialize_data()
 
         temp_nref, nstart, n1, n2, n4, n5, nfpairF, nfpairI, nf_sFo, nf_sIo, key = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
@@ -446,8 +468,8 @@ class CheckSfFile:
             self.__logger.pinfo(f"Error: File has no free set (data block= {nblock + 1}).", self.__pinfo_value)
 
         refln_data = self.__sf_block.getObj("refln")
-        if refln_data is not None:
-            _rcell, cell = self.__calc_cell_and_recip()
+
+        _rcell, cell = self.__calc_cell_and_recip()
 
         if (cell[0] > 0.01 and cell[1] > 0.01):
             key = 1
@@ -508,14 +530,14 @@ class CheckSfFile:
             # if self.__sIo and i > 0 and float(self.__sIo[i - 1]) == float(self.__sIo[i]):
             #     nf_sIo += 1
 
-            if self.__F_plus:
+            if self.__F_plus and is_float(self.__F_plus[i]):
                 f = float(self.__F_plus[i])
                 nfpairF += 1
                 if f < 0 and self.__n4 == 1:
                     self.__logger.pinfo(f"Error: File has negative amplitude (F+: {self.__F_plus[i]}) for ({hkl}).", self.__pinfo_value)
                     n4 += 1
 
-            if self.__I_plus:
+            if self.__I_plus and is_float(self.__I_plus[i]):
                 nfpairI += 1
                 f = float(self.__I_plus[i])
 
@@ -581,7 +603,7 @@ class CheckSfFile:
                         n_free += 1
 
             if self.__Fo_au:
-                f = float(self.__Fo_au[i])
+                f = self.float_or_zero(self.__Fo_au[i])
                 if f < 0 and self.__n5 == 0:
                     self.__n5 += 1
                     self.__logger.pinfo(f"Error: File has negative amplitude (Fo: {self.__Fo_au[i]}) for ({hkl}).", self.__pinfo_value)
@@ -591,7 +613,7 @@ class CheckSfFile:
                 if f > max_F:
                     max_F = f
 
-                if self.__sFo_au:
+                if self.__sFo_au and is_float(self.__sFo_au[i]):
                     sigf = float(self.__sFo_au[i])
                     if sigf > 0 and self.__sFo_au[i] != '?':
                         f_over_sf += f / sigf
@@ -629,17 +651,17 @@ class CheckSfFile:
                         sum_si += sigf
                         nf_Io += 1
 
-            if self.__fom and abs(float(self.__fom[i])) > 1.01:
+            if self.__fom and is_float(self.__fom[i]) and  abs(float(self.__fom[i])) > 1.01:
                 if n6 == 0:
                     n6 += 1
                     self.__logger.pinfo(f"Warning: File has wrong values of FOM ({self.__fom[i]}) for ({hkl}).", self.__pinfo_value)
 
-            if self.__phase_c and abs(float(self.__phase_c[i])) > 361.0:
+            if self.__phase_c and is_float(self.__phase_c[i]) and abs(float(self.__phase_c[i])) > 361.0:
                 if n7 == 0:
                     n7 += 1
                     self.__logger.pinfo(f"Warning: File has wrong values of phase ({self.__phase_c[i]}) for ({hkl}).", self.__pinfo_value)
 
-            if self.__phase_o and abs(float(self.__phase_o[i])) > 361.0:
+            if self.__phase_o and is_float(self.__phase_o[i]) and abs(float(self.__phase_o[i])) > 361.0:
                 if n8 == 0:
                     n8 += 1
                     self.__logger.pinfo(f"Warning: File has wrong values of phase ({self.__phase_o[i]}) for ({hkl}).", self.__pinfo_value)
@@ -841,7 +863,7 @@ class CheckSfFile:
 
         return fp, sigfp
 
-    def write_sf_4_validation(self, nblock=0):
+    def write_sf_4_validation(self, file_path, nblock=0):
         """
         Writes the SF file for validation.
 
@@ -853,8 +875,6 @@ class CheckSfFile:
         """
         # file_name = 'sf_4_validate.cif'
         # file_path = os.path.join(self.__fout_path, file_name)
-
-        file_path = self.__fout_path
 
         self.__sf_block = self.__sf_file.get_block_by_index(nblock)
         self.initialize_data()
@@ -987,7 +1007,9 @@ class CheckSfFile:
             if (abs(SIGCUT) > 0.0001 and i_sigi < SIGCUT):
                 continue
 
-            values_to_append = (self.__H[i], self.__K[i], self.__L[i], flag, fp, sigfp, resol, i_sigi)
+            values_to_append = (self.__H[i], self.__K[i], self.__L[i], flag, fp, sigfp,
+                                "{:0.2f}".format(round(resol, 2)),
+                                "{:0.2f}".format(round(i_sigi, 2)))
 
             if self.__Io and self.__sIo:
                 values_to_append += (self.__Io[i], self.__sIo[i])
@@ -1024,3 +1046,17 @@ class CheckSfFile:
         """
         for i in range(n):
             self.check_sf(i)
+
+    def sf_stat(self, fname, sf4name=None):
+        """Produces statistics"""
+
+        print(f"\nGetting statistics from ({fname})")
+        
+
+        numblocks = self.__sf_file.get_number_of_blocks()
+        self.__logger.pinfo(f"Total number of data blocks = {numblocks}\n", 0)
+
+        for blkid in range(numblocks):
+            self.check_sf(blkid)
+            if sf4name and blkid == 0:
+                self.write_sf_4_validation(sf4name, blkid);

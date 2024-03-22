@@ -1,4 +1,5 @@
 import argparse
+import traceback
 import os
 import re
 import sys
@@ -221,6 +222,12 @@ class SFConvertMain:
         esf.export_sf(sffile, pdict)
 
         # Generate statistics
+        output = pdict["output"]
+
+        checksf = CheckSfFile(sffile, self.__logger)
+        checksf.sf_stat(output, "SF_4_validate.cif")
+
+        # checksffile code
 
 class CustomHelpParser(argparse.ArgumentParser):
     def print_help(self, file=None):  # pylint: disable=unused-argument
@@ -496,9 +503,9 @@ def handle_valid_argument(args, logger):
     sffile = StructureFactorFile()
     sffile.read_file(args.sf)
     n = sffile.get_number_of_blocks()
-    sf_stat = CheckSfFile(sffile, logger, args.out + "_SF_4_validate.cif")
+    sf_stat = CheckSfFile(sffile, logger)
     sf_stat.check_sf_all_blocks(n)
-    sf_stat.write_sf_4_validation()
+    sf_stat.write_sf_4_validation(args.out + "_SF_4_validate.cif")
 
 
 def reformat_sf_header(sffile, pdbid, logger, detail=None):
@@ -629,6 +636,7 @@ def main():
 
     except ValueError as e:
         print(f"Error: {e}")
+        traceback.print_exc()
         sys.exit(2)
 
     # Write out final files
