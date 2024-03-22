@@ -2,7 +2,7 @@ import math
 
 from mmcif.api.DataCategory import DataCategory
 from mmcif.api.PdbxContainers import DataContainer
-from mmcif.io.PdbxWriter import PdbxWriter
+from mmcif.io.IoAdapterCore import IoAdapterCore
 
 
 class CheckSfFile:
@@ -1027,10 +1027,8 @@ class CheckSfFile:
         curContainer.append(cCat)
         myDataList.append(curContainer)
 
-        with open(file_path, "w") as ofh:
-            pdbxW = PdbxWriter(ofh)
-            pdbxW.setAlignmentFlag(flag=True)
-            pdbxW.write(myDataList)
+        io = IoAdapterCore()
+        io.writeFile(file_path, myDataList)
 
         # print("\nNumber of reflections for validation set = %d" % nf)
 
