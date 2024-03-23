@@ -422,7 +422,8 @@ class CheckSfFile:
         self.__logger.pinfo(f"Data_block_id={self.__sf_block.getName()}, block_number={nblock+1}\n", 0)  # self.__pinfo_value)
         self.initialize_data()
 
-        temp_nref, nstart, n1, n2, n4, n5, nfpairF, nfpairI, nf_sFo, nf_sIo, key = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+        temp_nref, nstart, n1, n4, n5, nfpairF, nfpairI, nf_sFo, nf_sIo, key = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+        # n2 removed
         sum_sigii, ii_sigii, ii_sigii_low, nnii, sum_ii, nnii_low, nfp, nfn, nip, nin, n_obs, n_free = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
         max_H, min_H, max_K, min_K, max_L, min_L = -500, 500, -500, 500, -500, 500
         max_F, min_F, max_I, min_I = -500000.0, 500000.0, -5000000.0, 5000000.0
@@ -499,9 +500,9 @@ class CheckSfFile:
             if (
                     (ah == 0 and ak == 0 and al == 0)
                     or (abs(ah) > 800 or abs(ak) > 800 or abs(al) > 800)):
+                n1 += 1
                 if n1 == 1:
                     self.__logger.pinfo(f"Error: File has wrong indices ({hkl}).", self.__pinfo_value)
-                    n1 += 1
 
             # --------------------------------------------------------------
 
@@ -527,9 +528,10 @@ class CheckSfFile:
             if self.__F_plus and is_float(self.__F_plus[i]):
                 f = float(self.__F_plus[i])
                 nfpairF += 1
-                if f < 0 and self.__n4 == 1:
-                    self.__logger.pinfo(f"Error: File has negative amplitude (F+: {self.__F_plus[i]}) for ({hkl}).", self.__pinfo_value)
+                if f < 0:
                     n4 += 1
+                    if n4 == 1:
+                        self.__logger.pinfo(f"Error: File has negative amplitude (F+: {self.__F_plus[i]}) for ({hkl}).", self.__pinfo_value)
 
             if self.__I_plus and is_float(self.__I_plus[i]):
                 nfpairI += 1
@@ -598,9 +600,10 @@ class CheckSfFile:
 
             if self.__Fo_au:
                 f = self.float_or_zero(self.__Fo_au[i])
-                if f < 0 and self.__n5 == 0:
-                    self.__n5 += 1
-                    self.__logger.pinfo(f"Error: File has negative amplitude (Fo: {self.__Fo_au[i]}) for ({hkl}).", self.__pinfo_value)
+                if f < 0:
+                    n5 += 1
+                    if n5 == 1:
+                        self.__logger.pinfo(f"Error: File has negative amplitude (Fo: {self.__Fo_au[i]}) for ({hkl}).", self.__pinfo_value)
 
                 if f < min_F:
                     min_F = f
@@ -663,8 +666,8 @@ class CheckSfFile:
         if n1 > 0:
             self.__logger.pinfo(f"Error: File has ({n1}) reflections with wrong indices.", self.__pinfo_value)
 
-        if n2 > 0:
-            self.__logger.pinfo(f"Warning: File has ({n2}) reflections with negative SIGMA, (Corrected: given status '<').", self.__pinfo_value)
+        # if n2 > 0:
+        #     self.__logger.pinfo(f"Warning: File has ({n2}) reflections with negative SIGMA, (Corrected: given status '<').", self.__pinfo_value)
 
         if n4 > 0:
             self.__logger.pinfo(f"Error: File has ({n4}) reflections with negative amplitude (F+).", self.__pinfo_value)

@@ -6,14 +6,14 @@ import gemmi
 
 
 class ExportMtz:
-    def __init__(self, logger):
+    def __init__(self, logger):  # pylint: disable=unused-argument
         """
         Initializes a CifToMTZConverter object.
 
         Args:
             cif_path (str): The path to the CIF file.
         """
-        self.__logger = logger
+        # self.__logger = logger
         self.__mappings = {
             'h_index_mapping' : [['index_h', 'H', 'H', 0]],
             'k_index_mapping' : [['index_k', 'K', 'H', 0]],
@@ -70,7 +70,7 @@ class ExportMtz:
         sftemp.write_file(temp_file)
 
         cif_doc = gemmi.cif.read(temp_file)  # pylint: disable=no-member
-        self.__rblock = gemmi.as_refln_blocks(cif_doc)[0]
+        self.__rblock = gemmi.as_refln_blocks(cif_doc)[0]  # pylint: disable=unsubscriptable-object
 
         os.remove(temp_file)
 

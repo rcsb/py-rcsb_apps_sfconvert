@@ -86,9 +86,8 @@ class PInfoBase:
 
         cl = [b0]
 
-        io = IoAdapterCore()
-        ok = io.writeFile(sfpath, cl)
-        print("Write ", ok)
+        ioa = IoAdapterCore()
+        ioa.writeFile(sfpath, cl)
 
 
 class PInfoLogger(PInfoBase):

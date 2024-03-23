@@ -153,7 +153,7 @@ def reformat_sfhead(sf_file, pdb_id, logger, DETAIL=None):
     changes_made |= rename_sfhead(sf_file, mapping_dicts, logger)
     changes_made |= remove_sfhead(sf_file, remove_list, logger)
     changes_made |= remove_sfhead(sf_file, ["audit"], logger, 1)  # Remove audit from second and subsequent blocks
-    changes_made != fix_entry_ids(sf_file, pdb_id)
+    changes_made |= fix_entry_ids(sf_file, pdb_id)
     changes_made |= add_audit_if_needed(sf_file, logger)
     # changes_made |= remove_duplicate_reflections(sf_file)
 

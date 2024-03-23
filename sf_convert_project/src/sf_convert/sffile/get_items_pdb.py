@@ -4,12 +4,6 @@ from mmcif.io.IoAdapterCore import IoAdapterCore
 
 
 class ProteinDataBank:
-    def __init__(self):
-        """
-        Initializes a new instance of the ProteinDataBank class.
-        """
-        self.__attributes = {}
-
     def extract_attributes_from_cif(self, sffile):
         """
         Extracts attributes from a CIF file and updates the ProteinDataBank object.
@@ -30,8 +24,6 @@ class ProteinDataBank:
 
         # Group cell parameters together
         attributes['CELL'] = [attributes.pop(key) for key in ['CELL_a', 'CELL_b', 'CELL_c', 'CELL_alpha', 'CELL_beta', 'CELL_gamma'] if key in attributes]
-
-        self.__attributes = attributes
 
         return attributes
 
@@ -100,8 +92,6 @@ class ProteinDataBank:
             dict: A dictionary containing the extracted attributes.
         """
         attributes = self._get_pdb_attributes(filename)
-
-        self.__attributes = attributes
 
         return attributes
 

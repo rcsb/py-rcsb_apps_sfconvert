@@ -160,6 +160,7 @@ class ImportSf:
             fix_entry_ids(sffile, pdbid)
             sffile.correct_block_names(pdbid)
 
+        return sffile
 
 class ExportSf:
     """Class to import and possibly make corrections"""
@@ -208,7 +209,6 @@ class SFConvertMain:
     """Main class to perform conversion steps."""
     def __init__(self, logger):
         self.__logger = logger
-        self.__legacy = True  # old sf_convert behaviour
 
     def convert(self, pdict):
         """Handles the conversion as needed"""
@@ -450,7 +450,7 @@ def handle_label_argument(args):
         raise ValueError("Invalid format for -label argument. Please use the format 'key1=value1, key2=value2, ...'")
 
 
-def handle_freer_argument(args, pdb, logger):
+def handle_freer_argument(args, logger):
     """
     Handles operations related to the -freer argument.
 
@@ -468,13 +468,12 @@ def handle_freer_argument(args, pdb, logger):
     logger.pinfo(f"Note: {args.freer} is used for free data set.", 0)
 
 
-def handle_wave_argument(args, pdb):
+def handle_wave_argument(args):
     """
     Handles operations related to the -wave argument.
 
     Args:
         args: The command line arguments.
-        pdb: The ProteinDataBank object.
 
     Raises:
         ValueError: If the -wave argument is not a positive float.
@@ -575,7 +574,7 @@ def convert_files(args, input_format, pdb_data, logger):
         pdict["wave_cmdline"] = float(args.wave)   # Type checked in argument parser
 
     if args.label is not None:
-        pdict["label"] is args.label
+        pdict["label"] = args.label
 
     if args.freer:
         pdict["free"] = args.freer
@@ -620,10 +619,10 @@ def main():
             handle_label_argument(args)
 
         if args.freer:
-            handle_freer_argument(args, pdb, logger)
+            handle_freer_argument(args, logger)
 
         if args.wave:
-            handle_wave_argument(args, pdb)
+            handle_wave_argument(args)
 
         if args.diags:
             handle_diags_argument(args)

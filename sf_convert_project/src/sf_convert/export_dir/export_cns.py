@@ -4,8 +4,8 @@ class ExportCns:
         Initializes the CifToCNSConverter object.
 
         """
-        self.__legacy = legacy
-        self.__logger = logger
+        # self.__legacy = legacy
+        # self.__logger = logger
         self.__sf_file = None
         self.__attr_existence = {}
 

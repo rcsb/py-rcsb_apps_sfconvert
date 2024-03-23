@@ -365,7 +365,7 @@ class SfCorrect:
             if len(attrlist) == 0 or attrlist == ["entry_id"]:
                 blk.remove("symmetry")
 
-    def __handle_diffrn(self, sffile, pdbid, logger, details=None):
+    def __handle_diffrn(self, sffile, pdbid, logger, details=None):  # pylint: disable=unused-argument
         """Instantiate diffrn category if needed, see diffrn.id if needed."""
 
         for idx in range(sffile.get_number_of_blocks()):
@@ -456,7 +456,7 @@ class SfCorrect:
 
         return upd
 
-    def __handle_reflns(self, sffile, logger):
+    def __handle_reflns(self, sffile, logger):  # pylint: disable=unused-argument
         """Handles reflns and diffrn_reflns data
 
         Assumption: diffrn_id is 1 if not provided
@@ -539,7 +539,7 @@ class SfCorrect:
         """Reorders sf_file"""
         self.__reorder_sf_file(sffile)
 
-    def __update_exptl_crystal(self, sf_file, logger):
+    def __update_exptl_crystal(self, sf_file, logger):  # pylint: disable=unused-argument
         """If exptl_crystal present, remove everything but id
 
            Args:
