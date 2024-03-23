@@ -5,11 +5,12 @@ from mmcif.api.DataCategory import DataCategory
 from mmcif.api.PdbxContainers import DataContainer
 from mmcif.io.IoAdapterCore import IoAdapterCore
 
+
 class PInfoBase:
     def __init__(self):
         self._lf1 = None
         self._lf2 = None
-        
+
     def pinfo(self, info, pid):
         """
         Logs information and prints it to the console.
@@ -38,7 +39,7 @@ class PInfoBase:
 
     def output_reports(self, sfinfo="sf_information.cif", diag=None):
         """Output diagnostics file (if requested) and the sf_information.cif file"""
-            
+
         if diag:
             self._lf1.seek(0)
 
@@ -55,7 +56,6 @@ class PInfoBase:
 
         self.__output_sf_info(sfinfo)
 
-
     def __output_sf_info(self, sfpath):
         """Outputs sf_info class"""
 
@@ -69,7 +69,7 @@ class PInfoBase:
 
         if err == "":
             err = "\n"
-            
+
         info = ""
         for ln in self._lf2:
             # Leave new lines
@@ -77,7 +77,7 @@ class PInfoBase:
 
         if info == "":
             info = "\n"
-        
+
         b0 = DataContainer("info")
         aCat = DataCategory("sf_convert", ("error", "sf_information"))
         aCat.append((err, info))
@@ -89,8 +89,8 @@ class PInfoBase:
         io = IoAdapterCore()
         ok = io.writeFile(sfpath, cl)
         print("Write ", ok)
-                
-                                
+
+
 class PInfoLogger(PInfoBase):
     def __init__(self, log_file1_path, log_file2_path):
         """
@@ -115,7 +115,7 @@ class PInfoLogger(PInfoBase):
             self._lf1.close()
         if self._lf2:
             self._lf1.close()
-            
+
     def clear_logs(self):
         """
         Clears the log files.
@@ -138,10 +138,8 @@ class PInfoLogger(PInfoBase):
 
 
 class PStreamLogger(PInfoBase):
+    """Logger but uses StringIO and not tempoary log files"""
     def __init__(self):
-        
         super().__init__()
         self._lf1 = io.StringIO()
         self._lf2 = io.StringIO()
-        
-                                

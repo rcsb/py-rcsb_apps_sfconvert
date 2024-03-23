@@ -144,10 +144,6 @@ class CheckSfFile:
             "phase_meas": "phase_o",
         }
 
-        # No data - no analysis
-        #if not self.__refln_data:
-        #    return
-        
         for attr, var in attributes.items():
             if self.__refln_data and self.__refln_data.hasAttribute(attr):
                 setattr(self, var, self.__refln_data.getColumn(self.__refln_data.getIndex(attr)))
@@ -272,7 +268,7 @@ class CheckSfFile:
         """
         if self.__refln_data is None:
             return
-        
+
         self.__status = self.__refln_data.getColumn(self.__refln_data.getIndex("status"))
         if not self.__status:
             self.__status = self.__refln_data.getColumn(self.__refln_data.getIndex("R_free_flag"))
@@ -467,8 +463,6 @@ class CheckSfFile:
         if self.__status is None:
             self.__logger.pinfo(f"Error: File has no free set (data block= {nblock + 1}).", self.__pinfo_value)
 
-        refln_data = self.__sf_block.getObj("refln")
-
         _rcell, cell = self.__calc_cell_and_recip()
 
         if (cell[0] > 0.01 and cell[1] > 0.01):
@@ -651,7 +645,7 @@ class CheckSfFile:
                         sum_si += sigf
                         nf_Io += 1
 
-            if self.__fom and is_float(self.__fom[i]) and  abs(float(self.__fom[i])) > 1.01:
+            if self.__fom and is_float(self.__fom[i]) and abs(float(self.__fom[i])) > 1.01:
                 if n6 == 0:
                     n6 += 1
                     self.__logger.pinfo(f"Warning: File has wrong values of FOM ({self.__fom[i]}) for ({hkl}).", self.__pinfo_value)
@@ -1049,7 +1043,6 @@ class CheckSfFile:
         """Produces statistics"""
 
         print(f"\nGetting statistics from ({fname})")
-        
 
         numblocks = self.__sf_file.get_number_of_blocks()
         self.__logger.pinfo(f"Total number of data blocks = {numblocks}\n", 0)
@@ -1057,4 +1050,4 @@ class CheckSfFile:
         for blkid in range(numblocks):
             self.check_sf(blkid)
             if sf4name and blkid == 0:
-                self.write_sf_4_validation(sf4name, blkid);
+                self.write_sf_4_validation(sf4name, blkid)

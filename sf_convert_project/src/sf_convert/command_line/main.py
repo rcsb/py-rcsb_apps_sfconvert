@@ -229,6 +229,7 @@ class SFConvertMain:
 
         # checksffile code
 
+
 class CustomHelpParser(argparse.ArgumentParser):
     def print_help(self, file=None):  # pylint: disable=unused-argument
         """
@@ -588,7 +589,7 @@ def convert_files(args, input_format, pdb_data, logger):
 
     rdict = {"output": output, "out_format": output_format}
     return rdict
-    
+
 
 def main():
     """
@@ -602,8 +603,6 @@ def main():
         print("=======================================================================")
         print(f"              {version}")
         print("=======================================================================")
-
-
 
         pdb = ProteinDataBank()
         logger = PStreamLogger()
