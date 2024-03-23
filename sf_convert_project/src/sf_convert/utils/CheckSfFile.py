@@ -333,7 +333,7 @@ class CheckSfFile:
             return rcell, cell
         else:
             self.__logger.pinfo("Warning: No cell data found in the mmCIF file.", self.__pinfo_value)
-            # XXXX What to return in this case!
+            return None, None
 
     def __get_resolution(self, h, k, l, rcell):  # noqa: E741
         """
@@ -466,7 +466,7 @@ class CheckSfFile:
 
         _rcell, cell = self.__calc_cell_and_recip()
 
-        if (cell[0] > 0.01 and cell[1] > 0.01):
+        if cell and (cell[0] > 0.01 and cell[1] > 0.01):
             key = 1
 
         for i in range(nstart, self.__nref):  # check data items
@@ -890,7 +890,7 @@ class CheckSfFile:
         rcell, CELL = self.__calc_cell_and_recip()
 
         # XXX This looks strange... Different cutoffs here than below?
-        if CELL[0] > 2 and CELL[4] > 2:
+        if CELL and CELL[0] > 2 and CELL[4] > 2:
             data = self.__sf_block.getObj("symmetry")
             SYMM = data.getValue("space_group_name_H-M")
             aCat = DataCategory("symmetry")
@@ -988,7 +988,10 @@ class CheckSfFile:
             ah = int(self.__H[i])
             ak = int(self.__K[i])
             al = int(self.__L[i])
-            resol = self.__get_resolution(ah, ak, al, rcell)
+            if rcell:
+                resol = self.__get_resolution(ah, ak, al, rcell)
+            else:
+                resol = 0.00  #  This is stupid but what was done -- should not output
 
             i_sigi = 0.0
             if self.__Io and self.__sIo and float(self.__sIo[i]) > 0:
@@ -999,7 +1002,7 @@ class CheckSfFile:
                 if afs > 0:
                     i_sigi = af / (2 * afs)
 
-            if (RESCUT > 0.0001 and resol < RESCUT and resol > 0.0001):
+            if resol and (RESCUT > 0.0001 and resol < RESCUT and resol > 0.0001):
                 continue
             if (abs(SIGCUT) > 0.0001 and i_sigi < SIGCUT):
                 continue
