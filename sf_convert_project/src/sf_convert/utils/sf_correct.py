@@ -52,7 +52,7 @@ class SfCorrect:
             cObj = blk.getObj(cat)
             if cObj:
                 # Have wavelength
-                curwave = cObj.getValue("wavelength", 0)
+                curwave = cObj.getValueOrDefault("wavelength", 0, None)
             else:
                 curwave = None
 
