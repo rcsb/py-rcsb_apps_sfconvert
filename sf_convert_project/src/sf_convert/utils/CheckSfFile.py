@@ -901,14 +901,19 @@ class CheckSfFile:
         # XXX This looks strange... Different cutoffs here than below?
         if CELL and CELL[0] > 2 and CELL[4] > 2:
             data = self.__sf_block.getObj("symmetry")
-            SYMM = data.getValue("space_group_name_H-M")
+            if data:
+                SYMM = data.getValueOrDefault("space_group_name_H-M", 0, None)
+                sg_no = data.getValueOrDefault("Int_Tables_number", 0, None)
+            else:
+                SYMM = None
+                sg_no = None
             aCat = DataCategory("symmetry")
 
-            if nblock > 0:
+            if sg_no:
                 aCat.appendAttribute("Int_Tables_number")
-                aCat.append((nblock,))
+                aCat.append((sg_no,))
 
-            if len(SYMM) > 1:
+            if SYMM:
                 aCat.appendAttribute("space_group_name_H-M")
                 aCat.append((SYMM,))
 
