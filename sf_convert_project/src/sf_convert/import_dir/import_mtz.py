@@ -71,6 +71,10 @@ class MtzToCifConverter:
         self.__pinfo_value = 0
         self.mtz_file_path = mtz_file_path
         self.mtz2cif = gemmi.MtzToCif()
+        # Turn off comments in case ISO-8859 in history
+        self.mtz2cif.with_comments = False;
+        self.mtz2cif.with_history = False;
+        
         self.sffile = SFFile()
         self.__logger = logger
         self.assigned_labels = set()
