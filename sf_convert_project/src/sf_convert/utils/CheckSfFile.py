@@ -974,8 +974,11 @@ class CheckSfFile:
                     sigfp = f"{sig:.4f}"
 
             elif self.__Io:
-                fp, sigfp = self.i_to_f(i, self.__Io[i], self.__sIo, sig)
-
+                if is_float(self.__Io[i]):
+                    fp, sigfp = self.i_to_f(i, self.__Io[i], self.__sIo, sig)
+                else:
+                    fp, sigfp = "?", "?"
+                
             elif self.__I_plus or self.__F_plus:
                 F, Fs = self.other_to_f(i)
                 fp = f"{F:.4f}"
