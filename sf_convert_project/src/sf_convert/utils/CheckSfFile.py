@@ -110,6 +110,8 @@ class CheckSfFile:
             self.__nref = 0
         if self.__diffrn_refln_data:
             self.__dnref = self.__diffrn_refln_data.getRowCount()
+        else:
+            self.__dnref = 0
 
     def initialize_columns(self):
         """
