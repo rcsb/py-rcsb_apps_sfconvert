@@ -633,7 +633,7 @@ class CheckSfFile:
                         sum_sf2 += sigf
                         nf_F2o += 1
 
-            if self.__Io:
+            if self.__Io and is_float(self.__Io[i]):
                 f = float(self.__Io[i])
                 if f < min_I:
                     min_I = f
@@ -873,6 +873,13 @@ class CheckSfFile:
         # file_name = 'sf_4_validate.cif'
         # file_path = os.path.join(self.__fout_path, file_name)
 
+        def is_float(value):
+            try:
+                float(value)
+                return True
+            except ValueError:
+                return False
+
         self.__sf_block = self.__sf_file.get_block_by_index(nblock)
         self.initialize_data()
 
@@ -994,7 +1001,7 @@ class CheckSfFile:
                 resol = 0.00  #  This is stupid but what was done -- should not output
 
             i_sigi = 0.0
-            if self.__Io and self.__sIo and float(self.__sIo[i]) > 0:
+            if self.__Io and self.__sIo and is_float(self.__sIo[i]) and is_float(self.__Io[i]) and float(self.__sIo[i]) > 0:
                 i_sigi = float(self.__Io[i]) / float(self.__sIo[i])
             else:
                 af = self.float_or_zero(fp)
