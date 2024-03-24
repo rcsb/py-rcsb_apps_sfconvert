@@ -907,17 +907,19 @@ class CheckSfFile:
             else:
                 SYMM = None
                 sg_no = None
+
             aCat = DataCategory("symmetry")
 
             if sg_no:
                 aCat.appendAttribute("Int_Tables_number")
-                aCat.append((sg_no,))
+                aCat.setValue(sg_no, "Int_Tables_number")
 
             if SYMM:
                 aCat.appendAttribute("space_group_name_H-M")
-                aCat.append((SYMM,))
+                aCat.setValue(SYMM, "space_group_name_H-M")
 
-            curContainer.append(aCat)
+            if sg_no or SYMM:
+                curContainer.append(aCat)
 
             if CELL[0] > 0.5 and CELL[2] > 0.5:
                 bCat = DataCategory("cell")
