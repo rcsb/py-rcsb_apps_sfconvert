@@ -728,9 +728,10 @@ class CheckSfFile:
         if self.__Io:
             self.__logger.pinfo(f"maximum value of intensity= {max_I:.2f}", self.__pinfo_value)
             self.__logger.pinfo(f"minimum value of intensity= {min_I:.2f}", self.__pinfo_value)
-            self.__logger.pinfo(f"<I/sigmaI> = {i_over_si / nf_Io:.2f};  <I>/<sigmaI> = {sum_i / sum_si:.2f}", self.__pinfo_value)
-            if sum_i / sum_si > 80 or sum_i / sum_si < 2:
-                self.__logger.pinfo(f"Warning: Value of (I_avg/sigI_avg = {sum_i / sum_si:.2f}) is out of range (check Io or SigIo in SF file). ", self.__pinfo_value)
+            if sum_si:
+                self.__logger.pinfo(f"<I/sigmaI> = {i_over_si / nf_Io:.2f};  <I>/<sigmaI> = {sum_i / sum_si:.2f}", self.__pinfo_value)
+                if sum_i / sum_si > 80 or sum_i / sum_si < 2:
+                    self.__logger.pinfo(f"Warning: Value of (I_avg/sigI_avg = {sum_i / sum_si:.2f}) is out of range (check Io or SigIo in SF file). ", self.__pinfo_value)
 
             if nf_Fo :
                 if f_over_sf / nf_Fo > 0 and (f_over_sf / nf_Fo > 2.5 * i_over_si / nf_Io or f_over_sf / nf_Fo < 1.0 * i_over_si / nf_Io):
