@@ -428,7 +428,9 @@ class SfCorrect:
                     crystids = ["1"]
                 else:
                     crystids = cObj2.getAttributeUniqueValueList("crystal_id")
-
+            else:
+                crystids = ["1"]
+                    
             # If we need to instantiate do it
             if "diffrn" not in blk.getObjNameList() and needdiffrn is False and details is None:
                 continue
