@@ -471,11 +471,19 @@ class CheckSfFile:
         if cell and (cell[0] > 0.01 and cell[1] > 0.01):
             key = 1
 
+        invalid_miller = False
         for i in range(nstart, self.__nref):  # check data items
             # pinfo(f"Checking reflection {i} of {self._nref} (data block= {nblock + 1})")
-            ah = int(self.__H[i])
-            ak = int(self.__K[i])
-            al = int(self.__L[i])
+            try:
+                ah = int(self.__H[i])
+                ak = int(self.__K[i])
+                al = int(self.__L[i])
+            except:
+                if not invalid_miller:
+                    # Report once
+                    self.__logger.pinfo(f"Error: Miller indices are not integral ({self.__H[i]}, {self.__K[i]}, {self.__L[i]})", self.__pinfo_value)
+                    invalid_miller = True
+                continue
 
             min_H = min(min_H, ah)
             min_K = min(min_K, ak)
