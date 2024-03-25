@@ -289,6 +289,12 @@ class MtzToCifConverter:
                                                                           "TEST", "FREE", "RFREE", "FREER",
                                                                           "FreeR_flag", "FreeRflag"]):  # FREE|RFREE|FREER|FreeR_flag|R-free-flags|FreeRflag
             return self.__assign_label('pdbx_r_free_flag')
+
+        # Unusual R flag for free R
+        elif label_type == 'R' and any(term in label_content for term in ["free", "R-free-flag", "flag",
+                                                                          "TEST", "FREE", "RFREE", "FREER",
+                                                                          "FreeR_flag", "FreeRflag"]):  # FREE|RFREE|FREER|FreeR_flag|R-free-flags|FreeRflag
+            return self.__assign_label('pdbx_r_free_flag')
         elif label_type == 'D':
             return self.__assign_label('pdbx_anom_difference')
         elif label_type == 'A':
