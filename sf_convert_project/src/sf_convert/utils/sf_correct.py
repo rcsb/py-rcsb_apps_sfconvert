@@ -366,8 +366,12 @@ class SfCorrect:
                 blk.remove("symmetry")
 
     def __handle_diffrn(self, sffile, pdbid, logger, details=None):  # pylint: disable=unused-argument
-        """Instantiate diffrn category if needed, see diffrn.id if needed."""
+        """Instantiate diffrn category if needed, seet diffrn.id if needed.
+           Enforces integer diffrn_ids
+        """
 
+        cats = ["diffrn_refln", "diffrn_radiation", "diffrn_reflns"]
+        
         for idx in range(sffile.get_number_of_blocks()):
             blk = sffile.get_block_by_index(idx)
 
@@ -377,7 +381,7 @@ class SfCorrect:
             difids = set()
 
             needdiffrn = False
-            for cat in ["diffrn_refln", "diffrn_radiation", "diffrn_reflns"]:
+            for cat in cats:
                 if cat in blk.getObjNameList():
                     cObj2 = blk.getObj(cat)
                     if "diffrn_id" in cObj2.getAttributeList():
@@ -387,6 +391,34 @@ class SfCorrect:
 
             if len(difids) == 0:
                 difids.add("1")
+
+            # Remap if non-integral....
+            remap = {}
+            cur = 1
+            for d in difids:
+                try:
+                    int(d)
+                except:
+                    while str(cur) in difids:
+                        cur += 1
+                    remap[d] = str(cur)
+                    cur += 1  # For next item....
+
+            if len(remap) > 0:
+                # Remap as needed
+                for cat in cats:
+                    if cat in blk.getObjNameList():
+                        cObj2 = blk.getObj(cat)
+                        if "diffrn_id" in cObj2.getAttributeList():
+                            for row in range(cObj2.getRowCount()):
+                                val = cObj2.getValue("diffrn_id", row)
+                                if val in remap:
+                                    cObj2.setValue(remap[val], "diffrn_id", row)
+                for k, v in remap.items():
+                    difids.discard(k)
+                    difids.add(v)
+                                    
+            # Create a mapping if need be???? Should be numeric
             diffidsl = sorted([int(x) for x in list(difids)])
 
             # Crystal id
