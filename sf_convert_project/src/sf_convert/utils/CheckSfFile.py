@@ -912,11 +912,11 @@ class CheckSfFile:
 
             if sg_no:
                 aCat.appendAttribute("Int_Tables_number")
-                aCat.setValue(sg_no, "Int_Tables_number")
+                aCat.setValue(sg_no, "Int_Tables_number", 0)
 
             if SYMM:
                 aCat.appendAttribute("space_group_name_H-M")
-                aCat.setValue(SYMM, "space_group_name_H-M")
+                aCat.setValue(SYMM, "space_group_name_H-M", 0)
 
             if sg_no or SYMM:
                 curContainer.append(aCat)
