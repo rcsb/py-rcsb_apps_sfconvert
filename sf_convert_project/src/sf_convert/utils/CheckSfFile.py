@@ -715,8 +715,9 @@ class CheckSfFile:
         if self.__Fo_au:
             self.__logger.pinfo(f"maximum value of amplitude= {max_F:.2f}", self.__pinfo_value)
             self.__logger.pinfo(f"minimum value of amplitude= {min_F:.2f}", self.__pinfo_value)
-            self.__logger.pinfo(f"<F/sigmaF> = {f_over_sf / nf_Fo:.2f};  <F>/<sigmaF> = {sum_f / sum_sf:.2f}", self.__pinfo_value)
-            if sum_f / sum_sf > 140 or sum_f / sum_sf < 4:
+            if nf_Fo:
+                self.__logger.pinfo(f"<F/sigmaF> = {f_over_sf / nf_Fo:.2f};  <F>/<sigmaF> = {sum_f / sum_sf:.2f}", self.__pinfo_value)
+            if sum_sf and (sum_f / sum_sf > 140 or sum_f / sum_sf < 4):
                 self.__logger.pinfo(f"Warning: Value of (Fo_avg/sigFo_avg = {sum_f / sum_sf:.2f}) is out of range (check Fo or SigFo in SF file).", self.__pinfo_value)
 
         if self.__F2o:
