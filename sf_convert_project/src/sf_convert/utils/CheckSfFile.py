@@ -733,7 +733,7 @@ class CheckSfFile:
                 if sum_i / sum_si > 80 or sum_i / sum_si < 2:
                     self.__logger.pinfo(f"Warning: Value of (I_avg/sigI_avg = {sum_i / sum_si:.2f}) is out of range (check Io or SigIo in SF file). ", self.__pinfo_value)
 
-            if nf_Fo :
+            if nf_Fo and nf_Io:
                 if f_over_sf / nf_Fo > 0 and (f_over_sf / nf_Fo > 2.5 * i_over_si / nf_Io or f_over_sf / nf_Fo < 1.0 * i_over_si / nf_Io):
                     self.__logger.pinfo(f"Warning: too much difference Fo/sigFo = {f_over_sf / nf_Fo:.2f};  Io/sigIo = {i_over_si / nf_Io:.2f}", self.__pinfo_value)
 
