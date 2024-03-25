@@ -811,14 +811,26 @@ class CheckSfFile:
             if sp1 < 0 and sp2 < 0:
                 pass
             elif sp1 > 0 and sp2 < 0:
-                I = float(self.__I_plus[i])  # noqa: E741
-                Is = float(self.__sI_plus[i])
+                if self.__is_float(self.__I_plus[i]) and self.__is_float(self.__sI_plus[i]):
+                    I = float(self.__I_plus[i])  # noqa: E741
+                    Is = float(self.__sI_plus[i])
+                else:
+                    I = 0.0
+                    Is = 0.0
             elif sp1 < 0 and sp2 > 0:
-                I = float(self.__I_minus[i])  # noqa: E741
-                Is = float(self.__sI_minus[i])
+                if self.__is_float(self.__I_minus[i]) and self.__is_float(self.__sI_minus[i]):
+                    I = float(self.__I_minus[i])  # noqa: E741
+                    Is = float(self.__sI_minus[i])
+                else:
+                    I = 0.0
+                    Is = 0.0
             elif sp1 > 0 and sp2 > 0:
-                I = (float(self.__I_plus[i]) + float(self.__I_minus[i])) / 2.0  # noqa: E741
-                Is = (float(self.__sI_plus[i]) + float(self.__sI_minus[i])) / 2.0
+                if self.__is_float(self.__I_plus[i]) and self.__is_float(self.__I_minus[i]):
+                    I = (float(self.__I_plus[i]) + float(self.__I_minus[i])) / 2.0  # noqa: E741
+                    Is = (float(self.__sI_plus[i]) + float(self.__sI_minus[i])) / 2.0
+                else:
+                    I = 0.0
+                    Is = 0.0
 
             if I > 0:
                 F = math.sqrt(I)
@@ -1014,9 +1026,13 @@ class CheckSfFile:
             elif self.__F2o:
                 fp, sigfp = self.i_to_f(i, self.__F2o[i], self.__sF2o, sig)
 
-            ah = int(self.__H[i])
-            ak = int(self.__K[i])
-            al = int(self.__L[i])
+            try:
+                ah = int(self.__H[i])
+                ak = int(self.__K[i])
+                al = int(self.__L[i])
+            except:
+                # Non integral - reported in check - skip
+                continue
             if rcell:
                 resol = self.__get_resolution(ah, ak, al, rcell)
             else:
@@ -1086,3 +1102,11 @@ class CheckSfFile:
             self.check_sf(blkid)
             if sf4name and blkid == 0:
                 self.write_sf_4_validation(sf4name, blkid)
+
+    def __is_float(self, value):
+        try:
+            float(value)
+            return True
+        except ValueError:
+            return False
+                
