@@ -169,6 +169,9 @@ class SfCorrect:
         # This reorders categories as well
         reformat_sfhead(sffile, pdbid, logger, detail)
 
+        # Remap category names if duplicates
+        self.remap_unmerged(sffile, logger)
+            
         # Reflns names might have been modified
         self.__handle_reflns(sffile, logger)
 
@@ -725,3 +728,114 @@ class SfCorrect:
 
             for rem in remove:
                 sffile.remove_block(rem)
+
+    def __check_hkl_duplcate(self, blk, blkname, logger):
+        """Provides a count of duplicate HKL.  Report first four, return count"""
+
+        # Note for those who wonder.  Using a dictionary is a little faster than set() and must faster than using a list()
+        ndup = 0
+
+        cObj = blk.getObj("refln")
+        if not cObj:
+            return ndup
+
+        alist = cObj.getAttributeList()
+        for attr in ("index_h", "index_k", "index_l"):
+            if attr not in alist:
+                return ndup
+
+        ref = {}
+        for idx in range(cObj.getRowCount()):
+            ah = cObj.getValue("index_h", idx)
+            ak = cObj.getValue("index_k", idx)
+            al = cObj.getValue("index_l", idx)
+
+            key = (ah, ak, al)
+            if key in ref:
+                if ndup <= 4:
+                    logger.pinfo(f"Warning: Duplicated H,K,L ({ah}, {ak}, {al}) (data block={blkname}).", 0)
+                ndup += 1
+            else:
+                ref[key] = True
+
+        return ndup
+
+         
+    def remap_unmerged(self, sffile, logger):
+        """Map refln to diffrn_refln"""
+
+        for block_index in range(sffile.get_number_of_blocks()):
+            blk = sffile.get_block_by_index(block_index)
+            blkname = blk.getName()
+                    
+            ndup = self.__check_hkl_duplcate(blk, blkname, logger)
+
+            cObj = blk.getObj("refln")
+            if not cObj:
+                continue
+        
+            alist = cObj.getAttributeList()
+            have_Io = "intensity_meas" in alist
+            have_I_plus = "pdbx_I_plus" in alist
+
+            have_unmerge_i = False
+            have_diffrn_refln = False
+            cObj = blk.getObj("diffrn_refln")
+            if cObj:
+                have_diffrn_refln = True
+                if "intensity_net" in cObj.getAttributeList():
+                    have_unmerge_i = True
+
+            # Legacy logic...
+            if (ndup > 1  and (have_Io or have_I_plus)) or have_unmerge_i:
+                if block_index == 0:
+                    logger.pinfo(f"Warning: Unmerged data in block 1 (blockId={blkname})!", 0)
+                else:
+                    logger.pinfo(f"Note: Unmerged data in (blockId={blkname})!", 0)
+
+                if block_index == 0:
+                    # do not change token for 1st block even it is unmerged.
+                    continue
+
+                if have_diffrn_refln:
+                    logger.pinfo(f"Error: Block {blkname} has both _reflns and _diffrn_reflns and both unmerged", 0)
+                    continue
+
+                # Rename block.
+                blk.rename("refln", "diffrn_refln")
+
+                cObj = blk.getObj("diffrn_refln")
+
+                # Cleanup attributes that are not used...
+                for attr in ("crystal_id", "status"):  # Want a list and not truncated
+                    if attr in cObj.getAttributeList():
+                        cObj.removeAttribute(attr)
+
+                # Instantiate diffrn_id if not present
+                attr = "diffrn_id"
+                if attr not in cObj.getAttributeList():
+                    cObj.appendAttributeExtendRows(attr, "1")
+
+                attr = "wavelength_id"
+                if attr not in cObj.getAttributeList():
+                    cObj.appendAttributeExtendRows(attr, "1")
+
+                # attr = "standard_code"
+                # if attr not in cObj.getAttributeList():
+                #     cObj.appendAttributeExtendRows(attr, "1")
+
+                # attr = "scale_group_code"
+                # if attr not in cObj.getAttributeList():
+                #     cObj.appendAttributeExtendRows(attr, "1")
+
+                attr = "id"
+                if attr not in cObj.getAttributeList():
+                    cObj.appendAttributeExtendRows(attr)
+
+                    for idx in range(cObj.getRowCount()):
+                        cObj.setValue(str(idx+ 1), attr, idx)
+
+                # relabel attribugs
+                if "intensity_meas" in cObj.getAttributeList() \
+                   and "intensity_net" not in cObj.getAttributeList():
+                    cObj.renameAttributes({"intensity_meas": "intensity_net"})

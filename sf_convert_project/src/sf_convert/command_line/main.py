@@ -94,6 +94,7 @@ class ImportSf:
 
             sfc.handle_standard(sffile, pdbid, self.__logger)
 
+
         return sffile
 
     def __import_mtz(self, pdict):
