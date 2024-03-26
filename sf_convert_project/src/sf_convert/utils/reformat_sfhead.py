@@ -109,8 +109,8 @@ def reformat_sfhead(sf_file, pdb_id, logger, DETAIL=None):
         "fiber_coordinate": "pdbx_fiber_coordinate",
         "fiber_F_meas_au": "pdbx_fiber_F_meas_au",
         "fiber_layer": "pdbx_fiber_layer",
-        "F_squared_meas": "intersity_meas",
-        "F_squared_sigma": "intersity_sigma",
+        "F_squared_meas": "intensity_meas",
+        "F_squared_sigma": "intensity_sigma",
         "gsas_i100_meas": "pdbx_gsas_i100_meas"
     }
 

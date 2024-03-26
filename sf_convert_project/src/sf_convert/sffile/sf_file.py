@@ -465,6 +465,5 @@ class StructureFactorFile:
 
     def remove_block(self, blkid):
         """Removes block blkid from indices"""
-        print("XXXX", blkid)
         del self.__data_blocks[blkid]
         

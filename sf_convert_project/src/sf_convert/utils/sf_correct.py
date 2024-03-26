@@ -702,10 +702,10 @@ class SfCorrect:
 
     def remove_empty_blocks(self, sffile, logger):
         """Removes blocks with too little real data"""
-        cats = ["relfn", "diffrn_refln"]
+        cats = ["refln", "diffrn_refln"]
 
         remove = []
-        for block_index in range(1, sffile.get_number_of_blocks()):
+        for block_index in range(sffile.get_number_of_blocks()):
             blk = sffile.get_block_by_index(block_index)
 
             total = 0
@@ -724,5 +724,4 @@ class SfCorrect:
             remove.reverse()
 
             for rem in remove:
-                print("XXX Remove", rem)
                 sffile.remove_block(rem)
