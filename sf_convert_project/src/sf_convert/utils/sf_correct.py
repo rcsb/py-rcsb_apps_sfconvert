@@ -371,7 +371,7 @@ class SfCorrect:
         """
 
         cats = ["diffrn_refln", "diffrn_radiation", "diffrn_reflns"]
-        
+
         for idx in range(sffile.get_number_of_blocks()):
             blk = sffile.get_block_by_index(idx)
 
@@ -398,7 +398,7 @@ class SfCorrect:
             for d in difids:
                 try:
                     int(d)
-                except:
+                except:  # noqa: E722 pylint: disable=bare-except
                     while str(cur) in difids:
                         cur += 1
                     remap[d] = str(cur)
@@ -417,7 +417,7 @@ class SfCorrect:
                 for k, v in remap.items():
                     difids.discard(k)
                     difids.add(v)
-                                    
+
             # Create a mapping if need be???? Should be numeric
             diffidsl = sorted([int(x) for x in list(difids)])
 
@@ -430,7 +430,7 @@ class SfCorrect:
                     crystids = cObj2.getAttributeUniqueValueList("crystal_id")
             else:
                 crystids = ["1"]
-                    
+
             # If we need to instantiate do it
             if "diffrn" not in blk.getObjNameList() and needdiffrn is False and details is None:
                 continue
@@ -699,3 +699,30 @@ class SfCorrect:
             if cat in blk.getObjNameList():
                 blk.remove(cat)
                 logger.pinfo(f"Removing {cat} category from block {blk.getName()}", 0)
+
+    def remove_empty_blocks(self, sffile, logger):
+        """Removes blocks with too little real data"""
+        cats = ["relfn", "diffrn_refln"]
+
+        remove = []
+        for block_index in range(1, sffile.get_number_of_blocks()):
+            blk = sffile.get_block_by_index(block_index)
+
+            total = 0
+            for cat in cats:
+                if cat in blk.getObjNameList():
+                    cObj = blk.getObj(cat)
+                    total += cObj.getRowCount()
+
+            if total < 30:
+                bname = blk.getName()
+                logger.pinfo(f"Error block {bname} has no data in this block -- removing", 0)
+                remove.append(block_index)
+
+        if remove:
+            # Reverse list - so do not need to adjust numbers as removed
+            remove.reverse()
+
+            for rem in remove:
+                print("XXX Remove", rem)
+                sffile.remove_block(rem)

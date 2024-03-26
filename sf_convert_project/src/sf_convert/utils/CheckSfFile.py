@@ -478,7 +478,7 @@ class CheckSfFile:
                 ah = int(self.__H[i])
                 ak = int(self.__K[i])
                 al = int(self.__L[i])
-            except:
+            except:  # noqa: E722 pylint: disable=bare-except
                 if not invalid_miller:
                     # Report once
                     self.__logger.pinfo(f"Error: Miller indices are not integral ({self.__H[i]}, {self.__K[i]}, {self.__L[i]})", self.__pinfo_value)
@@ -815,21 +815,21 @@ class CheckSfFile:
                     I = float(self.__I_plus[i])  # noqa: E741
                     Is = float(self.__sI_plus[i])
                 else:
-                    I = 0.0
+                    I = 0.0  # noqa: E741
                     Is = 0.0
             elif sp1 < 0 and sp2 > 0:
                 if self.__is_float(self.__I_minus[i]) and self.__is_float(self.__sI_minus[i]):
                     I = float(self.__I_minus[i])  # noqa: E741
                     Is = float(self.__sI_minus[i])
                 else:
-                    I = 0.0
+                    I = 0.0  # noqa: E741
                     Is = 0.0
             elif sp1 > 0 and sp2 > 0:
                 if self.__is_float(self.__I_plus[i]) and self.__is_float(self.__I_minus[i]):
                     I = (float(self.__I_plus[i]) + float(self.__I_minus[i])) / 2.0  # noqa: E741
                     Is = (float(self.__sI_plus[i]) + float(self.__sI_minus[i])) / 2.0
                 else:
-                    I = 0.0
+                    I = 0.0  # noqa: E741
                     Is = 0.0
 
             if I > 0:
@@ -1007,7 +1007,7 @@ class CheckSfFile:
                     fp, sigfp = self.i_to_f(i, self.__Io[i], self.__sIo, sig)
                 else:
                     fp, sigfp = "?", "?"
-                
+
             elif self.__I_plus or self.__F_plus:
                 F, Fs = self.other_to_f(i)
                 fp = f"{F:.4f}"
@@ -1030,13 +1030,13 @@ class CheckSfFile:
                 ah = int(self.__H[i])
                 ak = int(self.__K[i])
                 al = int(self.__L[i])
-            except:
+            except:  # noqa: E722 pylint: disable=bare-except
                 # Non integral - reported in check - skip
                 continue
             if rcell:
                 resol = self.__get_resolution(ah, ak, al, rcell)
             else:
-                resol = 0.00  #  This is stupid but what was done -- should not output
+                resol = 0.00  # This is stupid but what was done -- should not output
 
             i_sigi = 0.0
             if self.__Io and self.__sIo and is_float(self.__sIo[i]) and is_float(self.__Io[i]) and float(self.__sIo[i]) > 0:
@@ -1109,4 +1109,4 @@ class CheckSfFile:
             return True
         except ValueError:
             return False
-                
+

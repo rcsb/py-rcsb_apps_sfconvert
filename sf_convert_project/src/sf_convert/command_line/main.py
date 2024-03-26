@@ -61,8 +61,12 @@ class ImportSf:
 
         # We apply corrections if cif -> cif conversion, otherwise bring in
         if format_out == "MMCIF":
-            sfc = SfCorrect(self.__logger)
+            sfc = SfCorrect(self.__legacy)
 
+            # Remove blocks with too few reflections.
+            sfc.remove_empty_blocks(sffile, self.__logger)
+
+            
             # PDB id comes from
             #  sffile block name - unless coordinate file used - and then use that
             pdbid = pdb_data.get("pdb_id", None)
@@ -161,6 +165,7 @@ class ImportSf:
             sffile.correct_block_names(pdbid)
 
         return sffile
+
 
 class ExportSf:
     """Class to import and possibly make corrections"""
