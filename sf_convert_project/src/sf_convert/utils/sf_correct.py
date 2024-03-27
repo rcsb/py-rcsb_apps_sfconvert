@@ -1,6 +1,7 @@
 # Utilities to correct imported CIF files
 
 from mmcif.api.DataCategory import DataCategory
+from mmcif.api.PdbxContainers import CifName
 
 from sf_convert.utils.reformat_sfhead import reformat_sfhead, reorder_sf_file
 
@@ -137,6 +138,7 @@ class SfCorrect:
         """Handles standard operations"""
 
         detail = None
+
         self.__update_exptl_crystal(sffile, logger)
 
         if self.__legacy:
@@ -165,12 +167,19 @@ class SfCorrect:
         self.__instantiate_entry(sffile, pdbid)
 
         self._cleanup_audit(sffile, logger)
+        
+        if sffile.get_number_of_blocks() == 0:
+            return
 
         # This reorders categories as well
         reformat_sfhead(sffile, pdbid, logger, detail)
 
         # Remap category names if duplicates
         self.remap_unmerged(sffile, logger)
+
+        # Might have removed all data if model file uploaded
+        if sffile.get_number_of_blocks() == 0:
+            return
             
         # Reflns names might have been modified
         self.__handle_reflns(sffile, logger)
@@ -472,6 +481,8 @@ class SfCorrect:
         Returns:
             None: True if the value was modified, False otherwise.
         """
+        if sffile.get_number_of_blocks() == 0:
+            return
 
         blk = sffile.get_block_by_index(0)
 
@@ -719,7 +730,7 @@ class SfCorrect:
 
             if total < 30:
                 bname = blk.getName()
-                logger.pinfo(f"Error block {bname} has no data in this block -- removing", 0)
+                logger.pinfo(f"Error: block {bname} has no data in this block -- removing", 0)
                 remove.append(block_index)
 
         if remove:
@@ -839,3 +850,70 @@ class SfCorrect:
                 if "intensity_meas" in cObj.getAttributeList() \
                    and "intensity_net" not in cObj.getAttributeList():
                     cObj.renameAttributes({"intensity_meas": "intensity_net"})
+
+    def check_unwanted_cif_items(self, sffile, logger):
+        """Checks and logs unwated item"""
+        
+        check_list = ["atom_sites.entry_id", "audit_author.name", 
+                      "audit.creation_method", "audit.update_recor",
+                      "cell.CCP4_crystal_id", "cell.CCP4_wavelength_id",
+                      "cell.enry_id", "cell.entry", "cell_entry.id",
+                      "cell.enrty_id", "cell.entry.id", "cell.ndb_unique_axis",
+                      "cell.Z_PDB", "database_2.database_code", "database_2.database_id",
+                      "database.entry_id", "database.ndb_code_NDB", "database.ndb_code_PDB",
+                      "diffrn.detail", "diffrn.pdbx_crystal_id", "diffrn_radiation.id",
+                      "diffrn_radiation.pdbx_wavelength_list", "diffrn_radiation.type",
+                      "diffrn_radiation_wavelength.CCP4_crystal_id", "diffrn_radiation_wavelength.wt",
+                      "pdbx_powder_refln.d_spacing", "pdbx_powder_refln.F_squared_calc",
+                      "pdbx_powder_refln.F_squared_meas", "pdbx_powder_refln.gsas_i100_meas",
+                      "pdbx_powder_refln.index_h", "pdbx_powder_refln.index_k",
+                      "pdbx_powder_refln.index_l", "pdbx_powder_refln.observed_status",
+                      "pdbx_powder_refln.phase_calc", "pdbx_reflns_twin.crystal_id",
+                      "pdbx_reflns_twin.diffrn_id", "pdbx_reflns_twin.fraction",
+                      "pdbx_reflns_twin.mean_F_square_over_mean_F2", "pdbx_reflns_twin.mean_I2_over_mean_I_square",
+                      "pdbx_reflns_twin.operator", "pdbx_reflns_twin.type",
+                      "phasing_set_refln.crystal_id", "phasing_set_refln.F_meas_au",
+                      "phasing_set_refln.fom", "phasing_set_refln.index_h",
+                      "phasing_set_refln.index_k", "phasing_set_refln.index_l",
+                      "phasing_set_refln.phase_meas", "phasing_set_refln.scale_group_code",
+                      "phasing_set_refln.status", "phasing_set_refln.wavelength_id",
+                      "radiation.id", "refine.entry_id",
+                      "refine.ls_d_res_high", "refine.ls_d_res_low",
+                      "refln.fiber_coordinate", "refln.fiber_F_meas_au",
+                      "refln.fiber_layer",
+                      "refln.F_meas_sigma_uncorrected", "refln.F_meas_uncorrected",
+                      "refln.F_part_au", "refln.gsas_i100_meas",
+                      "refln.intensity_calc", "refln.intensity_meas_au",
+                      "refln.intensity_meas_sigma_au", "refln.intensity_meas_unknown",
+                      "refln.intensity_sigma_unknown", "refln.mean_path_length_tbar",
+                      "refln.observed_status", "refln.pdbx_cos_phase_calc",
+                      "refln.pdbx_F_backtransform_au", "refln.pdbx_fom_weighted_fmap",
+                      "refln.pdbx_gsas_i100_meas", "refln.pdbx_HLA",
+                      "refln.pdbx_HLB", "refln.pdbx_HLC", "refln.pdbx_HLD",
+                      "refln.pdbx_phase_backtransform", "refln.pdbx_phase_cycle",
+                      "refln.pdbx_sin_phase_calc", "refln.phase_meas_sigma",
+                      "refln.phase_part", "refln.sgx_fmap",
+                      "refln.sint_over_lambda", "refln.symmetry_multiplicity",
+                      "refln.wavelength", "refln.waveLEngth_id",
+                      "refln.weight", "reflns.CCP4_crystal_id",
+                      "reflns.CCP4_wavelength_id", "reflns.observed_criterion_sigma_I",
+                      "struct_keywords.entry_id", "struct_keywords.ndb_keywords",
+                      "struct_keywords.text", "symmetry.cell_setting",
+                      "symmetry.entry_id", "symmetry.int_tables_number",
+                      "symmetry.ndb_full_space_group_name_H-M", "symmetry.space_group_name_h-m"]
+
+        for block_index in range(sffile.get_number_of_blocks()):
+            blk = sffile.get_block_by_index(block_index)
+            blkname = blk.getName()
+
+            nlist = blk.getObjNameList()
+            
+            cn = CifName()
+            for chk in check_list:
+                cat = cn.categoryPart(chk)
+                attr = cn.attributePart(chk)
+
+                if cat in nlist:
+                    cObj = blk.getObj(cat)
+                    if attr in cObj.getAttributeList():
+                        logger.pinfo(f"Warning: Block {blkname} has unwanted CIF item ({chk})", 0)

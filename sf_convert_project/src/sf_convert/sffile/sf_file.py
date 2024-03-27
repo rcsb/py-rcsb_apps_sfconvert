@@ -412,6 +412,9 @@ class StructureFactorFile:
 
         Returns PDB id or "xxxx"
         """
+        if self.__data_blocks is None or len(self.__data_blocks) == 0:
+            return "xxxx"
+        
         b0name = self.__data_blocks[0].getName()
 
         if len(b0name) > 1:

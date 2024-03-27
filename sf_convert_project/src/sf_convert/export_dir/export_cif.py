@@ -43,4 +43,9 @@ class ExportCif:
 
         # Legacy requires END and END OF DATA comments
         endc = True if self.__legacy else False
+
+        # If no data - produce empty file
+        if self.__sffile.get_number_of_blocks() == 0:
+            endc = False
+
         self.__sffile.write_file(pathOut, endcomments=endc)

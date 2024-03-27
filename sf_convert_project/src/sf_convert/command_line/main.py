@@ -63,6 +63,9 @@ class ImportSf:
         if format_out == "MMCIF":
             sfc = SfCorrect(self.__legacy)
 
+            # Warn about bad names
+            sfc.check_unwanted_cif_items(sffile, self.__logger)
+            
             # Remove blocks with too few reflections.
             sfc.remove_empty_blocks(sffile, self.__logger)
 
