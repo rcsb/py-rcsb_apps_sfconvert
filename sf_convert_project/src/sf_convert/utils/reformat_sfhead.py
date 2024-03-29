@@ -411,7 +411,8 @@ def reorder_sf_file(sf_file):
 
     """
 
-    earlyorder = ["audit", "cell", "diffrn", "diffrn_radiation", "diffrn_radiation_wavelength", "diffrn_reflns", "entry", "exptl_crystal", "reflns_scale", "symmetry"]
+    earlyorder = ["audit", "cell", "diffrn", "diffrn_radiation", "diffrn_radiation_wavelength", "diffrn_reflns", "diffrn_scale_group",
+                  "diffrn_standard_refln", "entry", "exptl_crystal", "reflns_scale", "symmetry"]
     lateorder = ["refln", "diffrn_refln"]
 
     allbnames = sf_file.get_all_block_names()

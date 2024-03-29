@@ -134,6 +134,81 @@ class SfCorrect:
             blk.append(newObj)
             logger.pinfo(f"Creating {cat} in nblock={idx}", 0)
 
+    def __instantiate_diffrn_scale_group(self, sffile, logger):
+        """Instantiate diffrn_scale_group needed if dirrn_refln.scale_group_code present."""
+
+        cat = "diffrn_scale_group"
+        for idx in range(sffile.get_number_of_blocks()):
+            blk = sffile.get_block_by_index(idx)
+
+            cObj = blk.getObj(cat)
+            if cObj:
+                continue
+
+            # Instantiate if needed
+            cObj = blk.getObj("diffrn_refln")
+            if not cObj:
+                continue
+            if "scale_group_code" not in cObj.getAttributeList():
+                continue
+
+            values = cObj.getAttributeUniqueValueList("scale_group_code")
+
+            data = []
+            for val in values:
+                data.append([val])
+
+            newObj = DataCategory(cat, ["code"], data)
+            blk.append(newObj)
+            logger.pinfo(f"Creating {cat} in nblock={idx}", 0)
+
+    def __instantiate_diffrn_standard_refln(self, sffile, logger):
+        """Instantiate diffrn_standard_refln if diffrrn_refln.standard_code present."""
+
+        cat = "diffrn_standard_refln"
+        for idx in range(sffile.get_number_of_blocks()):
+            blk = sffile.get_block_by_index(idx)
+
+            cObj = blk.getObj(cat)
+            if cObj:
+                continue
+
+            # Instantiate if needed
+            cObj = blk.getObj("diffrn_refln")
+            if not cObj:
+                continue
+
+            if "standard_code" not in cObj.getAttributeList():
+                continue
+
+            # We "assume" diffrn_id is in file.  So far good assumption.
+            
+            values = self.__getUniqueTuples(cObj, ["standard_code", "diffrn_id"], logger)
+            if not values:
+                # Error already given
+                continue
+
+
+            # Assemble data needed - we need Miller index for code
+            data = []
+            for v in values:
+                sc = v[0]
+                di = v[1]
+
+                for row in range(cObj.getRowCount()):
+                    if cObj.getValue("standard_code", row) == sc \
+                       and cObj.getValue("diffrn_id", row) == di:
+                        ah = cObj.getValue("index_h", row)
+                        ak = cObj.getValue("index_k", row)
+                        al = cObj.getValue("index_l", row)
+                        data.append([sc, di, ah, ak, al])
+                        break
+                
+
+            newObj = DataCategory(cat, ["code", "diffrn_id", "index_h", "index_k", "index_l"], data)
+            blk.append(newObj)
+            logger.pinfo(f"Creating {cat} in nblock={idx}", 0)
+            
     def handle_standard(self, sffile, pdbid, logger):
         """Handles standard operations"""
 
@@ -174,8 +249,15 @@ class SfCorrect:
         # This reorders categories as well
         reformat_sfhead(sffile, pdbid, logger, detail)
 
-        # Remap category names if duplicates
+        # Remap category names if duplicates from refln to diffrn_refln.
         self.remap_unmerged(sffile, logger)
+
+        # See if diffrn_scale_group is needed if diffrn_refln.scale_group_code present
+        self.__instantiate_diffrn_scale_group(sffile, logger)
+
+        # See if diffrn_standard_refln is needed if diffrrn_refln.standard_code present
+        self.__instantiate_diffrn_standard_refln(sffile, logger)
+
 
         # Might have removed all data if model file uploaded
         if sffile.get_number_of_blocks() == 0:
@@ -184,6 +266,7 @@ class SfCorrect:
         # Reflns names might have been modified
         self.__handle_reflns(sffile, logger)
 
+        # Creates diffrn category if need be....
         self.__handle_diffrn(sffile, pdbid, logger, details=detail)
 
         self.__instantiate_diffrn_rad_wavelength(sffile, logger)
@@ -851,6 +934,8 @@ class SfCorrect:
                    and "intensity_net" not in cObj.getAttributeList():
                     cObj.renameAttributes({"intensity_meas": "intensity_net"})
 
+                # REORDERR
+
     def check_unwanted_cif_items(self, sffile, logger):
         """Checks and logs unwated item"""
         
@@ -917,3 +1002,28 @@ class SfCorrect:
                     cObj = blk.getObj(cat)
                     if attr in cObj.getAttributeList():
                         logger.pinfo(f"Warning: Block {blkname} has unwanted CIF item ({chk})", 0)
+
+    def __getUniqueTuples(self, cObj, attL, logger):
+        """Returns unique tuples of attributes"""
+
+        tempD = None
+        for att in attL:
+            idx = cObj.getAttributeIndex(att)
+            if idx < 0:
+                logger.info(f"Missing attribute {att}", 0)
+                return None
+            newD = cObj.getColumn(idx)
+            if tempD is None:
+                tempD = newD
+            else:
+                tempD = tuple(zip(tempD, newD))
+
+        # Unique values
+        rD = []
+        for tup in tempD:
+            if tup not in rD:
+                rD.append(tup)
+
+        return rD
+                
+    
