@@ -1,5 +1,7 @@
 # Utilities to correct imported CIF files
 
+import math
+
 from mmcif.api.DataCategory import DataCategory
 from mmcif.api.PdbxContainers import CifName
 
@@ -71,7 +73,7 @@ class SfCorrect:
                     try:
                         wave = float(curwave)
                         if wave > 2.0 or wave < 0.6:
-                            logger.pinfo(f"Warning: ({pdb_id} nblock={idx} wavelength value (curwave) is abnormal (double check)!", 0)
+                            logger.pinfo(f"Warning: ({pdb_id} nblock={idx} wavelength value {curwave} is abnormal (double check)!", 0)
                     except ValueError:
                         logger.pinfo(f"Wavelength not a float {curwave}", 0)
 
@@ -258,7 +260,6 @@ class SfCorrect:
         # See if diffrn_standard_refln is needed if diffrrn_refln.standard_code present
         self.__instantiate_diffrn_standard_refln(sffile, logger)
 
-
         # Might have removed all data if model file uploaded
         if sffile.get_number_of_blocks() == 0:
             return
@@ -277,6 +278,8 @@ class SfCorrect:
         self.__reorder_refln_all(sffile)
 
         self.__reorder_symmetry(sffile)
+
+        self.__ensure_pdbx_r_free_flag_int(sffile, logger)
 
         self.__reorder_sf_file(sffile)
 
@@ -934,7 +937,7 @@ class SfCorrect:
                    and "intensity_net" not in cObj.getAttributeList():
                     cObj.renameAttributes({"intensity_meas": "intensity_net"})
 
-                # REORDERR
+                # XXX REORDERR
 
     def check_unwanted_cif_items(self, sffile, logger):
         """Checks and logs unwated item"""
@@ -1026,4 +1029,45 @@ class SfCorrect:
 
         return rD
                 
-    
+    def __ensure_pdbx_r_free_flag_int(self, sffile, logger):
+        """If pdbx_r_free_flag is not an int, warn and truncate"""
+        
+        item = "pdbx_r_free_flag"
+       
+        for block_index in range(sffile.get_number_of_blocks()):
+            warn = False
+            blk = sffile.get_block_by_index(block_index)
+            blkname = blk.getName()
+                    
+            cObj = blk.getObj("refln")
+            if not cObj:
+                continue
+
+            if item not in cObj.getAttributeList():
+                continue
+
+            # Faster to get data once - instead of dereferencing item name each time
+            index = cObj.getIndex(item)
+            data = cObj.getColumn(index)
+
+            for idx in range(cObj.getRowCount()):
+                val = data[idx]
+                if val in [".", "?"]:
+                    continue
+
+                bad = False
+                try:
+                    v = int(val)
+                except ValueError:
+                    bad = True
+
+                if bad:
+                    if not warn:
+                        logger.pinfo(f"Warning: In {blkname}, {item} value {val} is not integral -- truncating", 0)
+                        warn = True
+                    try:
+                        newval = str(math.trunc(float(val)))
+                    except ValueError:
+                        newval = val
+                    cObj.setValue(newval, item, idx)
+        
