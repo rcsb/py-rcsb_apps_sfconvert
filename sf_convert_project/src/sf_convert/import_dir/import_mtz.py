@@ -219,6 +219,18 @@ class MtzToCifConverter:
             category.append(tuple(data_dict.values()))
             self.sffile.append_category_to_block(category)
 
+    def __fix_attributes(self):
+        """If gemmi decids unmerged data, we provide wrong attribute name due to template we provide"""
+        for idx in range(self.sffile.get_number_of_blocks()):
+            blk = self.sffile.get_block_by_index(idx)
+
+            if "diffrn_refln" not in blk.getObjNameList():
+                continue
+
+            cObj = blk.getObj("diffrn_refln")
+            if "intensity_meas" in cObj.getAttributeList():
+                cObj.renameAttributes({"intensity_meas": "intensity_net"})
+
     def process_labels(self, input_string):
         """
         Processes the labels based on the input string.
@@ -410,7 +422,9 @@ class MtzToCifConverter:
         os.remove(temp_file)
         self.__add_category(self.__categories)
 
-        new_order = ['audit', 'cell', 'diffrn_radiation_wavelength', 'entry', 'exptl_crystal', 'reflns_scale', 'symmetry', 'refln']
+        self.__fix_attributes()
+        
+        new_order = ['audit', 'cell', 'diffrn_radiation_wavelength', 'entry', 'exptl_crystal', 'reflns_scale', 'symmetry', 'refln', 'diffrn_refln']
         self.sffile.reorder_categories_in_block(new_order)
         self.sffile.correct_block_names("xxxx")  # XXXX assumes entry.id = xxxx - need to be able to specify pdb id
 
