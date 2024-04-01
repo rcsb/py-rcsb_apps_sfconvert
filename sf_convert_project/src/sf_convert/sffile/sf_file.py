@@ -417,7 +417,7 @@ class StructureFactorFile:
         
         b0name = self.__data_blocks[0].getName()
 
-        if len(b0name) > 1:
+        if len(b0name) > 1 and "#" not in b0name and " " not in b0name:
             pdbid = b0name[1:5]
         else:
             pdbid = "xxxx"
