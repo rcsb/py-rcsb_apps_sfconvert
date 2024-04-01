@@ -216,6 +216,10 @@ class SfCorrect:
 
         detail = None
 
+        # for idx in range(sffile.get_number_of_blocks()):
+        #     blk = sffile.get_block_by_index(idx)
+        #     print(blk.printIt())
+
         self.__update_exptl_crystal(sffile, logger)
 
         if self.__legacy:
@@ -270,6 +274,9 @@ class SfCorrect:
         # Creates diffrn category if need be....
         self.__handle_diffrn(sffile, pdbid, logger, details=detail)
 
+        # Renames diffrn_radiation to diffrn_radiation__wavelength if needed
+        self.__rename_diffrn_radiation(sffile, logger)
+        
         self.__instantiate_diffrn_rad_wavelength(sffile, logger)
 
         sffile.correct_block_names(pdbid)
@@ -1071,3 +1078,45 @@ class SfCorrect:
                         newval = val
                     cObj.setValue(newval, item, idx)
         
+    def __rename_diffrn_radiation(self, sffile, logger):
+        """If diffrn_radiation present and diffrn_radiation_wavelength, do a rename"""
+
+        cat = "diffrn_radiation_wavelength"
+
+            
+        for block_index in range(sffile.get_number_of_blocks()):
+            blk = sffile.get_block_by_index(block_index)
+            blkname = blk.getName()
+                    
+            cObj = blk.getObj("diffrn_radiation")
+            if not cObj:
+                continue
+
+            if cat in blk.getObjNameList():
+                # See if single row.
+                cObj2 = blk.getObj(cat)
+                if cObj2.getRowCount() != 1:
+                    # Too complex
+                    continue
+                if cObj2.getValue("wavelength") not in [".", "?"]:
+                    continue
+                val = cObj.getValue("pdbx_wavelength", 0)
+                cObj2.setValue(val, "wavelength", 0)
+                blk.remove("diffrn_radiation")
+                # next block
+                continue
+
+            # Rename block.
+            blk.rename("diffrn_radiation", cat)
+
+            # Rename attributes if needed
+            cObj = blk.getObj(cat)
+
+            renames = [["pdbx_wavelength", "wavelength"]]
+
+            for r in renames:
+                frm = r[0]
+                dest = r[1]
+
+                if frm in cObj.getAttributeList():
+                    cObj.renameAttributes({frm: dest})
