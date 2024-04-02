@@ -144,7 +144,17 @@ class ProteinDataBank:
         Returns:
             float: The extracted float value.
         """
-        return float(re.search(r'[-+]?\d*\.\d+|\d+', line.split(':')[1]).group())
+        value = line.split(':')[1]
+        search = re.search(r'[-+]?\d*\.\d+|\d+', value)
+
+        ret = None
+        if search:
+            try:
+                ret = float(search.group())
+            except ValueError:
+                pass
+
+        return ret
 
     def _extract_int(self, line):
         """
@@ -156,7 +166,17 @@ class ProteinDataBank:
         Returns:
             int: The extracted integer value.
         """
-        return int(re.search(r'\d+', line.split(':')[1]).group())
+        value = line.split(':')[1]
+        search = re.search(r'\d+', value)
+
+        ret = None
+        if search:
+            try:
+                ret = int(search.group())
+            except ValueError:
+                pass
+
+        return ret
 
     def _extract_cell_parameters(self, line):
         """

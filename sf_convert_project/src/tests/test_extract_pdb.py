@@ -42,3 +42,42 @@ class TestExtractCoordinate:
 
         assert db['pdb_id'] == "5PNY"
         assert db['RESOH'] == 1.48
+
+    def test_pdb_null(self, pdb_100d_coordinate_pdb_path):
+        """
+        Tests the extraction of data from PDB file in which NULL is present
+        for wavelength
+
+        Args:
+          pdb_100d_coordinate_pdb_path: The path to PDB file to be extracted
+
+        Returns:
+          None:
+        """
+
+        p = ProteinDataBank()
+        db = p.extract_attributes_from_pdb(pdb_100d_coordinate_pdb_path)
+
+        assert db['pdb_id'] == "100D"
+        assert db['RESOH'] == 1.9
+        assert db['WAVE'] is None
+
+    def test_cif_null(self, cif_100d_coordinate_path):
+        """
+        Tests the extraction of data from PDB file in which NULL is present
+        for wavelength
+
+        Args:
+          cif_100d_coordinate_cif_path: The path to PDBx/mmCIF file to be extracted
+
+        Returns:
+          None:
+        """
+
+        p = ProteinDataBank()
+        db = p.extract_attributes_from_cif(cif_100d_coordinate_path)
+
+        assert db['pdb_id'] == "100D"
+        assert db['RESOH'] == 1.9
+        assert db['WAVE'] is None
+        
