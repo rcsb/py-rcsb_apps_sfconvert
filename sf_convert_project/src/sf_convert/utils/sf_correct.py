@@ -1083,7 +1083,6 @@ class SfCorrect:
 
         cat = "diffrn_radiation_wavelength"
 
-            
         for block_index in range(sffile.get_number_of_blocks()):
             blk = sffile.get_block_by_index(block_index)
             blkname = blk.getName()
@@ -1120,3 +1119,43 @@ class SfCorrect:
 
                 if frm in cObj.getAttributeList():
                     cObj.renameAttributes({frm: dest})
+
+    def reassign_free(self, sffile, freer, logger):
+        """Reassign free R set"""
+
+        cat = "refln"
+        
+        freer = str(freer)
+        
+        for block_index in range(sffile.get_number_of_blocks()):
+            blk = sffile.get_block_by_index(block_index)
+            blkname = blk.getName()
+
+            cObj = blk.getObj(cat)
+            if not cObj:
+                continue
+    
+            alist = cObj.getAttributeList()
+            if "pdbx_r_free_flag" not in alist:
+                logger.pinfo(f"Warning: pdbx_r_free_flag not in {cat} in block {blkname} no changes made", 0)
+                continue
+
+            if "status" not in alist:
+                logger.pinfo(f"Warning: status not in {cat} in block {blkname} no changes made", 0)
+                continue
+
+            for idx in range(cObj.getRowCount()):
+                curstat = cObj.getValue("status", idx)
+                flag = cObj.getValue("pdbx_r_free_flag", idx)
+                
+                if curstat in ["h", "l", "x", "-", "<"]:
+                    continue
+
+                if curstat == "?":
+                    newval = "x"
+                if flag == freer:
+                    newval = "f"
+                else:
+                    newval = "o"
+                cObj.setValue(newval, "status", idx)
+

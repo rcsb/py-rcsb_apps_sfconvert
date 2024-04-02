@@ -54,14 +54,15 @@ class ImportSf:
         pdb_data = pdict.get("pdb_data", {})
         pdb_wave = pdb_data.get("WAVE", None)
         wave_arg = pdict.get("wave_cmdline", None)
+        free_arg = pdict.get("free", None)
 
         ic = ImportCif(self.__logger)
         ic.import_files(sfin)
         sffile = ic.get_sf()
 
         # We apply corrections if cif -> cif conversion, otherwise bring in
+        sfc = SfCorrect(self.__legacy)
         if format_out == "MMCIF":
-            sfc = SfCorrect(self.__legacy)
 
             # Warn about bad names
             sfc.check_unwanted_cif_items(sffile, self.__logger)
@@ -97,6 +98,9 @@ class ImportSf:
 
             sfc.handle_standard(sffile, pdbid, self.__logger)
 
+        # If set free...
+        if free_arg is not None:
+            sfc.reassign_free(sffile, free_arg, self.__logger)
 
         return sffile
 
@@ -225,8 +229,8 @@ class SFConvertMain:
         sffile = impsf.import_sf(pdict)
 
         # Any transformations that are necessary
-        # FREER flag maybe?
-
+        # None right now
+        
         esf = ExportSf(self.__logger)
         esf.export_sf(sffile, pdict)
 
@@ -471,9 +475,10 @@ def handle_freer_argument(args, logger):
     Raises:
         ValueError: If the -freer argument is not a positive integer.
     """
-    if args.freer <= 0:
-        raise ValueError("-freer argument must be a positive integer.")
-    # pdb.update_FREERV(args.freer)
+    if args.freer < 0:
+        print("-freer argument must be a positive integer.")
+        sys.exit(1)
+
     logger.pinfo(f"Note: {args.freer} is used for free data set.", 0)
 
 
@@ -585,7 +590,7 @@ def convert_files(args, input_format, pdb_data, logger):
     if args.label is not None:
         pdict["label"] = args.label
 
-    if args.freer:
+    if args.freer is not None:
         pdict["free"] = args.freer
 
     sfc = SFConvertMain(logger)
@@ -627,7 +632,7 @@ def main():
         if args.label:
             handle_label_argument(args)
 
-        if args.freer:
+        if args.freer is not None:
             handle_freer_argument(args, logger)
 
         if args.wave:
