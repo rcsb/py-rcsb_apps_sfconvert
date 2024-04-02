@@ -52,11 +52,12 @@ class ProteinDataBank:
             obj = container.getObj(obj_name)
             if obj is not None:
                 for attr, output_name in attrs:
+                    store = None
                     if obj.hasAttribute(attr):
                         val = obj.getValue(attr)
-                        attributes[output_name] = float(val) if val.replace('.', '', 1).isdigit() else val
-                    else:
-                        attributes[output_name] = None
+                        if val not in [".", "?"]:
+                            store = float(val) if val.replace('.', '', 1).isdigit() else val
+                    attributes[output_name] = store
             else:
                 for attr, output_name in attrs:
                     attributes[output_name] = None
