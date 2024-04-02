@@ -414,7 +414,7 @@ class StructureFactorFile:
         """
         if self.__data_blocks is None or len(self.__data_blocks) == 0:
             return "xxxx"
-        
+
         b0name = self.__data_blocks[0].getName()
 
         if len(b0name) > 1 and "#" not in b0name and " " not in b0name:
@@ -469,4 +469,3 @@ class StructureFactorFile:
     def remove_block(self, blkid):
         """Removes block blkid from indices"""
         del self.__data_blocks[blkid]
-        

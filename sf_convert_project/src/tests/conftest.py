@@ -194,6 +194,7 @@ def cns_to_mmcif_data_path(data_dir):
     """
     yield os.path.join(data_dir, "cif_files", "cns-sf6.cv.mmcif")
 
+
 @pytest.fixture
 def pdb_100d_coordinate_pdb_path(data_dir):
     """
@@ -207,6 +208,7 @@ def pdb_100d_coordinate_pdb_path(data_dir):
     """
     yield os.path.join(data_dir, "pdb_files", "pdb100d.ent")
 
+
 @pytest.fixture
 def cif_100d_coordinate_path(data_dir):
     """
@@ -219,4 +221,3 @@ def cif_100d_coordinate_path(data_dir):
         str: The path to the CIF data file.
     """
     yield os.path.join(data_dir, "cif_files", "100d.cif")
-    

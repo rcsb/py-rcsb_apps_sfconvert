@@ -1109,4 +1109,3 @@ class CheckSfFile:
             return True
         except ValueError:
             return False
-

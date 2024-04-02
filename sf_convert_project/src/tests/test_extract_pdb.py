@@ -80,4 +80,3 @@ class TestExtractCoordinate:
         assert db['pdb_id'] == "100D"
         assert db['RESOH'] == 1.9
         assert db['WAVE'] is None
-        

@@ -184,12 +184,11 @@ class SfCorrect:
                 continue
 
             # We "assume" diffrn_id is in file.  So far good assumption.
-            
+
             values = self.__getUniqueTuples(cObj, ["standard_code", "diffrn_id"], logger)
             if not values:
                 # Error already given
                 continue
-
 
             # Assemble data needed - we need Miller index for code
             data = []
@@ -205,12 +204,11 @@ class SfCorrect:
                         al = cObj.getValue("index_l", row)
                         data.append([sc, di, ah, ak, al])
                         break
-                
 
             newObj = DataCategory(cat, ["code", "diffrn_id", "index_h", "index_k", "index_l"], data)
             blk.append(newObj)
             logger.pinfo(f"Creating {cat} in nblock={idx}", 0)
-            
+
     def handle_standard(self, sffile, pdbid, logger):
         """Handles standard operations"""
 
@@ -248,7 +246,7 @@ class SfCorrect:
         self.__instantiate_entry(sffile, pdbid)
 
         self._cleanup_audit(sffile, logger)
-        
+
         if sffile.get_number_of_blocks() == 0:
             return
 
@@ -267,7 +265,7 @@ class SfCorrect:
         # Might have removed all data if model file uploaded
         if sffile.get_number_of_blocks() == 0:
             return
-            
+
         # Reflns names might have been modified
         self.__handle_reflns(sffile, logger)
 
@@ -276,7 +274,7 @@ class SfCorrect:
 
         # Renames diffrn_radiation to diffrn_radiation__wavelength if needed
         self.__rename_diffrn_radiation(sffile, logger)
-        
+
         self.__instantiate_diffrn_rad_wavelength(sffile, logger)
 
         sffile.correct_block_names(pdbid)
@@ -864,20 +862,19 @@ class SfCorrect:
 
         return ndup
 
-         
     def remap_unmerged(self, sffile, logger):
         """Map refln to diffrn_refln"""
 
         for block_index in range(sffile.get_number_of_blocks()):
             blk = sffile.get_block_by_index(block_index)
             blkname = blk.getName()
-                    
+
             ndup = self.__check_hkl_duplcate(blk, blkname, logger)
 
             cObj = blk.getObj("refln")
             if not cObj:
                 continue
-        
+
             alist = cObj.getAttributeList()
             have_Io = "intensity_meas" in alist
             have_I_plus = "pdbx_I_plus" in alist
@@ -891,7 +888,7 @@ class SfCorrect:
                     have_unmerge_i = True
 
             # Legacy logic...
-            if (ndup > 1  and (have_Io or have_I_plus)) or have_unmerge_i:
+            if (ndup > 1 and (have_Io or have_I_plus)) or have_unmerge_i:
                 if block_index == 0:
                     logger.pinfo(f"Warning: Unmerged data in block 1 (blockId={blkname})!", 0)
                 else:
@@ -937,7 +934,7 @@ class SfCorrect:
                     cObj.appendAttributeExtendRows(attr)
 
                     for idx in range(cObj.getRowCount()):
-                        cObj.setValue(str(idx+ 1), attr, idx)
+                        cObj.setValue(str(idx + 1), attr, idx)
 
                 # relabel attribugs
                 if "intensity_meas" in cObj.getAttributeList() \
@@ -948,8 +945,8 @@ class SfCorrect:
 
     def check_unwanted_cif_items(self, sffile, logger):
         """Checks and logs unwated item"""
-        
-        check_list = ["atom_sites.entry_id", "audit_author.name", 
+
+        check_list = ["atom_sites.entry_id", "audit_author.name",
                       "audit.creation_method", "audit.update_recor",
                       "cell.CCP4_crystal_id", "cell.CCP4_wavelength_id",
                       "cell.enry_id", "cell.entry", "cell_entry.id",
@@ -1002,7 +999,7 @@ class SfCorrect:
             blkname = blk.getName()
 
             nlist = blk.getObjNameList()
-            
+
             cn = CifName()
             for chk in check_list:
                 cat = cn.categoryPart(chk)
@@ -1035,17 +1032,17 @@ class SfCorrect:
                 rD.append(tup)
 
         return rD
-                
+
     def __ensure_pdbx_r_free_flag_int(self, sffile, logger):
         """If pdbx_r_free_flag is not an int, warn and truncate"""
-        
+
         item = "pdbx_r_free_flag"
-       
+
         for block_index in range(sffile.get_number_of_blocks()):
             warn = False
             blk = sffile.get_block_by_index(block_index)
             blkname = blk.getName()
-                    
+
             cObj = blk.getObj("refln")
             if not cObj:
                 continue
@@ -1064,7 +1061,7 @@ class SfCorrect:
 
                 bad = False
                 try:
-                    v = int(val)
+                    _v = int(val)  # noqa: F841
                 except ValueError:
                     bad = True
 
@@ -1077,7 +1074,7 @@ class SfCorrect:
                     except ValueError:
                         newval = val
                     cObj.setValue(newval, item, idx)
-        
+
     def __rename_diffrn_radiation(self, sffile, logger):
         """If diffrn_radiation present and diffrn_radiation_wavelength, do a rename"""
 
@@ -1085,8 +1082,7 @@ class SfCorrect:
 
         for block_index in range(sffile.get_number_of_blocks()):
             blk = sffile.get_block_by_index(block_index)
-            blkname = blk.getName()
-                    
+
             cObj = blk.getObj("diffrn_radiation")
             if not cObj:
                 continue
@@ -1124,9 +1120,9 @@ class SfCorrect:
         """Reassign free R set"""
 
         cat = "refln"
-        
+
         freer = str(freer)
-        
+
         for block_index in range(sffile.get_number_of_blocks()):
             blk = sffile.get_block_by_index(block_index)
             blkname = blk.getName()
@@ -1134,7 +1130,7 @@ class SfCorrect:
             cObj = blk.getObj(cat)
             if not cObj:
                 continue
-    
+
             alist = cObj.getAttributeList()
             if "pdbx_r_free_flag" not in alist:
                 logger.pinfo(f"Warning: pdbx_r_free_flag not in {cat} in block {blkname} no changes made", 0)
@@ -1147,7 +1143,7 @@ class SfCorrect:
             for idx in range(cObj.getRowCount()):
                 curstat = cObj.getValue("status", idx)
                 flag = cObj.getValue("pdbx_r_free_flag", idx)
-                
+
                 if curstat in ["h", "l", "x", "-", "<"]:
                     continue
 
@@ -1158,4 +1154,3 @@ class SfCorrect:
                 else:
                     newval = "o"
                 cObj.setValue(newval, "status", idx)
-

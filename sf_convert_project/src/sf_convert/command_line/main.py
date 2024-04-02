@@ -66,11 +66,10 @@ class ImportSf:
 
             # Warn about bad names
             sfc.check_unwanted_cif_items(sffile, self.__logger)
-            
+
             # Remove blocks with too few reflections.
             sfc.remove_empty_blocks(sffile, self.__logger)
 
-            
             # PDB id comes from
             #  sffile block name - unless coordinate file used - and then use that
             pdbid = pdb_data.get("pdb_id", None)
@@ -230,7 +229,7 @@ class SFConvertMain:
 
         # Any transformations that are necessary
         # None right now
-        
+
         esf = ExportSf(self.__logger)
         esf.export_sf(sffile, pdict)
 

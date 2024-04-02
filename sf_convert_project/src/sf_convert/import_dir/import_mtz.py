@@ -423,7 +423,7 @@ class MtzToCifConverter:
         self.__add_category(self.__categories)
 
         self.__fix_attributes()
-        
+
         new_order = ['audit', 'cell', 'diffrn_radiation_wavelength', 'entry', 'exptl_crystal', 'reflns_scale', 'symmetry', 'refln', 'diffrn_refln']
         self.sffile.reorder_categories_in_block(new_order)
         self.sffile.correct_block_names("xxxx")  # XXXX assumes entry.id = xxxx - need to be able to specify pdb id
