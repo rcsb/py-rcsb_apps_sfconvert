@@ -24,6 +24,11 @@ dependencies = [
 ]
 dynamic = ["version"]
 
+[tool.setuptools.packages.find]
+where = ["src"]
+exclude = ["tests*"]
+
+
 [project.scripts]
 sf_convert = "sf_convert.command_line.main:main"
 
