@@ -994,7 +994,7 @@ class SfCorrect:
                       "reflns.CCP4_wavelength_id", "reflns.observed_criterion_sigma_I",
                       "struct_keywords.entry_id", "struct_keywords.ndb_keywords",
                       "struct_keywords.text", "symmetry.cell_setting",
-                      "symmetry.entry_id", "symmetry.int_tables_number",
+                      "symmetry.int_tables_number",
                       "symmetry.ndb_full_space_group_name_H-M", "symmetry.space_group_name_h-m"]
 
         for block_index in range(sffile.get_number_of_blocks()):

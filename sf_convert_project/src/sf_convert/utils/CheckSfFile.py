@@ -461,7 +461,7 @@ class CheckSfFile:
            or (self.__I_plus and not self.__sI_plus) or (self.__I_minus and not self.__sI_minus) \
            or (self.__F_plus and not self.__sF_plus) or (self.__F_minus and not self.__sF_minus) \
            or (self.__unmerge_i and not self.__unmerge_si):
-            self.__logger.pinfo(f"Error: Sigma values are missing (data block= {nblock + 1})!", self.__pinfo_value)
+            self.__logger.pinfo(f"Warning: Sigma values are missing (data block= {nblock + 1})!", self.__pinfo_value)
 
         if self.__status is None:
             self.__logger.pinfo(f"Error: File has no free set (data block= {nblock + 1}).", self.__pinfo_value)
