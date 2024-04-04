@@ -16,7 +16,6 @@ from sf_convert.sffile.guess_sf_format import guess_sf_format
 from sf_convert.utils.reformat_sfhead import reformat_sfhead, fix_entry_ids
 from sf_convert.utils.sf_correct import SfCorrect
 from sf_convert.utils.pinfo_file import PStreamLogger
-from sf_convert.utils.get_sf_info_file import get_sf_info
 from sf_convert.utils.CheckSfFile import CheckSfFile
 from sf_convert.utils.version import get_version
 from sf_convert.utils.TextUtils import is_cif
@@ -495,14 +494,6 @@ def handle_wave_argument(args):
         raise ValueError("-wave argument must be a positive float.")
 
 
-def handle_diags_argument(args):
-    """
-    Handles operations related to the -diags argument.
-
-    Args:
-        args: The command line arguments.
-    """
-    get_sf_info(args.diags)
 
 
 def handle_valid_argument(args, logger):
@@ -637,9 +628,6 @@ def main():
         if args.wave:
             handle_wave_argument(args)
 
-        if args.diags:
-            handle_diags_argument(args)
-
         if args.valid:
             handle_valid_argument(args, logger)
 
@@ -656,7 +644,9 @@ def main():
     outformat = rdict["out_format"].lower()
     print(f"Output File Name = {outpath} : ({outformat} format)")
 
-    logger.output_reports("sf_information.cif")
+    diags = args.diags if args.diags else None
+    
+    logger.output_reports("sf_information.cif", diags)
 
 
 def parse_arguments() -> argparse.Namespace:
@@ -679,7 +669,6 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument('-diags', type=str, help='Log file containing warning/error message')
     parser.add_argument('-detail', type=str, help='Give a note to the data set')
     parser.add_argument('-valid', action='store_true', help='Check various SF errors, and correct!')
-    parser.add_argument('-multidatablock', type=str, help='Update block name')
 
     return parser.parse_args()
 
