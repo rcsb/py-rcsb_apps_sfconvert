@@ -1,4 +1,5 @@
 # The version and history
+from sf_convert import __version__, __date__
 
 def get_version():
-    return "sf_convert (version: 2.001 : 2024-03-22)"
+    return f"sf_convert (version: {__version__} : {__date__})"
