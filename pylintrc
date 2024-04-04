@@ -636,4 +636,4 @@ init-import=no
 redefining-builtins-modules=six.moves,past.builtins,future.builtins,builtins,io
 
 [MASTER]
-init-hook="import os, sys; sys.path.append(os.path.join('src', 'tests', 'helpers'))"
+init-hook="import os, sys; sys.path.append(os.path.join('tests', 'helpers'))"
