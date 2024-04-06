@@ -1121,8 +1121,10 @@ class SfCorrect:
                     continue
                 if cObj2.getValue("wavelength") not in [".", "?"]:
                     continue
-                val = cObj.getValue("pdbx_wavelength", 0)
-                cObj2.setValue(val, "wavelength", 0)
+                # Only copy if an option
+                if "pdbx_wavelength" in cObj.getAttributeList():
+                    val = cObj.getValue("pdbx_wavelength", 0)
+                    cObj2.setValue(val, "wavelength", 0)
                 blk.remove("diffrn_radiation")
                 # next block
                 continue
