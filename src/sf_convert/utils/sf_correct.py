@@ -33,6 +33,11 @@ class SfCorrect:
                            "weight",
                            ]
 
+        self.__unmergedorder = ["diffrn_id", "crystal_id", "wavelength_id", "id",
+                                "standard_code", "scale_group_code",
+                                "index_h", "index_k", "index_l",
+                                "intensity_meas", "intensity_sigma"]
+
     def get_pdbid(self, sffile):
         """Returns the PDB id from datablock name of sf
         """
@@ -936,12 +941,34 @@ class SfCorrect:
                     for idx in range(cObj.getRowCount()):
                         cObj.setValue(str(idx + 1), attr, idx)
 
-                # relabel attribugs
+                # relabel attributes
                 if "intensity_meas" in cObj.getAttributeList() \
                    and "intensity_net" not in cObj.getAttributeList():
                     cObj.renameAttributes({"intensity_meas": "intensity_net"})
 
-                # XXX REORDERR
+                # Reassign data if need be.....
+                if "intensity_net" not in cObj.getAttributeList():
+                    # We fake it...
+                    for attrl in (["F_squared_meas", "F_squared_sigma"],
+                                  ["pdbx_I_plus", "pdbx_I_plus_sigma"],
+                                  ["pdbx_I_minus", "pdbx_I_minus_sigma"]
+                                  ):
+                        if attrl[0] in cObj.getAttributeList():
+                            cObj.renameAttributes({attrl[0]: "intensity_net"})
+                            logger.pinfo(f"Warning: Copying {attrl[0]} to intensity_net in block {blkname}" , 0)
+                            if attrl[1] in cObj.getAttributeList():
+                                cObj.renameAttributes({attrl[1]: "intensity_sigma"})
+                                logger.pinfo(f"Warning: Copying {attrl[1]} to intensity_sigma in block {blkname}" , 0)
+                            break
+
+                # Delete columns cannot deal with
+                for attr in ("pdbx_I_plus", "pdbx_I_plus_sigma", "pdbx_I_minus", "pdbx_I_minus_sigma"):
+                    if attr in cObj.getAttributeList():
+                        logger.pinfo(f"Warning: Removing attribute {attr} in block {blkname}", 0)
+                        cObj.removeAttribute(attr)
+
+                sffile.reorder_category_attributes("diffrn_refln", self.__unmergedorder, blk.getName())
+                blk = sffile.get_block_by_index(block_index)
 
     def check_unwanted_cif_items(self, sffile, logger):
         """Checks and logs unwated item"""

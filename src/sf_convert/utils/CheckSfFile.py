@@ -446,7 +446,8 @@ class CheckSfFile:
 
         if not (self.__Fo_au or self.__Fo or self.__Io or self.__F2o or self.__I_plus or self.__I_minus
                 or self.__F_plus or self.__F_minus or self.__unmerge_i or self.__unmerge_si):
-            self.__logger.pinfo(f"Error: File has no mandatory items 'F/I/F+/F-/I+/I-' (data block= {nblock + 1}). ", self.__pinfo_value)
+            msg = "Error" if nblock == 0 else "Warning"
+            self.__logger.pinfo(f"{msg}: File has no mandatory items 'F/I/F+/F-/I+/I-' (data block= {nblock + 1}). ", self.__pinfo_value)
             return
 
         if self.__nref < 30 and self.__dnref > 30:
