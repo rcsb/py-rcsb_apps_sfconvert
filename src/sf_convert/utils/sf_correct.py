@@ -557,7 +557,6 @@ class SfCorrect:
                 continue
 
             # Update existing copy
-            # XXX Someday - instantiate all values
             if "id" not in cObj.getAttributeList():
                 cObj.appendAttributeExtendRows("id", diffidsl[0])
             if "crystal_id" not in cObj.getAttributeList():
@@ -1102,7 +1101,7 @@ class SfCorrect:
                         newval = val
                     cObj.setValue(newval, item, idx)
 
-    def __rename_diffrn_radiation(self, sffile, logger):
+    def __rename_diffrn_radiation(self, sffile, logger):  # pylint: disable=unused-argument
         """If diffrn_radiation present and diffrn_radiation_wavelength, do a rename"""
 
         cat = "diffrn_radiation_wavelength"

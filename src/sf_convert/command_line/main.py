@@ -494,8 +494,6 @@ def handle_wave_argument(args):
         raise ValueError("-wave argument must be a positive float.")
 
 
-
-
 def handle_valid_argument(args, logger):
     """
     Handles operations related to the -valid argument.
@@ -645,7 +643,7 @@ def main():
     print(f"Output File Name = {outpath} : ({outformat} format)")
 
     diags = args.diags if args.diags else None
-    
+
     logger.output_reports("sf_information.cif", diags)
 
 
