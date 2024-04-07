@@ -37,6 +37,11 @@ class CheckSfFile:
         self.__phase_c = self.__phase_o = self.__fom = []
         self.__dH = self.__dK = self.__dL = []
         self.__unmerge_i = self.__unmerge_si = []
+        self.__pdbcell = None
+
+    def set_pdb_cell(self, cell):
+        """Sets the cell to the list cell [a, b, c, alpha, beta, gamma] from the coordinat file"""
+        self.__pdbcell = cell
 
     def initialize_data(self):
         """
@@ -439,6 +444,9 @@ class CheckSfFile:
         resol = [100]
         RESOH = 0.1
         RESOL = 200
+
+        if self.__pdbcell:
+            self.__check_cell(self.__sf_block, nblock)
 
         if not (self.__dH or self.__dK or self.__dL or self.__H or self.__K or self.__L):
             self.__logger.pinfo(f"Error: File has no 'index_h, index_k, index_l' (data block= {nblock + 1}).", self.__pinfo_value)
@@ -1110,3 +1118,58 @@ class CheckSfFile:
             return True
         except ValueError:
             return False
+
+    def __check_cell(self, blk, blkidx):
+        """Checks provided cell against SF file"""
+
+        if "cell" not in blk.getObjNameList():
+            return
+
+        # Only check first block
+        if blkidx > 0:
+            return
+
+        blkname = blk.getName()
+
+        cObj = blk.getObj("cell")
+
+        alist = ["length_a", "length_b", "length_c",
+                 "angle_alpha", "angle_beta", "angle_gamma"]
+
+        sfcell = []
+        try:
+            for attr in alist:
+                val = float(cObj.getValue(attr))
+                sfcell.append(val)
+        except Exception as _e:  # noqa: F841
+            self.__logger.pinfo(f"Error: Could not parse cell from {blkname}", 0)
+            return
+
+        pdb = self.__pdbcell
+
+        if abs(sfcell[0] - pdb[0]) > 0.1 \
+           or abs(sfcell[1] - pdb[1]) > 0.1 \
+           or abs(sfcell[2] - pdb[2]) > 0.1 \
+           or abs(sfcell[3] - pdb[3]) > 0.1 \
+           or abs(sfcell[4] - pdb[4]) > 0.1 \
+           or abs(sfcell[5] - pdb[5]) > 0.1:
+            self.__logger.pinfo(f"Warning! SF and PDB ({blkname}) cell values mismatch", 0)
+
+            if abs(sfcell[0] - pdb[0]) > 3.0 \
+               or abs(sfcell[1] - pdb[1]) > 3.0 \
+               or abs(sfcell[2] - pdb[2]) > 3.0 \
+               or abs(sfcell[3] - pdb[3]) > 3.0 \
+               or abs(sfcell[4] - pdb[4]) > 3.0 \
+               or abs(sfcell[5] - pdb[5]) > 3.0:
+
+                scell = ""
+                pcell = ""
+                for idx in range(6):
+                    scell += f"{sfcell[idx]:6.3f}  "
+                    pcell += f"{pdb[idx]:6.3f}  "
+
+                print(f"cell in  sf: {scell}")
+                print(f"cell in PDB: {pcell}")                
+
+                self.__logger.pinfo(f"Error: {blkname} large cell value mismatch (> 3.0)", 0)
+

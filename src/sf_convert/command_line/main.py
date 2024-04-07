@@ -237,8 +237,12 @@ class SFConvertMain:
 
         # Generate statistics
         output = pdict["output"]
+        pdb_data = pdict.get("pdb_data", {})
+        pdb_cell = pdb_data.get("CELL", None)
 
         checksf = CheckSfFile(sffile, self.__logger)
+        if pdb_cell:
+            checksf.set_pdb_cell(pdb_cell)
         checksf.sf_stat(output, "SF_4_validate.cif")
 
         # checksffile code
