@@ -5,7 +5,8 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "sf_convert"
 authors = [
-    {name = "Vivek Reddy Chithari", email="vivek.chithari@rcsb.org"}
+    {name = "Vivek Reddy Chithari", email="vivek.chithari@rcsb.org"},
+    {name = "Ezra Peisach", email="ezra.peisach@rcsb.org"}
 ]
 description = "Package for sf_convert"
 readme = "README.md"
@@ -19,7 +20,7 @@ classifiers = [
     "License :: OSI Approved :: Apache Software License",
 ]
 dependencies = [
-    "mmcif",
+    "mmcif ~= 0.87",
     "gemmi"
 ]
 dynamic = ["version"]
