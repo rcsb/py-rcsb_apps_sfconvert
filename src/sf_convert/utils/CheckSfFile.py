@@ -595,24 +595,24 @@ class CheckSfFile:
                     nnii += 1
 
             if RESOL + 0.01 >= resolution >= RESOH - 0.01:  # for onedep
-                if self.__F_plus and '?' not in self.__F_plus[i]:
+                if self.__F_plus and self.__F_plus[i] != "?":
                     nfp += 1
-                if self.__F_minus and '?' not in self.__F_minus[i]:
+                if self.__F_minus and self.__F_minus[i] != "?":
                     nfn += 1
-                if self.__I_plus and '?' not in self.__I_plus[i]:
+                if self.__I_plus and self.__I_plus[i] != "?":
                     nip += 1
-                if self.__I_minus and '?' not in self.__I_minus[i]:
+                if self.__I_minus and self.__I_minus[i] != "?":
                     nin += 1
 
-                if ((self.__Fo and '?' not in self.__Fo[i])
-                    or (self.__Fo_au and '?' not in self.__Fo_au[i])
-                    or (self.__Io and '?' not in self.__Io[i])
-                    or (self.__F2o and '?' not in self.__F2o[i])
-                    or ((self.__F_plus and '?' not in self.__F_plus[i])
-                        or (self.__F_minus and '?' not in self.__F_minus[i]))
-                    or ((self.__I_plus and '?' not in self.__I_plus[i])
-                        or (self.__I_minus and '?' not in self.__I_minus[i]))):
-                    if self.__status and 'o' in self.__status[i]:
+                if ((self.__Fo and self.__Fo[i] != "?")
+                    or (self.__Fo_au and self.__Fo_au[i] != "?")
+                    or (self.__Io and self.__Io[i] != "?")
+                    or (self.__F2o and self.__F2o[i] != "?")
+                    or ((self.__F_plus and self.__F_plus[i] != "?")
+                        or (self.__F_minus and self.__F_minus[i] != "?"))
+                    or ((self.__I_plus and self.__I_plus[i] != "?")
+                        or (self.__I_minus and self.__I_minus[i] != "?"))):
+                    if self.__status and self.__status[i] == "o":
                         n_obs += 1
                     elif self.__status and 'f' in self.__status[i]:
                         n_free += 1
