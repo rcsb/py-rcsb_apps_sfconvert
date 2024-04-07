@@ -1182,3 +1182,33 @@ class SfCorrect:
                 else:
                     newval = "o"
                 cObj.setValue(newval, "status", idx)
+
+    def set_cell_if_missing(self, sffile, pdbid, cell, logger):
+        """If cell is not present, then set"""
+
+        cat = "cell"
+
+        for block_index in range(sffile.get_number_of_blocks()):
+            blk = sffile.get_block_by_index(block_index)
+            blkname = blk.getName()
+
+            if cat in blk.getObjNameList():
+                continue
+
+            # Instantiate cell
+            alist = ["length_a", "length_b", "length_c",
+                     "angle_alpha", "angle_beta", "angle_gamma"]
+
+            keys = ["entry_id"] + alist
+            data = [pdbid]
+            for k in cell:
+                try:
+                    val = str(f"{k:.3f}")
+                except ValueError:
+                    val = "?"
+                data.append(val)
+
+            newObj = DataCategory(cat, keys, [data])
+            blk.append(newObj)
+
+            logger.pinfo(f"Note: Creating {cat} in block={blkname}", 0)

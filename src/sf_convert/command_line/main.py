@@ -54,6 +54,7 @@ class ImportSf:
         pdb_wave = pdb_data.get("WAVE", None)
         wave_arg = pdict.get("wave_cmdline", None)
         free_arg = pdict.get("free", None)
+        pdb_cell = pdb_data.get("CELL", None)
 
         ic = ImportCif(self.__logger)
         ic.import_files(sfin)
@@ -91,8 +92,10 @@ class ImportSf:
             elif pdb_wave not in [".", "?", None]:
                 setwlarg = pdb_wave
 
+            if pdb_cell:
+                sfc.set_cell_if_missing(sffile, pdbid, pdb_cell, self.__logger)
+
             sfc.annotate_wavelength(sffile, pdbid, setwlarg, self.__logger)
-            # cell
 
             sfc.handle_standard(sffile, pdbid, self.__logger)
 
