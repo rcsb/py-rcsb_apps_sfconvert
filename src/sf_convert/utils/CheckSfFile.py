@@ -1169,7 +1169,6 @@ class CheckSfFile:
                     pcell += f"{pdb[idx]:6.3f}  "
 
                 print(f"cell in  sf: {scell}")
-                print(f"cell in PDB: {pcell}")                
+                print(f"cell in PDB: {pcell}")
 
                 self.__logger.pinfo(f"Error: {blkname} large cell value mismatch (> 3.0)", 0)
-

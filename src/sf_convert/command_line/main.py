@@ -61,14 +61,14 @@ class ImportSf:
         sffile = ic.get_sf()
 
         # We apply corrections if cif -> cif conversion, otherwise bring in
-        sfc = SfCorrect(self.__legacy)
+        sfc = SfCorrect(self.__logger, self.__legacy)
         if format_out == "MMCIF":
 
             # Warn about bad names
-            sfc.check_unwanted_cif_items(sffile, self.__logger)
+            sfc.check_unwanted_cif_items(sffile)
 
             # Remove blocks with too few reflections.
-            sfc.remove_empty_blocks(sffile, self.__logger)
+            sfc.remove_empty_blocks(sffile)
 
             # PDB id comes from
             #  sffile block name - unless coordinate file used - and then use that
@@ -93,22 +93,22 @@ class ImportSf:
                 setwlarg = pdb_wave
 
             if pdb_cell:
-                sfc.set_cell_if_missing(sffile, pdbid, pdb_cell, self.__logger)
+                sfc.set_cell_if_missing(sffile, pdbid, pdb_cell)
 
-            sfc.annotate_wavelength(sffile, pdbid, setwlarg, self.__logger)
+            sfc.annotate_wavelength(sffile, pdbid, setwlarg)
 
-            sfc.handle_standard(sffile, pdbid, self.__logger)
+            sfc.handle_standard(sffile, pdbid)
 
         # If set free...
         if free_arg is not None:
-            sfc.reassign_free(sffile, free_arg, self.__logger)
+            sfc.reassign_free(sffile, free_arg)
 
         return sffile
 
     def __import_mtz(self, pdict):
         sfin = pdict["sfin"]
         pdb_data = pdict.get("pdb_data", {})
-        sfc = SfCorrect(self.__legacy)
+        sfc = SfCorrect(self.__logger, self.__legacy)
 
         # pdb_wave = pdb_data.get("WAVE", None)
         # wave_arg = pdict.get("wave_cmdline", None)
@@ -137,7 +137,7 @@ class ImportSf:
             pdbid = pdbid.lower()
 
         sfc.correct_cell_precision(sffile)
-        sfc.handle_standard(sffile, pdbid, self.__logger)
+        sfc.handle_standard(sffile, pdbid)
 
         return sffile
 
@@ -155,14 +155,14 @@ class ImportSf:
         ic.import_files(sfin)
         sffile = ic.get_sf()
 
-        sfc = SfCorrect(self.__legacy)
+        sfc = SfCorrect(self.__logger, self.__legacy)
         if pdb_cell:
             sfc.set_cell(sffile, pdb_cell)
             sfc.ensure_catkeys(sffile, "xxxx")
             sfc.reorder_sf_file(sffile)
 
         # Remove duplicate audits for multiple imports
-        sfc.cleanup_extra_audit(sffile, self.__logger)
+        sfc.cleanup_extra_audit(sffile)
 
         # PDB id comes from
         #  sffile block name - unless coordinate file used - and then use that

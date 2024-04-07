@@ -9,8 +9,9 @@ from sf_convert.utils.reformat_sfhead import reformat_sfhead, reorder_sf_file
 
 
 class SfCorrect:
-    def __init__(self, legacy=True):
+    def __init__(self, logger, legacy=True):
         self.__legacy = legacy
+        self.__logger = logger
         self.__stdorder = ["crystal_id", "wavelength_id", "scale_group_code",
                            "index_h", "index_k", "index_l", "status", "pdbx_r_free_flag",
                            "F_meas_au", "F_meas_sigma_au",
@@ -43,14 +44,13 @@ class SfCorrect:
         """
         return sffile.extract_pdbid_from_block()
 
-    def annotate_wavelength(self, sffile, pdb_id, setwlarg, logger):
+    def annotate_wavelength(self, sffile, pdb_id, setwlarg):
         """
         Handles addition of wavelength to the SF file if needed
 
         Args:
         sffile: SFFile object
         setlwarg: Wavelength to set
-        logger: pfile object
         """
 
         cat = "diffrn_radiation_wavelength"
@@ -71,23 +71,23 @@ class SfCorrect:
                     setwl = setwlarg
                     setwlf = float(setwlarg)
             except ValueError:
-                logger("Error: trying to set wavelength to non float", 0)
+                self.__logger.pinfo("Error: trying to set wavelength to non float", 0)
 
             if curwave:
                 if curwave not in ["?", "."]:
                     try:
                         wave = float(curwave)
                         if wave > 2.0 or wave < 0.6:
-                            logger.pinfo(f"Warning: ({pdb_id} nblock={idx} wavelength value {curwave} is abnormal (double check)!", 0)
+                            self.__logger.pinfo(f"Warning: ({pdb_id} nblock={idx} wavelength value {curwave} is abnormal (double check)!", 0)
                     except ValueError:
-                        logger.pinfo(f"Wavelength not a float {curwave}", 0)
+                        self.__logger.pinfo(f"Wavelength not a float {curwave}", 0)
 
                     if setwl != ".":
                         if setwlf > 0.8 and setwlf < 1.8 and setwlf != 1.0:
                             if abs(setwlf - wave) > 0.0001 and idx == 0:
-                                logger.pinfo(f"Warning: ({pdb_id} nblock={idx}) wavelength mismatch (pdb= {setwlf} : sf= {curwave})!", 0)
+                                self.__logger.pinfo(f"Warning: ({pdb_id} nblock={idx}) wavelength mismatch (pdb= {setwlf} : sf= {curwave})!", 0)
                             elif setwlf > 0 and abs(setwlf - wave) > 0.0001 and idx == 0:
-                                logger.pinfo("Warning: ({pdb_id} nblock={idx}) wavelength mismatch (pdb= {setwlf} : sf= {curwave}). (double check!)", 0)
+                                self.__logger.pinfo("Warning: ({pdb_id} nblock={idx}) wavelength mismatch (pdb= {setwlf} : sf= {curwave}). (double check!)", 0)
 
                         # Set the values....
                         for row in range(cObj.getRowCount()):
@@ -111,9 +111,9 @@ class SfCorrect:
 
                 newObj = DataCategory(cat, ["id", "wavelength"], data)
                 blk.append(newObj)
-                logger.pinfo(f"Creating {cat} in nblock={idx}", 0)
+                self.__logger.pinfo(f"Creating {cat} in nblock={idx}", 0)
 
-    def __instantiate_diffrn_rad_wavelength(self, sffile, logger):
+    def __instantiate_diffrn_rad_wavelength(self, sffile):
         """Instantiate diffrn_radiation_wavelength if needed.  In case wavelength is not set, but needed for dictionary purposes"""
 
         cat = "diffrn_radiation_wavelength"
@@ -139,9 +139,9 @@ class SfCorrect:
 
             newObj = DataCategory(cat, ["id", "wavelength"], data)
             blk.append(newObj)
-            logger.pinfo(f"Creating {cat} in nblock={idx}", 0)
+            self.__logger.pinfo(f"Creating {cat} in nblock={idx}", 0)
 
-    def __instantiate_diffrn_scale_group(self, sffile, logger):
+    def __instantiate_diffrn_scale_group(self, sffile):
         """Instantiate diffrn_scale_group needed if dirrn_refln.scale_group_code present."""
 
         cat = "diffrn_scale_group"
@@ -167,9 +167,9 @@ class SfCorrect:
 
             newObj = DataCategory(cat, ["code"], data)
             blk.append(newObj)
-            logger.pinfo(f"Creating {cat} in nblock={idx}", 0)
+            self.__logger.pinfo(f"Creating {cat} in nblock={idx}", 0)
 
-    def __instantiate_diffrn_standard_refln(self, sffile, logger):
+    def __instantiate_diffrn_standard_refln(self, sffile):
         """Instantiate diffrn_standard_refln if diffrrn_refln.standard_code present."""
 
         cat = "diffrn_standard_refln"
@@ -190,7 +190,7 @@ class SfCorrect:
 
             # We "assume" diffrn_id is in file.  So far good assumption.
 
-            values = self.__getUniqueTuples(cObj, ["standard_code", "diffrn_id"], logger)
+            values = self.__getUniqueTuples(cObj, ["standard_code", "diffrn_id"])
             if not values:
                 # Error already given
                 continue
@@ -212,9 +212,9 @@ class SfCorrect:
 
             newObj = DataCategory(cat, ["code", "diffrn_id", "index_h", "index_k", "index_l"], data)
             blk.append(newObj)
-            logger.pinfo(f"Creating {cat} in nblock={idx}", 0)
+            self.__logger.pinfo(f"Creating {cat} in nblock={idx}", 0)
 
-    def handle_standard(self, sffile, pdbid, logger):
+    def handle_standard(self, sffile, pdbid):
         """Handles standard operations"""
 
         detail = None
@@ -223,7 +223,7 @@ class SfCorrect:
         #     blk = sffile.get_block_by_index(idx)
         #     print(blk.printIt())
 
-        self.__update_exptl_crystal(sffile, logger)
+        self.__update_exptl_crystal(sffile)
 
         if self.__legacy:
             self.__remove_similar_refln_attr(sffile)
@@ -250,37 +250,37 @@ class SfCorrect:
 
         self.__instantiate_entry(sffile, pdbid)
 
-        self._cleanup_audit(sffile, logger)
+        self._cleanup_audit(sffile)
 
         if sffile.get_number_of_blocks() == 0:
             return
 
         # This reorders categories as well
-        reformat_sfhead(sffile, pdbid, logger, detail)
+        reformat_sfhead(sffile, pdbid, self.__logger, detail)
 
         # Remap category names if duplicates from refln to diffrn_refln.
-        self.remap_unmerged(sffile, logger)
+        self.remap_unmerged(sffile)
 
         # See if diffrn_scale_group is needed if diffrn_refln.scale_group_code present
-        self.__instantiate_diffrn_scale_group(sffile, logger)
+        self.__instantiate_diffrn_scale_group(sffile)
 
         # See if diffrn_standard_refln is needed if diffrrn_refln.standard_code present
-        self.__instantiate_diffrn_standard_refln(sffile, logger)
+        self.__instantiate_diffrn_standard_refln(sffile)
 
         # Might have removed all data if model file uploaded
         if sffile.get_number_of_blocks() == 0:
             return
 
         # Reflns names might have been modified
-        self.__handle_reflns(sffile, logger)
+        self.__handle_reflns(sffile)
 
         # Creates diffrn category if need be....
-        self.__handle_diffrn(sffile, pdbid, logger, details=detail)
+        self.__handle_diffrn(sffile, pdbid, details=detail)
 
         # Renames diffrn_radiation to diffrn_radiation__wavelength if needed
-        self.__rename_diffrn_radiation(sffile, logger)
+        self.__rename_diffrn_radiation(sffile)
 
-        self.__instantiate_diffrn_rad_wavelength(sffile, logger)
+        self.__instantiate_diffrn_rad_wavelength(sffile)
 
         sffile.correct_block_names(pdbid)
 
@@ -289,7 +289,7 @@ class SfCorrect:
 
         self.__reorder_symmetry(sffile)
 
-        self.__ensure_pdbx_r_free_flag_int(sffile, logger)
+        self.__ensure_pdbx_r_free_flag_int(sffile)
 
         self.__reorder_sf_file(sffile)
 
@@ -473,7 +473,7 @@ class SfCorrect:
             if len(attrlist) == 0 or attrlist == ["entry_id"]:
                 blk.remove("symmetry")
 
-    def __handle_diffrn(self, sffile, pdbid, logger, details=None):  # pylint: disable=unused-argument
+    def __handle_diffrn(self, sffile, pdbid, details=None):  # pylint: disable=unused-argument
         """Instantiate diffrn category if needed, seet diffrn.id if needed.
            Enforces integer diffrn_ids
         """
@@ -566,12 +566,11 @@ class SfCorrect:
 
             sffile.reorder_category_attributes("diffrn", ["id", "crystal_id", "ambient_temp", "crystal_treatment", "details"], blk.getName())
 
-    def _cleanup_audit(self, sffile, logger):
+    def _cleanup_audit(self, sffile):
         """Cleanup audit records that should not be present
 
         Args:
             sffile (StructureFactorFile): The structure factor file object.
-            logger: The logger object for logging messages.
 
         Returns:
             None: True if the value was modified, False otherwise.
@@ -594,12 +593,12 @@ class SfCorrect:
         for attr in curlist:
             if attr not in allowed:
                 cObj.removeAttribute(attr)
-                logger.pinfo(f"Warning: block has unwanted CIF item _{cat}.{attr} and is removed", 0)
+                self.__logger.pinfo(f"Warning: block has unwanted CIF item _{cat}.{attr} and is removed", 0)
                 upd = True
 
         return upd
 
-    def __handle_reflns(self, sffile, logger):  # pylint: disable=unused-argument
+    def __handle_reflns(self, sffile):
         """Handles reflns and diffrn_reflns data
 
         Assumption: diffrn_id is 1 if not provided
@@ -682,12 +681,11 @@ class SfCorrect:
         """Reorders sf_file"""
         self.__reorder_sf_file(sffile)
 
-    def __update_exptl_crystal(self, sf_file, logger):  # pylint: disable=unused-argument
+    def __update_exptl_crystal(self, sf_file):
         """If exptl_crystal present, remove everything but id
 
            Args:
               sf_file (StructureFactorFile): The structure factor file object.
-              logger: The logger object for logging messages.
 
            Returns:
               bool: True if the value was modified, False otherwise.
@@ -799,7 +797,7 @@ class SfCorrect:
             if create:
                 blk.append(cObj)
 
-    def cleanup_extra_audit(self, sffile, logger):
+    def cleanup_extra_audit(self, sffile):
         """Removes extra audit records from second and more blocks"""
 
         cat = "audit"
@@ -807,9 +805,9 @@ class SfCorrect:
             blk = sffile.get_block_by_index(block_index)
             if cat in blk.getObjNameList():
                 blk.remove(cat)
-                logger.pinfo(f"Removing {cat} category from block {blk.getName()}", 0)
+                self.__logger.pinfo(f"Removing {cat} category from block {blk.getName()}", 0)
 
-    def remove_empty_blocks(self, sffile, logger):
+    def remove_empty_blocks(self, sffile):
         """Removes blocks with too little real data"""
         cats = ["refln", "diffrn_refln"]
 
@@ -825,7 +823,7 @@ class SfCorrect:
 
             if total < 30:
                 bname = blk.getName()
-                logger.pinfo(f"Error: block {bname} has no data in this block -- removing", 0)
+                self.__logger.pinfo(f"Error: block {bname} has no data in this block -- removing", 0)
                 remove.append(block_index)
 
         if remove:
@@ -835,7 +833,7 @@ class SfCorrect:
             for rem in remove:
                 sffile.remove_block(rem)
 
-    def __check_hkl_duplcate(self, blk, blkname, logger):
+    def __check_hkl_duplcate(self, blk, blkname):
         """Provides a count of duplicate HKL.  Report first four, return count"""
 
         # Note for those who wonder.  Using a dictionary is a little faster than set() and must faster than using a list()
@@ -859,21 +857,21 @@ class SfCorrect:
             key = (ah, ak, al)
             if key in ref:
                 if ndup <= 4:
-                    logger.pinfo(f"Warning: Duplicated H,K,L ({ah}, {ak}, {al}) (data block={blkname}).", 0)
+                    self.__logger.pinfo(f"Warning: Duplicated H,K,L ({ah}, {ak}, {al}) (data block={blkname}).", 0)
                 ndup += 1
             else:
                 ref[key] = True
 
         return ndup
 
-    def remap_unmerged(self, sffile, logger):
+    def remap_unmerged(self, sffile):
         """Map refln to diffrn_refln"""
 
         for block_index in range(sffile.get_number_of_blocks()):
             blk = sffile.get_block_by_index(block_index)
             blkname = blk.getName()
 
-            ndup = self.__check_hkl_duplcate(blk, blkname, logger)
+            ndup = self.__check_hkl_duplcate(blk, blkname)
 
             cObj = blk.getObj("refln")
             if not cObj:
@@ -894,16 +892,16 @@ class SfCorrect:
             # Legacy logic...
             if (ndup > 1 and (have_Io or have_I_plus)) or have_unmerge_i:
                 if block_index == 0:
-                    logger.pinfo(f"Warning: Unmerged data in block 1 (blockId={blkname})!", 0)
+                    self.__logger.pinfo(f"Warning: Unmerged data in block 1 (blockId={blkname})!", 0)
                 else:
-                    logger.pinfo(f"Note: Unmerged data in (blockId={blkname})!", 0)
+                    self.__logger.pinfo(f"Note: Unmerged data in (blockId={blkname})!", 0)
 
                 if block_index == 0:
                     # do not change token for 1st block even it is unmerged.
                     continue
 
                 if have_diffrn_refln:
-                    logger.pinfo(f"Error: Block {blkname} has both _reflns and _diffrn_reflns and both unmerged", 0)
+                    self.__logger.pinfo(f"Error: Block {blkname} has both _reflns and _diffrn_reflns and both unmerged", 0)
                     continue
 
                 # Rename block.
@@ -954,22 +952,22 @@ class SfCorrect:
                                   ):
                         if attrl[0] in cObj.getAttributeList():
                             cObj.renameAttributes({attrl[0]: "intensity_net"})
-                            logger.pinfo(f"Warning: Copying {attrl[0]} to intensity_net in block {blkname}" , 0)
+                            self.__logger.pinfo(f"Warning: Copying {attrl[0]} to intensity_net in block {blkname}" , 0)
                             if attrl[1] in cObj.getAttributeList():
                                 cObj.renameAttributes({attrl[1]: "intensity_sigma"})
-                                logger.pinfo(f"Warning: Copying {attrl[1]} to intensity_sigma in block {blkname}" , 0)
+                                self.__logger.pinfo(f"Warning: Copying {attrl[1]} to intensity_sigma in block {blkname}" , 0)
                             break
 
                 # Delete columns cannot deal with
                 for attr in ("pdbx_I_plus", "pdbx_I_plus_sigma", "pdbx_I_minus", "pdbx_I_minus_sigma"):
                     if attr in cObj.getAttributeList():
-                        logger.pinfo(f"Warning: Removing attribute {attr} in block {blkname}", 0)
+                        self.__logger.pinfo(f"Warning: Removing attribute {attr} in block {blkname}", 0)
                         cObj.removeAttribute(attr)
 
                 sffile.reorder_category_attributes("diffrn_refln", self.__unmergedorder, blk.getName())
                 blk = sffile.get_block_by_index(block_index)
 
-    def check_unwanted_cif_items(self, sffile, logger):
+    def check_unwanted_cif_items(self, sffile):
         """Checks and logs unwated item"""
 
         check_list = ["atom_sites.entry_id", "audit_author.name",
@@ -1034,16 +1032,16 @@ class SfCorrect:
                 if cat in nlist:
                     cObj = blk.getObj(cat)
                     if attr in cObj.getAttributeList():
-                        logger.pinfo(f"Warning: Block {blkname} has unwanted CIF item ({chk})", 0)
+                        self.__logger.pinfo(f"Warning: Block {blkname} has unwanted CIF item ({chk})", 0)
 
-    def __getUniqueTuples(self, cObj, attL, logger):
+    def __getUniqueTuples(self, cObj, attL):
         """Returns unique tuples of attributes"""
 
         tempD = None
         for att in attL:
             idx = cObj.getAttributeIndex(att)
             if idx < 0:
-                logger.info(f"Missing attribute {att}", 0)
+                self.__logger.info(f"Missing attribute {att}", 0)
                 return None
             newD = cObj.getColumn(idx)
             if tempD is None:
@@ -1059,7 +1057,7 @@ class SfCorrect:
 
         return rD
 
-    def __ensure_pdbx_r_free_flag_int(self, sffile, logger):
+    def __ensure_pdbx_r_free_flag_int(self, sffile):
         """If pdbx_r_free_flag is not an int, warn and truncate"""
 
         item = "pdbx_r_free_flag"
@@ -1093,7 +1091,7 @@ class SfCorrect:
 
                 if bad:
                     if not warn:
-                        logger.pinfo(f"Warning: In {blkname}, {item} value {val} is not integral -- truncating", 0)
+                        self.__logger.pinfo(f"Warning: In {blkname}, {item} value {val} is not integral -- truncating", 0)
                         warn = True
                     try:
                         newval = str(math.trunc(float(val)))
@@ -1101,7 +1099,7 @@ class SfCorrect:
                         newval = val
                     cObj.setValue(newval, item, idx)
 
-    def __rename_diffrn_radiation(self, sffile, logger):  # pylint: disable=unused-argument
+    def __rename_diffrn_radiation(self, sffile):
         """If diffrn_radiation present and diffrn_radiation_wavelength, do a rename"""
 
         cat = "diffrn_radiation_wavelength"
@@ -1144,7 +1142,7 @@ class SfCorrect:
                 if frm in cObj.getAttributeList():
                     cObj.renameAttributes({frm: dest})
 
-    def reassign_free(self, sffile, freer, logger):
+    def reassign_free(self, sffile, freer):
         """Reassign free R set"""
 
         cat = "refln"
@@ -1161,11 +1159,11 @@ class SfCorrect:
 
             alist = cObj.getAttributeList()
             if "pdbx_r_free_flag" not in alist:
-                logger.pinfo(f"Warning: pdbx_r_free_flag not in {cat} in block {blkname} no changes made", 0)
+                self.__logger.pinfo(f"Warning: pdbx_r_free_flag not in {cat} in block {blkname} no changes made", 0)
                 continue
 
             if "status" not in alist:
-                logger.pinfo(f"Warning: status not in {cat} in block {blkname} no changes made", 0)
+                self.__logger.pinfo(f"Warning: status not in {cat} in block {blkname} no changes made", 0)
                 continue
 
             for idx in range(cObj.getRowCount()):
@@ -1183,7 +1181,7 @@ class SfCorrect:
                     newval = "o"
                 cObj.setValue(newval, "status", idx)
 
-    def set_cell_if_missing(self, sffile, pdbid, cell, logger):
+    def set_cell_if_missing(self, sffile, pdbid, cell):
         """If cell is not present, then set"""
 
         cat = "cell"
@@ -1211,4 +1209,4 @@ class SfCorrect:
             newObj = DataCategory(cat, keys, [data])
             blk.append(newObj)
 
-            logger.pinfo(f"Note: Creating {cat} in block={blkname}", 0)
+            self.__logger.pinfo(f"Note: Creating {cat} in block={blkname}", 0)
