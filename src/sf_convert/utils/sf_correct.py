@@ -6,6 +6,7 @@ from mmcif.api.DataCategory import DataCategory
 from mmcif.api.PdbxContainers import CifName
 
 from sf_convert.utils.reformat_sfhead import reformat_sfhead, reorder_sf_file
+from sf_convert.utils.dict_filter import DictFilter
 
 
 class SfCorrect:
@@ -290,6 +291,9 @@ class SfCorrect:
         self.__reorder_symmetry(sffile)
 
         self.__ensure_pdbx_r_free_flag_int(sffile)
+
+        # Remove improper attributes
+        self.__filter_attributes(sffile)
 
         self.__reorder_sf_file(sffile)
 
@@ -1210,3 +1214,40 @@ class SfCorrect:
             blk.append(newObj)
 
             self.__logger.pinfo(f"Note: Creating {cat} in block={blkname}", 0)
+
+    def __filter_attributes(self, sffile):
+
+        df = DictFilter()
+        df.loadDataDictionary()
+
+        for block_index in range(sffile.get_number_of_blocks()):
+            blk = sffile.get_block_by_index(block_index)
+            blkname = blk.getName()
+
+            # We use list() to copy the contents - otherwise iterating through
+            # a list that is changing is bad
+            nlist = list(blk.getObjNameList())
+
+            allowed = df.getAllowedCats()
+            for cat in nlist:
+                if cat not in allowed:
+                    self.__logger.pinfo(f"Warning: Category '{cat}' not recognized in {blkname}.  Removing.", 0)
+                    blk.remove(cat)
+                    continue
+
+                catAttrs = df.getAllowedAttrs(cat)
+                if catAttrs is None:
+                    # No restriction
+                    continue
+
+                cObj = blk.getObj(cat)
+                attl = list(cObj.getAttributeList())
+
+                for att in attl:
+                    if att not in catAttrs:
+                        self.__logger.pinfo(f"Warning: '{cat}.{att}' is unknown.  Removing.", 0)
+                        cObj.removeAttribute(att)
+
+                # Category no attributes. Remove
+                if len(cObj.getAttributeList()) == 0:
+                    blk.remove(cat)

@@ -25,6 +25,13 @@ dependencies = [
 ]
 dynamic = ["version"]
 
+[tool.setutools]
+# To include the json dictionary representation
+include-package-data = true
+
+[tool.setuptools.package-data]
+"sf_convert.data" = ["*.json"]
+
 [tool.setuptools.dynamic]
 version = {attr = "sf_convert.__version__"}
 
@@ -33,6 +40,5 @@ sf_convert = "sf_convert.command_line.main:main"
 
 [tool.pytest.ini_options]
 pythonpath = ["src", "tests/helpers"]
-#pythonpath = ["src"]
 
 
