@@ -230,6 +230,7 @@ class SfCorrect:
             self.__remove_similar_refln_attr(sffile)
 
         if self.__legacy:
+            # pdbx_audit_conform used here
             self.__handle_legacy_attributes(sffile)
 
         self.__update_reflns_scale(sffile)
@@ -252,6 +253,9 @@ class SfCorrect:
         self.__instantiate_entry(sffile, pdbid)
 
         self._cleanup_audit(sffile)
+
+        # pdbx_audit_conform will be removed here
+        self.__remove_pdbx_audit_conform(sffile)
 
         if sffile.get_number_of_blocks() == 0:
             return
@@ -580,7 +584,7 @@ class SfCorrect:
             None: True if the value was modified, False otherwise.
         """
         if sffile.get_number_of_blocks() == 0:
-            return
+            return False
 
         blk = sffile.get_block_by_index(0)
 
@@ -601,6 +605,27 @@ class SfCorrect:
                 upd = True
 
         return upd
+
+    def __remove_pdbx_audit_conform(self, sffile):
+        """Remove pdbx_audit_conform from final file
+
+        Args:
+            sffile (StructureFactorFile): The structure factor file object.
+
+        Returns:
+            None
+        """
+        if sffile.get_number_of_blocks() == 0:
+            return
+
+        cat = "pdbx_audit_conform"
+        for block_index in range(sffile.get_number_of_blocks()):
+            blk = sffile.get_block_by_index(block_index)
+            if cat in blk.getObjNameList():
+                blk.remove(cat)
+                self.__logger.pinfo(f"Removing {cat} category from block {blk.getName()}", 0)
+
+                blk = sffile.get_block_by_index(0)
 
     def __handle_reflns(self, sffile):
         """Handles reflns and diffrn_reflns data

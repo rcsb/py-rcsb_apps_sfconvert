@@ -111,7 +111,9 @@ def reformat_sfhead(sf_file, pdb_id, logger, DETAIL=None):
         "fiber_layer": "pdbx_fiber_layer",
         "F_squared_meas": "intensity_meas",
         "F_squared_sigma": "intensity_sigma",
-        "gsas_i100_meas": "pdbx_gsas_i100_meas"
+        "gsas_i100_meas": "pdbx_gsas_i100_meas",
+        "gphl_signal_type": "pdbx_signal_type",
+        "gphl_observed_signal_threshold": "pdbx_observed_signal_threshold"
     }
 
     audit = {
