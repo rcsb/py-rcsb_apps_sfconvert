@@ -24,6 +24,11 @@ class ImportMtz:
              StructureFile object
         """
 
+        # If multiple labels, handle separately
+        if self.__have_multi_label():
+            self.__import_files_multi_label(fileList)
+            return
+
         for fpath in fileList:
             if not os.path.exists(fpath):
                 self.__logger.pinfo(f"File {fpath} does not exist", 0)
@@ -33,6 +38,45 @@ class ImportMtz:
             mtz2cif = MtzToCifConverter(fpath, self.__logger)
             if self.__label:
                 mtz2cif.process_labels(self.__label)
+
+            if self.__free:
+                mtz2cif.set_free(self.__free)
+
+            mtz2cif.convert()
+            sf = mtz2cif.get_sf()
+
+            if self.__sf:
+                self.__sf.merge_sf(sf)
+            else:
+                self.__sf = sf
+
+    def __import_files_multi_label(self, fileList):
+        """Process a single file with multiple label configuration
+
+        Args:
+            fileList (list): List of file names
+
+        Returns:
+             StructureFile object
+        """
+
+        if len(fileList) > 1:
+            self.__logger.pinfo("Error: When using labels, only a single file can be used", 0)
+            self.__sf = None
+            return None
+
+        fpath = fileList[0]
+        if not os.path.exists(fpath):
+            self.__logger.pinfo(f"File {fpath} does not exist", 0)
+            self.__sf = None
+            return None
+
+        for idx, label in enumerate(self.__label.split(":")):
+            self.__logger.pinfo(f"Processing datablock {idx + 1}", 0)
+
+            mtz2cif = MtzToCifConverter(fpath, self.__logger)
+            if label:
+                mtz2cif.process_labels(label)
 
             if self.__free:
                 mtz2cif.set_free(self.__free)
@@ -55,6 +99,13 @@ class ImportMtz:
     def set_labels(self, label):
         """Sets free R set"""
         self.__label = label
+
+    def __have_multi_label(self):
+        """Returns True if multiple datasets present in labels - i.e. with a ":" character"""
+        if self.__label and ":" in self.__label:
+            return True
+        else:
+            return False
 
 
 class MtzToCifConverter:
