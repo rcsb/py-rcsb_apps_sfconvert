@@ -635,8 +635,6 @@ def main():
     try:
         args = parse_arguments()
 
-        print(args)
-
         version = get_version()
 
         print("=======================================================================")
