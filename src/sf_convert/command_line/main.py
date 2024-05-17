@@ -36,6 +36,7 @@ class ImportSf:
 
         format_in = pdict["inp_format"].lower()
 
+        sf = None
         if format_in in ["mmcif", "cif"]:
             sf = self.__import_mmcif(pdict)
         elif format_in == "cns":

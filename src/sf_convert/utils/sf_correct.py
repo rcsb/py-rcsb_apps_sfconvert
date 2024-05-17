@@ -13,36 +13,80 @@ class SfCorrect:
     def __init__(self, logger, legacy=True):
         self.__legacy = legacy
         self.__logger = logger
-        self.__stdorder = ["crystal_id", "wavelength_id", "scale_group_code",
-                           "index_h", "index_k", "index_l", "status", "pdbx_r_free_flag",
-                           "F_meas_au", "F_meas_sigma_au",
-                           "intensity_calc", "intensity_meas", "intensity_sigma",
-                           "F_calc", "F_calc_au",
-                           "F_squared_meas", "F_squared_calc", "F_squared_sigma",
-                           "phase_calc", "phase_meas",
-                           "pdbx_I_plus", "pdbx_I_plus_sigma", "pdbx_I_minus", "pdbx_I_minus_sigma",
-                           "pdbx_F_plus", "pdbx_F_plus_sigma", "pdbx_F_minus", "pdbx_F_minus_sigma",
-                           "pdbx_HL_A_iso", "pdbx_HL_B_iso", "pdbx_HL_C_iso", "pdbx_HL_D_iso",
-                           "pdbx_anom_difference", "pdbx_anom_difference_sigma",
-                           "d_spacing", "A_calc", "B_calc",
-                           "F_meas_sigma_uncorrected", "F_meas_uncorrected"
-                           "pdbx_gsas_i100_meas",
-                           "intensity_meas_unknown", "intensity_sigma_unknown",
-                           "pdbx_phase_calc_part_solvent", "pdbx_F_calc_part_solvent", "pdbx_F_calc_with_solvent",
-                           "pdbx_phase_calc_with_solvent",
-                           "pdbx_FWT", "pdbx_PHWT", "pdbx_DELFWT", "pdbx_DELPHWT", "fom",
-                           "pdbx_fiber_coordinate", "pdbx_fiber_F_meas_au", "pdbx_fiber_layer",
-                           "weight",
-                           ]
+        self.__stdorder = [
+            "crystal_id",
+            "wavelength_id",
+            "scale_group_code",
+            "index_h",
+            "index_k",
+            "index_l",
+            "status",
+            "pdbx_r_free_flag",
+            "F_meas_au",
+            "F_meas_sigma_au",
+            "intensity_calc",
+            "intensity_meas",
+            "intensity_sigma",
+            "F_calc",
+            "F_calc_au",
+            "F_squared_meas",
+            "F_squared_calc",
+            "F_squared_sigma",
+            "phase_calc",
+            "phase_meas",
+            "pdbx_I_plus",
+            "pdbx_I_plus_sigma",
+            "pdbx_I_minus",
+            "pdbx_I_minus_sigma",
+            "pdbx_F_plus",
+            "pdbx_F_plus_sigma",
+            "pdbx_F_minus",
+            "pdbx_F_minus_sigma",
+            "pdbx_HL_A_iso",
+            "pdbx_HL_B_iso",
+            "pdbx_HL_C_iso",
+            "pdbx_HL_D_iso",
+            "pdbx_anom_difference",
+            "pdbx_anom_difference_sigma",
+            "d_spacing",
+            "A_calc",
+            "B_calc",
+            "F_meas_sigma_uncorrected",
+            "F_meas_uncorrected",
+            "pdbx_gsas_i100_meas",
+            "intensity_meas_unknown",
+            "intensity_sigma_unknown",
+            "pdbx_phase_calc_part_solvent",
+            "pdbx_F_calc_part_solvent",
+            "pdbx_F_calc_with_solvent",
+            "pdbx_phase_calc_with_solvent",
+            "pdbx_FWT",
+            "pdbx_PHWT",
+            "pdbx_DELFWT",
+            "pdbx_DELPHWT",
+            "fom",
+            "pdbx_fiber_coordinate",
+            "pdbx_fiber_F_meas_au",
+            "pdbx_fiber_layer",
+            "weight",
+        ]
 
-        self.__unmergedorder = ["diffrn_id", "crystal_id", "wavelength_id", "id",
-                                "standard_code", "scale_group_code",
-                                "index_h", "index_k", "index_l",
-                                "intensity_meas", "intensity_sigma"]
+        self.__unmergedorder = [
+            "diffrn_id",
+            "crystal_id",
+            "wavelength_id",
+            "id",
+            "standard_code",
+            "scale_group_code",
+            "index_h",
+            "index_k",
+            "index_l",
+            "intensity_meas",
+            "intensity_sigma",
+        ]
 
     def get_pdbid(self, sffile):
-        """Returns the PDB id from datablock name of sf
-        """
+        """Returns the PDB id from datablock name of sf"""
         return sffile.extract_pdbid_from_block()
 
     def annotate_wavelength(self, sffile, pdb_id, setwlarg):
@@ -66,6 +110,7 @@ class SfCorrect:
                 curwave = None
 
             setwl = "."
+            setwlf = 0.0
 
             try:
                 if setwlarg:
@@ -203,8 +248,7 @@ class SfCorrect:
                 di = v[1]
 
                 for row in range(cObj.getRowCount()):
-                    if cObj.getValue("standard_code", row) == sc \
-                       and cObj.getValue("diffrn_id", row) == di:
+                    if cObj.getValue("standard_code", row) == sc and cObj.getValue("diffrn_id", row) == di:
                         ah = cObj.getValue("index_h", row)
                         ak = cObj.getValue("index_k", row)
                         al = cObj.getValue("index_l", row)
@@ -302,7 +346,7 @@ class SfCorrect:
         self.__reorder_sf_file(sffile)
 
     def __handle_legacy_attributes(self, sffile):
-        """ Adds in _refln.crystal_id, refln.wavelength_id and refln.scale_group_code if need be"""
+        """Adds in _refln.crystal_id, refln.wavelength_id and refln.scale_group_code if need be"""
 
         for idx in range(sffile.get_number_of_blocks()):
             blk = sffile.get_block_by_index(idx)
@@ -320,7 +364,7 @@ class SfCorrect:
                     cObj.appendAttributeExtendRows(attr, "1")
 
     def __remove_similar_refln_attr(self, sffile):
-        """ Remove common "similar" columns"""
+        """Remove common "similar" columns"""
 
         for idx in range(sffile.get_number_of_blocks()):
             blk = sffile.get_block_by_index(idx)
@@ -329,8 +373,9 @@ class SfCorrect:
             if not cObj:
                 continue
 
-            pairs = [[["F_meas_au", "F_meas_sigma_au"], ["F_meas", "F_meas_sigma"]],
-                     ]
+            pairs = [
+                [["F_meas_au", "F_meas_sigma_au"], ["F_meas", "F_meas_sigma"]],
+            ]
 
             attrlist = cObj.getAttributeList()
             for p in pairs:
@@ -342,7 +387,7 @@ class SfCorrect:
                     cObj.removeAttribute(r2[1])
 
     def __update_reflns_scale(self, sffile):
-        """ If reflns_scale missing in datablock add if needed"""
+        """If reflns_scale missing in datablock add if needed"""
 
         cat = "reflns_scale"
         for idx in range(sffile.get_number_of_blocks()):
@@ -365,8 +410,7 @@ class SfCorrect:
                 blk.append(newObj)
 
     def __update_pdbx_r_free_flag(self, sffile):
-        """Old sf_convert used to use atoi(value) -- for "?" this converts to 0.  Luckily appears only for map coefficients
-        """
+        """Old sf_convert used to use atoi(value) -- for "?" this converts to 0.  Luckily appears only for map coefficients"""
         for idx in range(sffile.get_number_of_blocks()):
             blk = sffile.get_block_by_index(idx)
 
@@ -381,8 +425,7 @@ class SfCorrect:
                 cObj.replaceValue("?", "0", "pdbx_r_free_flag")
 
     def __update_status(self, sffile):
-        """Old sf_convert used to use assume empty data is x.
-        """
+        """Old sf_convert used to use assume empty data is x."""
 
         for idx in range(sffile.get_number_of_blocks()):
             blk = sffile.get_block_by_index(idx)
@@ -483,7 +526,7 @@ class SfCorrect:
 
     def __handle_diffrn(self, sffile, pdbid, details=None):  # pylint: disable=unused-argument
         """Instantiate diffrn category if needed, seet diffrn.id if needed.
-           Enforces integer diffrn_ids
+        Enforces integer diffrn_ids
         """
 
         cats = ["diffrn_refln", "diffrn_radiation", "diffrn_reflns"]
@@ -634,6 +677,7 @@ class SfCorrect:
 
         diffrn_reflns and reflns are merged to diffrn_reflns
         """
+
         def get_val(attr_ref, attr_dif):
             val = None
             if cObjref and attr_ref in cObjref.getAttributeList():
@@ -652,17 +696,18 @@ class SfCorrect:
             if cObjdif is None and cObjref is None:
                 continue
 
-            props = [["resh", "d_resolution_high", "pdbx_d_res_high"],
-                     ["resl", "d_resolution_low", "pdbx_d_res_low"],
-                     ["hmax", "limit_h_max", "limit_h_max"],
-                     ["hmin", "limit_h_min", "limit_h_min"],
-                     ["kmax", "limit_k_max", "limit_k_max"],
-                     ["kmin", "limit_k_min", "limit_k_min"],
-                     ["lmax", "limit_l_max", "limit_l_max"],
-                     ["lmin", "limit_l_min", "limit_l_min"],
-                     ["nall", "number_all", "number"],
-                     ["nobs", "number_obs", "pdbx_number_obs"],
-                     ]
+            props = [
+                ["resh", "d_resolution_high", "pdbx_d_res_high"],
+                ["resl", "d_resolution_low", "pdbx_d_res_low"],
+                ["hmax", "limit_h_max", "limit_h_max"],
+                ["hmin", "limit_h_min", "limit_h_min"],
+                ["kmax", "limit_k_max", "limit_k_max"],
+                ["kmin", "limit_k_min", "limit_k_min"],
+                ["lmax", "limit_l_max", "limit_l_max"],
+                ["lmin", "limit_l_min", "limit_l_min"],
+                ["nall", "number_all", "number"],
+                ["nobs", "number_obs", "pdbx_number_obs"],
+            ]
 
             data = {}
             for p in props:
@@ -713,11 +758,11 @@ class SfCorrect:
     def __update_exptl_crystal(self, sf_file):
         """If exptl_crystal present, remove everything but id
 
-           Args:
-              sf_file (StructureFactorFile): The structure factor file object.
+        Args:
+           sf_file (StructureFactorFile): The structure factor file object.
 
-           Returns:
-              bool: True if the value was modified, False otherwise.
+        Returns:
+           bool: True if the value was modified, False otherwise.
         """
         modified = False
         for idx in range(sf_file.get_number_of_blocks()):
@@ -765,7 +810,7 @@ class SfCorrect:
     def correct_cell_precision(self, sffile):
         """We limit cell to 3 significant digits
 
-           Used with non cif2cif
+        Used with non cif2cif
         """
 
         for idx in range(sffile.get_number_of_blocks()):
@@ -775,8 +820,7 @@ class SfCorrect:
             if not cObj:
                 continue
 
-            alist = ["length_a", "length_b", "length_c",
-                     "angle_alpha", "angle_beta", "angle_gamma"]
+            alist = ["length_a", "length_b", "length_c", "angle_alpha", "angle_beta", "angle_gamma"]
 
             attrlist = cObj.getAttributeList()
 
@@ -795,8 +839,7 @@ class SfCorrect:
 
         assert len(cell) == 6
 
-        alist = ["length_a", "length_b", "length_c",
-                 "angle_alpha", "angle_beta", "angle_gamma"]
+        alist = ["length_a", "length_b", "length_c", "angle_alpha", "angle_beta", "angle_gamma"]
 
         for idx in range(sffile.get_number_of_blocks()):
             blk = sffile.get_block_by_index(idx)
@@ -968,23 +1011,19 @@ class SfCorrect:
                         cObj.setValue(str(idx + 1), attr, idx)
 
                 # relabel attributes
-                if "intensity_meas" in cObj.getAttributeList() \
-                   and "intensity_net" not in cObj.getAttributeList():
+                if "intensity_meas" in cObj.getAttributeList() and "intensity_net" not in cObj.getAttributeList():
                     cObj.renameAttributes({"intensity_meas": "intensity_net"})
 
                 # Reassign data if need be.....
                 if "intensity_net" not in cObj.getAttributeList():
                     # We fake it...
-                    for attrl in (["F_squared_meas", "F_squared_sigma"],
-                                  ["pdbx_I_plus", "pdbx_I_plus_sigma"],
-                                  ["pdbx_I_minus", "pdbx_I_minus_sigma"]
-                                  ):
+                    for attrl in (["F_squared_meas", "F_squared_sigma"], ["pdbx_I_plus", "pdbx_I_plus_sigma"], ["pdbx_I_minus", "pdbx_I_minus_sigma"]):
                         if attrl[0] in cObj.getAttributeList():
                             cObj.renameAttributes({attrl[0]: "intensity_net"})
-                            self.__logger.pinfo(f"Warning: Copying {attrl[0]} to intensity_net in block {blkname}" , 0)
+                            self.__logger.pinfo(f"Warning: Copying {attrl[0]} to intensity_net in block {blkname}", 0)
                             if attrl[1] in cObj.getAttributeList():
                                 cObj.renameAttributes({attrl[1]: "intensity_sigma"})
-                                self.__logger.pinfo(f"Warning: Copying {attrl[1]} to intensity_sigma in block {blkname}" , 0)
+                                self.__logger.pinfo(f"Warning: Copying {attrl[1]} to intensity_sigma in block {blkname}", 0)
                             break
 
                 # Delete columns cannot deal with
@@ -999,53 +1038,106 @@ class SfCorrect:
     def check_unwanted_cif_items(self, sffile):
         """Checks and logs unwated item"""
 
-        check_list = ["atom_sites.entry_id", "audit_author.name",
-                      "audit.creation_method", "audit.update_recor",
-                      "cell.CCP4_crystal_id", "cell.CCP4_wavelength_id",
-                      "cell.enry_id", "cell.entry", "cell_entry.id",
-                      "cell.enrty_id", "cell.entry.id", "cell.ndb_unique_axis",
-                      "cell.Z_PDB", "database_2.database_code", "database_2.database_id",
-                      "database.entry_id", "database.ndb_code_NDB", "database.ndb_code_PDB",
-                      "diffrn.detail", "diffrn.pdbx_crystal_id", "diffrn_radiation.id",
-                      "diffrn_radiation.pdbx_wavelength_list", "diffrn_radiation.type",
-                      "diffrn_radiation_wavelength.CCP4_crystal_id", "diffrn_radiation_wavelength.wt",
-                      "pdbx_powder_refln.d_spacing", "pdbx_powder_refln.F_squared_calc",
-                      "pdbx_powder_refln.F_squared_meas", "pdbx_powder_refln.gsas_i100_meas",
-                      "pdbx_powder_refln.index_h", "pdbx_powder_refln.index_k",
-                      "pdbx_powder_refln.index_l", "pdbx_powder_refln.observed_status",
-                      "pdbx_powder_refln.phase_calc", "pdbx_reflns_twin.crystal_id",
-                      "pdbx_reflns_twin.diffrn_id", "pdbx_reflns_twin.fraction",
-                      "pdbx_reflns_twin.mean_F_square_over_mean_F2", "pdbx_reflns_twin.mean_I2_over_mean_I_square",
-                      "pdbx_reflns_twin.operator", "pdbx_reflns_twin.type",
-                      "phasing_set_refln.crystal_id", "phasing_set_refln.F_meas_au",
-                      "phasing_set_refln.fom", "phasing_set_refln.index_h",
-                      "phasing_set_refln.index_k", "phasing_set_refln.index_l",
-                      "phasing_set_refln.phase_meas", "phasing_set_refln.scale_group_code",
-                      "phasing_set_refln.status", "phasing_set_refln.wavelength_id",
-                      "radiation.id", "refine.entry_id",
-                      "refine.ls_d_res_high", "refine.ls_d_res_low",
-                      "refln.fiber_coordinate", "refln.fiber_F_meas_au",
-                      "refln.fiber_layer",
-                      "refln.F_meas_sigma_uncorrected", "refln.F_meas_uncorrected",
-                      "refln.F_part_au", "refln.gsas_i100_meas",
-                      "refln.intensity_calc", "refln.intensity_meas_au",
-                      "refln.intensity_meas_sigma_au", "refln.intensity_meas_unknown",
-                      "refln.intensity_sigma_unknown", "refln.mean_path_length_tbar",
-                      "refln.observed_status", "refln.pdbx_cos_phase_calc",
-                      "refln.pdbx_F_backtransform_au", "refln.pdbx_fom_weighted_fmap",
-                      "refln.pdbx_gsas_i100_meas", "refln.pdbx_HLA",
-                      "refln.pdbx_HLB", "refln.pdbx_HLC", "refln.pdbx_HLD",
-                      "refln.pdbx_phase_backtransform", "refln.pdbx_phase_cycle",
-                      "refln.pdbx_sin_phase_calc", "refln.phase_meas_sigma",
-                      "refln.phase_part", "refln.sgx_fmap",
-                      "refln.sint_over_lambda", "refln.symmetry_multiplicity",
-                      "refln.wavelength", "refln.waveLEngth_id",
-                      "refln.weight", "reflns.CCP4_crystal_id",
-                      "reflns.CCP4_wavelength_id", "reflns.observed_criterion_sigma_I",
-                      "struct_keywords.entry_id", "struct_keywords.ndb_keywords",
-                      "struct_keywords.text", "symmetry.cell_setting",
-                      "symmetry.int_tables_number",
-                      "symmetry.ndb_full_space_group_name_H-M", "symmetry.space_group_name_h-m"]
+        check_list = [
+            "atom_sites.entry_id",
+            "audit_author.name",
+            "audit.creation_method",
+            "audit.update_recor",
+            "cell.CCP4_crystal_id",
+            "cell.CCP4_wavelength_id",
+            "cell.enry_id",
+            "cell.entry",
+            "cell_entry.id",
+            "cell.enrty_id",
+            "cell.entry.id",
+            "cell.ndb_unique_axis",
+            "cell.Z_PDB",
+            "database_2.database_code",
+            "database_2.database_id",
+            "database.entry_id",
+            "database.ndb_code_NDB",
+            "database.ndb_code_PDB",
+            "diffrn.detail",
+            "diffrn.pdbx_crystal_id",
+            "diffrn_radiation.id",
+            "diffrn_radiation.pdbx_wavelength_list",
+            "diffrn_radiation.type",
+            "diffrn_radiation_wavelength.CCP4_crystal_id",
+            "diffrn_radiation_wavelength.wt",
+            "pdbx_powder_refln.d_spacing",
+            "pdbx_powder_refln.F_squared_calc",
+            "pdbx_powder_refln.F_squared_meas",
+            "pdbx_powder_refln.gsas_i100_meas",
+            "pdbx_powder_refln.index_h",
+            "pdbx_powder_refln.index_k",
+            "pdbx_powder_refln.index_l",
+            "pdbx_powder_refln.observed_status",
+            "pdbx_powder_refln.phase_calc",
+            "pdbx_reflns_twin.crystal_id",
+            "pdbx_reflns_twin.diffrn_id",
+            "pdbx_reflns_twin.fraction",
+            "pdbx_reflns_twin.mean_F_square_over_mean_F2",
+            "pdbx_reflns_twin.mean_I2_over_mean_I_square",
+            "pdbx_reflns_twin.operator",
+            "pdbx_reflns_twin.type",
+            "phasing_set_refln.crystal_id",
+            "phasing_set_refln.F_meas_au",
+            "phasing_set_refln.fom",
+            "phasing_set_refln.index_h",
+            "phasing_set_refln.index_k",
+            "phasing_set_refln.index_l",
+            "phasing_set_refln.phase_meas",
+            "phasing_set_refln.scale_group_code",
+            "phasing_set_refln.status",
+            "phasing_set_refln.wavelength_id",
+            "radiation.id",
+            "refine.entry_id",
+            "refine.ls_d_res_high",
+            "refine.ls_d_res_low",
+            "refln.fiber_coordinate",
+            "refln.fiber_F_meas_au",
+            "refln.fiber_layer",
+            "refln.F_meas_sigma_uncorrected",
+            "refln.F_meas_uncorrected",
+            "refln.F_part_au",
+            "refln.gsas_i100_meas",
+            "refln.intensity_calc",
+            "refln.intensity_meas_au",
+            "refln.intensity_meas_sigma_au",
+            "refln.intensity_meas_unknown",
+            "refln.intensity_sigma_unknown",
+            "refln.mean_path_length_tbar",
+            "refln.observed_status",
+            "refln.pdbx_cos_phase_calc",
+            "refln.pdbx_F_backtransform_au",
+            "refln.pdbx_fom_weighted_fmap",
+            "refln.pdbx_gsas_i100_meas",
+            "refln.pdbx_HLA",
+            "refln.pdbx_HLB",
+            "refln.pdbx_HLC",
+            "refln.pdbx_HLD",
+            "refln.pdbx_phase_backtransform",
+            "refln.pdbx_phase_cycle",
+            "refln.pdbx_sin_phase_calc",
+            "refln.phase_meas_sigma",
+            "refln.phase_part",
+            "refln.sgx_fmap",
+            "refln.sint_over_lambda",
+            "refln.symmetry_multiplicity",
+            "refln.wavelength",
+            "refln.waveLEngth_id",
+            "refln.weight",
+            "reflns.CCP4_crystal_id",
+            "reflns.CCP4_wavelength_id",
+            "reflns.observed_criterion_sigma_I",
+            "struct_keywords.entry_id",
+            "struct_keywords.ndb_keywords",
+            "struct_keywords.text",
+            "symmetry.cell_setting",
+            "symmetry.int_tables_number",
+            "symmetry.ndb_full_space_group_name_H-M",
+            "symmetry.space_group_name_h-m",
+        ]
 
         for block_index in range(sffile.get_number_of_blocks()):
             blk = sffile.get_block_by_index(block_index)
@@ -1223,8 +1315,7 @@ class SfCorrect:
                 continue
 
             # Instantiate cell
-            alist = ["length_a", "length_b", "length_c",
-                     "angle_alpha", "angle_beta", "angle_gamma"]
+            alist = ["length_a", "length_b", "length_c", "angle_alpha", "angle_beta", "angle_gamma"]
 
             keys = ["entry_id"] + alist
             data = [pdbid]
