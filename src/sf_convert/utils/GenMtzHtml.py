@@ -32,7 +32,7 @@ class GenMtzHtml:
         CCP4 = self.__data.get("CCP4", "")
         EXECUTE = self.__data.get("SF_EXEC", "")
 
-        mtzdumpfile = os.path.join(outdir, "mtzdump.log")
+        mtzdumpfile = os.path.join(outdir, "mtzdmp.log")
 
         gmi = GetMtzInfo()
         gmi.readmtz(inpfile)
