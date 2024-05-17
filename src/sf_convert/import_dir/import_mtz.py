@@ -79,97 +79,87 @@ class MtzToCifConverter:
         self.__logger = logger
         self.assigned_labels = set()
         self.__categories = {
-            "audit": {
-                "revision_id": "1_0",
-                "creation_date": "?",
-                "update_record": "Initial release"
-            },
-            "exptl_crystal": {
-                "id": "1"
-            },
-            "reflns_scale": {
-                "group_code": "1"
-            }
+            "audit": {"revision_id": "1_0", "creation_date": "?", "update_record": "Initial release"},
+            "exptl_crystal": {"id": "1"},
+            "reflns_scale": {"group_code": "1"},
         }
-        self.__logger.pinfo(f'Note: file {self.mtz_file_path} has no _audit. (auto added)', self.__pinfo_value)
+        self.__logger.pinfo(f"Note: file {self.mtz_file_path} has no _audit. (auto added)", self.__pinfo_value)
 
         self.__labels = [
-            ('H', 'H', 'index_h'),
-            ('K', 'H', 'index_k'),
-            ('L', 'H', 'index_l'),
-            ('?', 'FREE', 'I', 'status', 'S'),
-            ('?', 'RFREE', 'I', 'status', 'S'),
-            ('?', 'FREER', 'I', 'status', 'S'),
-            ('?', 'FreeR_flag', 'I', 'status', 'S'),
-            ('?', 'R-free-flags', 'I', 'status', 'S'),
-            ('?', 'FreeRflag', 'I', 'status', 'S'),
-            ('FreeR_flag', 'I', 'pdbx_r_free_flag'),
-            ('F_XDSdataset', 'F', 'F_meas_au'),
-            ('SIGF_XDSdataset', 'Q', 'F_meas_sigma_au'),
-            ('?', 'FC', 'F', 'F_calc_au'),
-            ('?', 'PHIC', 'P', 'phase_calc'),
-            ('?', 'PHIB', 'P', 'phase_meas'),
-            ('?', 'FWT', 'F', 'pdbx_FWT'),
-            ('?', '2FOFCWT', 'F', 'pdbx_FWT'),
-            ('&', 'PHWT', 'P', 'pdbx_PHWT', '.3f'),
-            ('&', 'PH2FOFCWT', 'P', 'pdbx_PHWT', '.3f'),
-            ('?', 'DELFWT', 'F', 'pdbx_DELFWT'),
-            ('?', 'FOFCWT', 'F', 'pdbx_DELFWT'),
-            ('&', 'DELPHWT', 'P', 'pdbx_DELPHWT', '.3f'),
-            ('&', 'PHDELWT', 'P', 'pdbx_DELPHWT', '.3f'),
-            ('&', 'PHFOFCWT', 'P', 'pdbx_DELPHWT', '.3f'),
-            ('?', 'IMEAN', 'J', 'intensity_meas'),
-            ('?', 'I', 'J', 'intensity_meas'),
-            ('?', 'IOBS', 'J', 'intensity_meas'),
-            ('?', 'I-obs', 'J', 'intensity_meas'),
-            ('&', 'SIGIMEAN', 'Q', 'intensity_sigma'),
-            ('&', 'SIGI', 'Q', 'intensity_sigma'),
-            ('&', 'SIGIOBS', 'Q', 'intensity_sigma'),
-            ('&', 'SIGI-obs', 'Q', 'intensity_sigma'),
-            ('?', 'I(+)', 'K', 'pdbx_I_plus'),
-            ('?', 'IOBS(+)', 'K', 'pdbx_I_plus'),
-            ('?', 'I-obs(+)', 'K', 'pdbx_I_plus'),
-            ('&', 'SIGI(+)', 'M', 'pdbx_I_plus_sigma'),
-            ('&', 'SIGIOBS(+)', 'M', 'pdbx_I_plus_sigma'),
-            ('&', 'SIGI-obs(+)', 'M', 'pdbx_I_plus_sigma'),
-            ('?', 'I(-)', 'K', 'pdbx_I_minus'),
-            ('?', 'IOBS(-)', 'K', 'pdbx_I_minus'),
-            ('?', 'I-obs(-)', 'K', 'pdbx_I_minus'),
-            ('&', 'SIGI(-)', 'M', 'pdbx_I_minus_sigma'),
-            ('&', 'SIGIOBS(-)', 'M', 'pdbx_I_minus_sigma'),
-            ('&', 'SIGI-obs(-)', 'M', 'pdbx_I_minus_sigma'),
-            ('?', 'F', 'F', 'F_meas_au'),
-            ('?', 'FP', 'F', 'F_meas_au'),
-            ('?', 'FOBS', 'F', 'F_meas_au'),
-            ('?', 'F-obs', 'F', 'F_meas_au'),
-            ('&', 'SIGF', 'Q', 'F_meas_sigma_au'),
-            ('&', 'SIGFP', 'Q', 'F_meas_sigma_au'),
-            ('&', 'SIGFOBS', 'Q', 'F_meas_sigma_au'),
-            ('&', 'SIGF-obs', 'Q', 'F_meas_sigma_au'),
-            ('?', 'F(+)', 'G', 'pdbx_F_plus'),
-            ('?', 'FOBS(+)', 'G', 'pdbx_F_plus'),
-            ('?', 'F-obs(+)', 'G', 'pdbx_F_plus'),
-            ('&', 'SIGF(+)', 'L', 'pdbx_F_plus_sigma'),
-            ('&', 'SIGFOBS(+)', 'L', 'pdbx_F_plus_sigma'),
-            ('&', 'SIGF-obs(+)', 'L', 'pdbx_F_plus_sigma'),
-            ('?', 'F(-)', 'G', 'pdbx_F_minus'),
-            ('?', 'FOBS(-)', 'G', 'pdbx_F_minus'),
-            ('?', 'F-obs(-)', 'G', 'pdbx_F_minus'),
-            ('&', 'SIGF(-)', 'L', 'pdbx_F_minus_sigma'),
-            ('&', 'SIGFOBS(-)', 'L', 'pdbx_F_minus_sigma'),
-            ('&', 'SIGF-obs(-)', 'L', 'pdbx_F_minus_sigma'),
-            ('?', 'DP', 'D', 'pdbx_anom_difference'),
-            ('&', 'SIGDP', 'Q', 'pdbx_anom_difference_sigma'),
-            ('?', 'FOM', 'W', 'fom'),
-            ('?', 'HLA', 'A', 'pdbx_HL_A_iso'),
-            ('&', 'HLB', 'A', 'pdbx_HL_B_iso'),
-            ('&', 'HLC', 'A', 'pdbx_HL_C_iso'),
-            ('&', 'HLD', 'A', 'pdbx_HL_D_iso')
+            ("H", "H", "index_h"),
+            ("K", "H", "index_k"),
+            ("L", "H", "index_l"),
+            ("?", "FREE", "I", "status", "S"),
+            ("?", "RFREE", "I", "status", "S"),
+            ("?", "FREER", "I", "status", "S"),
+            ("?", "FreeR_flag", "I", "status", "S"),
+            ("?", "R-free-flags", "I", "status", "S"),
+            ("?", "FreeRflag", "I", "status", "S"),
+            ("FreeR_flag", "I", "pdbx_r_free_flag"),
+            ("F_XDSdataset", "F", "F_meas_au"),
+            ("SIGF_XDSdataset", "Q", "F_meas_sigma_au"),
+            ("?", "FC", "F", "F_calc_au"),
+            ("?", "PHIC", "P", "phase_calc"),
+            ("?", "PHIB", "P", "phase_meas"),
+            ("?", "FWT", "F", "pdbx_FWT"),
+            ("?", "2FOFCWT", "F", "pdbx_FWT"),
+            ("&", "PHWT", "P", "pdbx_PHWT", ".3f"),
+            ("&", "PH2FOFCWT", "P", "pdbx_PHWT", ".3f"),
+            ("?", "DELFWT", "F", "pdbx_DELFWT"),
+            ("?", "FOFCWT", "F", "pdbx_DELFWT"),
+            ("&", "DELPHWT", "P", "pdbx_DELPHWT", ".3f"),
+            ("&", "PHDELWT", "P", "pdbx_DELPHWT", ".3f"),
+            ("&", "PHFOFCWT", "P", "pdbx_DELPHWT", ".3f"),
+            ("?", "IMEAN", "J", "intensity_meas"),
+            ("?", "I", "J", "intensity_meas"),
+            ("?", "IOBS", "J", "intensity_meas"),
+            ("?", "I-obs", "J", "intensity_meas"),
+            ("&", "SIGIMEAN", "Q", "intensity_sigma"),
+            ("&", "SIGI", "Q", "intensity_sigma"),
+            ("&", "SIGIOBS", "Q", "intensity_sigma"),
+            ("&", "SIGI-obs", "Q", "intensity_sigma"),
+            ("?", "I(+)", "K", "pdbx_I_plus"),
+            ("?", "IOBS(+)", "K", "pdbx_I_plus"),
+            ("?", "I-obs(+)", "K", "pdbx_I_plus"),
+            ("&", "SIGI(+)", "M", "pdbx_I_plus_sigma"),
+            ("&", "SIGIOBS(+)", "M", "pdbx_I_plus_sigma"),
+            ("&", "SIGI-obs(+)", "M", "pdbx_I_plus_sigma"),
+            ("?", "I(-)", "K", "pdbx_I_minus"),
+            ("?", "IOBS(-)", "K", "pdbx_I_minus"),
+            ("?", "I-obs(-)", "K", "pdbx_I_minus"),
+            ("&", "SIGI(-)", "M", "pdbx_I_minus_sigma"),
+            ("&", "SIGIOBS(-)", "M", "pdbx_I_minus_sigma"),
+            ("&", "SIGI-obs(-)", "M", "pdbx_I_minus_sigma"),
+            ("?", "F", "F", "F_meas_au"),
+            ("?", "FP", "F", "F_meas_au"),
+            ("?", "FOBS", "F", "F_meas_au"),
+            ("?", "F-obs", "F", "F_meas_au"),
+            ("&", "SIGF", "Q", "F_meas_sigma_au"),
+            ("&", "SIGFP", "Q", "F_meas_sigma_au"),
+            ("&", "SIGFOBS", "Q", "F_meas_sigma_au"),
+            ("&", "SIGF-obs", "Q", "F_meas_sigma_au"),
+            ("?", "F(+)", "G", "pdbx_F_plus"),
+            ("?", "FOBS(+)", "G", "pdbx_F_plus"),
+            ("?", "F-obs(+)", "G", "pdbx_F_plus"),
+            ("&", "SIGF(+)", "L", "pdbx_F_plus_sigma"),
+            ("&", "SIGFOBS(+)", "L", "pdbx_F_plus_sigma"),
+            ("&", "SIGF-obs(+)", "L", "pdbx_F_plus_sigma"),
+            ("?", "F(-)", "G", "pdbx_F_minus"),
+            ("?", "FOBS(-)", "G", "pdbx_F_minus"),
+            ("?", "F-obs(-)", "G", "pdbx_F_minus"),
+            ("&", "SIGF(-)", "L", "pdbx_F_minus_sigma"),
+            ("&", "SIGFOBS(-)", "L", "pdbx_F_minus_sigma"),
+            ("&", "SIGF-obs(-)", "L", "pdbx_F_minus_sigma"),
+            ("?", "DP", "D", "pdbx_anom_difference"),
+            ("&", "SIGDP", "Q", "pdbx_anom_difference_sigma"),
+            ("?", "FOM", "W", "fom"),
+            ("?", "HLA", "A", "pdbx_HL_A_iso"),
+            ("&", "HLB", "A", "pdbx_HL_B_iso"),
+            ("&", "HLC", "A", "pdbx_HL_C_iso"),
+            ("&", "HLD", "A", "pdbx_HL_D_iso"),
         ]
 
-        self.__CUSTOM_END = [
-            ('? FREE|RFREE|FREER|FreeR_flag|R-free-flags|FreeRflag', 'I', 'status', 'S')
-        ]
+        self.__CUSTOM_END = [("? FREE|RFREE|FREER|FreeR_flag|R-free-flags|FreeRflag", "I", "status", "S")]
 
         self.__spec_file_content = []
 
@@ -177,7 +167,7 @@ class MtzToCifConverter:
         """
         Sets the spec lines for the MtzToCif object.
         """
-        spec_lines = ['\t'.join(line) for line in self.__spec_file_content]
+        spec_lines = ["\t".join(line) for line in self.__spec_file_content]
         self.mtz2cif.spec_lines = spec_lines
 
     def set_free(self, free):
@@ -241,8 +231,8 @@ class MtzToCifConverter:
         Returns:
             None
         """
-        key_value_pairs = input_string.split(', ')
-        key_value_dict = {pair.split('=')[0]: pair.split('=')[1] for pair in key_value_pairs}
+        key_value_pairs = input_string.split(", ")
+        key_value_dict = {pair.split("=")[0]: pair.split("=")[1] for pair in key_value_pairs}
 
         processed_labels = []
 
@@ -287,84 +277,84 @@ class MtzToCifConverter:
         label_type, label_content = labels_list[i]
 
         # Direct mappings
-        if label_type == 'H' and label_content in ['H', 'K', 'L']:
+        if label_type == "H" and label_content in ["H", "K", "L"]:
             return self.__assign_label(f"index_{label_content.lower()}")
-        elif label_type == 'F' and label_content in ['2FOFCWT', 'FWT', 'F_ampl']:
-            return self.__assign_label('pdbx_FWT')
-        elif label_type == 'P' and label_content in ['PH2FOFCWT', 'PHWT', 'PHIF']:
-            return self.__assign_label('pdbx_PHWT')
-        elif label_content in ['FOFCWT', 'DELFWT']:
-            return self.__assign_label('pdbx_DELFWT')
-        elif label_type == 'P' and label_content in ['PHFOFCWT', 'PHDELWT']:
-            return self.__assign_label('pdbx_DELPHWT')
-        elif label_type == 'I' and any(term in label_content for term in ["free", "R-free-flag", "flag",
-                                                                          "TEST", "FREE", "RFREE", "FREER",
-                                                                          "FreeR_flag", "FreeRflag"]):  # FREE|RFREE|FREER|FreeR_flag|R-free-flags|FreeRflag
-            return self.__assign_label('pdbx_r_free_flag')
+        elif label_type == "F" and label_content in ["2FOFCWT", "FWT", "F_ampl"]:
+            return self.__assign_label("pdbx_FWT")
+        elif label_type == "P" and label_content in ["PH2FOFCWT", "PHWT", "PHIF"]:
+            return self.__assign_label("pdbx_PHWT")
+        elif label_content in ["FOFCWT", "DELFWT"]:
+            return self.__assign_label("pdbx_DELFWT")
+        elif label_type == "P" and label_content in ["PHFOFCWT", "PHDELWT"]:
+            return self.__assign_label("pdbx_DELPHWT")
+        elif label_type == "I" and any(
+            term in label_content for term in ["free", "R-free-flag", "flag", "TEST", "FREE", "RFREE", "FREER", "FreeR_flag", "FreeRflag"]
+        ):  # FREE|RFREE|FREER|FreeR_flag|R-free-flags|FreeRflag
+            return self.__assign_label("pdbx_r_free_flag")
 
         # Unusual R flag for free R
-        elif label_type == 'R' and any(term in label_content for term in ["free", "R-free-flag", "flag",
-                                                                          "TEST", "FREE", "RFREE", "FREER",
-                                                                          "FreeR_flag", "FreeRflag"]):  # FREE|RFREE|FREER|FreeR_flag|R-free-flags|FreeRflag
-            return self.__assign_label('pdbx_r_free_flag')
-        elif label_type == 'D':
-            return self.__assign_label('pdbx_anom_difference')
-        elif label_type == 'A':
-            if 'HLA' in label_content:
-                return self.__assign_label('pdbx_HL_A_iso')
-            elif 'HLB' in label_content:
-                return self.__assign_label('pdbx_HL_B_iso')
-            elif 'HLC' in label_content:
-                return self.__assign_label('pdbx_HL_C_iso')
-            elif 'HLD' in label_content:
-                return self.__assign_label('pdbx_HL_D_iso')
-        elif label_type == 'W' and 'FOM' in label_content:
-            return self.__assign_label('fom')
+        elif label_type == "R" and any(
+            term in label_content for term in ["free", "R-free-flag", "flag", "TEST", "FREE", "RFREE", "FREER", "FreeR_flag", "FreeRflag"]
+        ):  # FREE|RFREE|FREER|FreeR_flag|R-free-flags|FreeRflag
+            return self.__assign_label("pdbx_r_free_flag")
+        elif label_type == "D":
+            return self.__assign_label("pdbx_anom_difference")
+        elif label_type == "A":
+            if "HLA" in label_content:
+                return self.__assign_label("pdbx_HL_A_iso")
+            elif "HLB" in label_content:
+                return self.__assign_label("pdbx_HL_B_iso")
+            elif "HLC" in label_content:
+                return self.__assign_label("pdbx_HL_C_iso")
+            elif "HLD" in label_content:
+                return self.__assign_label("pdbx_HL_D_iso")
+        elif label_type == "W" and "FOM" in label_content:
+            return self.__assign_label("fom")
 
         # Conditional checks based on label content and type of the previous or next label
-        if label_type == 'F':
-            if label_content in ['FP', 'F-obs-filtered', 'F-obs'] or (i < len(labels_list) - 1 and labels_list[i + 1][0] == 'Q'):
-                return self.__assign_label('F_meas_au')
-            elif label_content in ['FC', 'Fcal']:
-                return self.__assign_label('F_calc_au')
-        elif label_type == 'Q':
+        if label_type == "F":
+            if label_content in ["FP", "F-obs-filtered", "F-obs"] or (i < len(labels_list) - 1 and labels_list[i + 1][0] == "Q"):
+                return self.__assign_label("F_meas_au")
+            elif label_content in ["FC", "Fcal"]:
+                return self.__assign_label("F_calc_au")
+        elif label_type == "Q":
             if i > 0:
                 prev_label_type = labels_list[i - 1][0]
-                if prev_label_type == 'F':
-                    return self.__assign_label('F_meas_sigma_au')
-                elif prev_label_type == 'J':
-                    return self.__assign_label('intensity_sigma')
-                elif prev_label_type == 'D':
-                    return self.__assign_label('pdbx_anom_difference_sigma')
+                if prev_label_type == "F":
+                    return self.__assign_label("F_meas_sigma_au")
+                elif prev_label_type == "J":
+                    return self.__assign_label("intensity_sigma")
+                elif prev_label_type == "D":
+                    return self.__assign_label("pdbx_anom_difference_sigma")
 
         # Conditional checks for labels that depend on label content alone
-        if label_type == 'J':
-            return self.__assign_label('intensity_meas')
-        elif label_type == 'G':
-            if '(+)' in label_content:
-                return self.__assign_label('pdbx_F_plus')
-            elif '(-)' in label_content:
-                return self.__assign_label('pdbx_F_minus')
-        elif label_type == 'L':
-            if '(+)' in label_content:
-                return self.__assign_label('pdbx_F_plus_sigma')
-            elif '(-)' in label_content:
-                return self.__assign_label('pdbx_F_minus_sigma')
-        elif label_type == 'K':
-            if '(+)' in label_content:
-                return self.__assign_label('pdbx_I_plus')
-            elif '(-)' in label_content:
-                return self.__assign_label('pdbx_I_minus')
-        elif label_type == 'M':
-            if '(+)' in label_content:
-                return self.__assign_label('pdbx_I_plus_sigma')
-            elif '(-)' in label_content:
-                return self.__assign_label('pdbx_I_minus_sigma')
-        elif label_type == 'P':
-            if 'PHIC' in label_content or 'PHIC_ALL' in label_content or 'AC' in label_content:
-                return self.__assign_label('phase_calc')
-            elif 'PHIB' in label_content or 'PHIM' in label_content:
-                return self.__assign_label('phase_meas')
+        if label_type == "J":
+            return self.__assign_label("intensity_meas")
+        elif label_type == "G":
+            if "(+)" in label_content:
+                return self.__assign_label("pdbx_F_plus")
+            elif "(-)" in label_content:
+                return self.__assign_label("pdbx_F_minus")
+        elif label_type == "L":
+            if "(+)" in label_content:
+                return self.__assign_label("pdbx_F_plus_sigma")
+            elif "(-)" in label_content:
+                return self.__assign_label("pdbx_F_minus_sigma")
+        elif label_type == "K":
+            if "(+)" in label_content:
+                return self.__assign_label("pdbx_I_plus")
+            elif "(-)" in label_content:
+                return self.__assign_label("pdbx_I_minus")
+        elif label_type == "M":
+            if "(+)" in label_content:
+                return self.__assign_label("pdbx_I_plus_sigma")
+            elif "(-)" in label_content:
+                return self.__assign_label("pdbx_I_minus_sigma")
+        elif label_type == "P":
+            if "PHIC" in label_content or "PHIC_ALL" in label_content or "AC" in label_content:
+                return self.__assign_label("phase_calc")
+            elif "PHIB" in label_content or "PHIM" in label_content:
+                return self.__assign_label("phase_meas")
 
         return "Unknown Label"
 
@@ -381,11 +371,10 @@ class MtzToCifConverter:
         results = []
         for i in range(len(labels_list)):
             generated_label = self.__generate_full_label(i, labels_list)
-            results.append((labels_list[i][0], labels_list[i][1],
-                            generated_label))
+            results.append((labels_list[i][0], labels_list[i][1], generated_label))
             if generated_label == "pdbx_r_free_flag":
                 self.__CUSTOM_END = []
-                self.__CUSTOM_END.append((labels_list[i][1], labels_list[i][0], 'status', 'S'))
+                self.__CUSTOM_END.append((labels_list[i][1], labels_list[i][0], "status", "S"))
         return results
 
     def __get_mtz_columns_with_custom_entries(self, mtz_file):
@@ -411,12 +400,14 @@ class MtzToCifConverter:
         with tempfile.NamedTemporaryFile(prefix="sf_convert", delete=False) as tf:
             temp_file = tf.name
 
-        spec_lines_result = self.__get_mtz_columns_with_custom_entries(self.mtz_file_path)
-        self.__spec_file_content = spec_lines_result
+        # If -label option is given, the speci_file_content is set.
+        if len(self.__spec_file_content) == 0:
+            spec_lines_result = self.__get_mtz_columns_with_custom_entries(self.mtz_file_path)
+            self.__spec_file_content = spec_lines_result
 
         self.set_spec()
         cif_doc = self.convert_mtz_to_cif()
-        with open(temp_file, 'w') as f:
+        with open(temp_file, "w") as f:
             f.write(cif_doc)
         self.__read_cif_file(temp_file)
         os.remove(temp_file)
@@ -424,7 +415,7 @@ class MtzToCifConverter:
 
         self.__fix_attributes()
 
-        new_order = ['audit', 'cell', 'diffrn_radiation_wavelength', 'entry', 'exptl_crystal', 'reflns_scale', 'symmetry', 'refln', 'diffrn_refln']
+        new_order = ["audit", "cell", "diffrn_radiation_wavelength", "entry", "exptl_crystal", "reflns_scale", "symmetry", "refln", "diffrn_refln"]
         self.sffile.reorder_categories_in_block(new_order)
         self.sffile.correct_block_names("xxxx")  # XXXX assumes entry.id = xxxx - need to be able to specify pdb id
 

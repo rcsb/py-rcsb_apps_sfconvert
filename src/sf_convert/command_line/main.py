@@ -486,8 +486,11 @@ def handle_label_argument(args):
     Raises:
         ValueError: If the format for -label argument is invalid.
     """
+
+    # Consolidate labels into space separated list
+    labels = " ".join(args.label)
     pattern = re.compile(r"^([^=]+=[^=]+)(,\s*[^=]+=[^=]+)*$")
-    if not pattern.match(args.label):
+    if not pattern.match(labels):
         raise ValueError("Invalid format for -label argument. Please use the format 'key1=value1, key2=value2, ...'")
 
 
@@ -606,7 +609,7 @@ def convert_files(args, input_format, pdb_data, logger):
         pdict["wave_cmdline"] = float(args.wave)  # Type checked in argument parser
 
     if args.label is not None:
-        pdict["label"] = args.label
+        pdict["label"] = " ".join(args.label)
 
     if args.freer is not None:
         pdict["free"] = args.freer
@@ -695,7 +698,7 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument("-o", type=str, help="Output format. Accepted values are mmCIF, CNS, MTZ")
     parser.add_argument("-sf", type=str, nargs="+", help="Source file")
     parser.add_argument("-out", type=str, default=None, help="Output file name (if not given, default by program)")
-    parser.add_argument("-label", type=str, help="Label name for CNS & MTZ")
+    parser.add_argument("-label", type=str, nargs="*", help="Label name for CNS & MTZ")
     parser.add_argument("-pdb", type=str, help="PDB file (add items to the converted SF file if missing)")
     parser.add_argument("-pdb_id", type=str, help="PDB id to set)")
     parser.add_argument("-freer", type=int, help="Free test number in the reflection (SF) file")
