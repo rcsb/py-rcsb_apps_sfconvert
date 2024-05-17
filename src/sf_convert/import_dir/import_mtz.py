@@ -231,7 +231,11 @@ class MtzToCifConverter:
         Returns:
             None
         """
-        key_value_pairs = input_string.split(", ")
+        # Remove commas
+        lstr = input_string.replace(",", " ")
+        # Get rid of multiple spaces
+        lstr = " ".join(lstr.split())
+        key_value_pairs = lstr.split(" ")
         key_value_dict = {pair.split("=")[0]: pair.split("=")[1] for pair in key_value_pairs}
 
         processed_labels = []
