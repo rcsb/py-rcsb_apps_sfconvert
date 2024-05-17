@@ -25,6 +25,7 @@ VALID_FORMATS = ["CNS", "MTZ", "MMCIF", "CIF"]
 
 class ImportSf:
     """Class to import and possibly make corrections"""
+
     def __init__(self, logger):
         self.__logger = logger
         self.__legacy = True  # old sf_convert behaviour
@@ -55,6 +56,7 @@ class ImportSf:
         wave_arg = pdict.get("wave_cmdline", None)
         free_arg = pdict.get("free", None)
         pdb_cell = pdb_data.get("CELL", None)
+        pdb_id_cmd = pdict.get("pdb_id", None)
 
         ic = ImportCif(self.__logger)
         ic.import_files(sfin)
@@ -76,6 +78,10 @@ class ImportSf:
 
             if not pdbid:
                 pdbid = sfc.get_pdbid(sffile)  # XXX should be a utility function somewhere else
+
+            # Command line trumps
+            if pdb_id_cmd:
+                pdbid = pdb_id_cmd
 
             if pdbid:
                 pdbid = pdbid.lower()
@@ -108,6 +114,7 @@ class ImportSf:
     def __import_mtz(self, pdict):
         sfin = pdict["sfin"]
         pdb_data = pdict.get("pdb_data", {})
+        pdb_id_cmd = pdict.get("pdb_id", None)
         sfc = SfCorrect(self.__logger, self.__legacy)
 
         # pdb_wave = pdb_data.get("WAVE", None)
@@ -128,10 +135,15 @@ class ImportSf:
 
         # PDB id comes from
         #  sffile block name - unless coordinate file used - and then use that
-        pdbid = pdb_data.get("pdb_id", None)
 
-        if not pdbid:
-            pdbid = sfc.get_pdbid(sffile)  # XXX should be a utility function somewhere else
+        # Command line trumps
+        if pdb_id_cmd:
+            pdbid = pdb_id_cmd
+        else:
+            pdbid = pdb_data.get("pdb_id", None)
+
+            if not pdbid:
+                pdbid = sfc.get_pdbid(sffile)  # XXX should be a utility function somewhere else
 
         if pdbid:
             pdbid = pdbid.lower()
@@ -147,7 +159,7 @@ class ImportSf:
         # pdb_wave = pdb_data.get("WAVE", None)
         pdb_cell = pdb_data.get("CELL", None)
         # wave_arg = pdict.get("wave_cmdline", None)
-
+        pdb_id_cmd = pdict.get("pdb_id", None)
         free = pdict.get("free", None)
 
         ic = ImportCns(self.__logger)
@@ -155,10 +167,15 @@ class ImportSf:
         ic.import_files(sfin)
         sffile = ic.get_sf()
 
+        if pdb_id_cmd:
+            pdbid = pdb_id_cmd
+        else:
+            pdbid = "xxxx"
+
         sfc = SfCorrect(self.__logger, self.__legacy)
         if pdb_cell:
             sfc.set_cell(sffile, pdb_cell)
-            sfc.ensure_catkeys(sffile, "xxxx")
+            sfc.ensure_catkeys(sffile, pdbid)
             sfc.reorder_sf_file(sffile)
 
         # Remove duplicate audits for multiple imports
@@ -178,6 +195,7 @@ class ImportSf:
 
 class ExportSf:
     """Class to import and possibly make corrections"""
+
     def __init__(self, logger):
         self.__logger = logger
         self.__legacy = True  # old sf_convert behaviour
@@ -221,6 +239,7 @@ class ExportSf:
 
 class SFConvertMain:
     """Main class to perform conversion steps."""
+
     def __init__(self, logger):
         self.__logger = logger
 
@@ -253,9 +272,12 @@ class CustomHelpParser(argparse.ArgumentParser):
         """
         Prints the custom help message for the sf_convert script.
         """
-        custom_help_message = """
+        custom_help_message = (
+            """
     =======================================================================
-                """ + get_version() + """
+                """
+            + get_version()
+            + """
     =======================================================================
 
     Usage: 'sf_convert  -i input_format -o output_format -sf data_file'
@@ -369,6 +391,7 @@ class CustomHelpParser(argparse.ArgumentParser):
 
     Note: The question marks '?' correspond to the labels in the SF file.
     """
+        )
         print(custom_help_message)
 
     def error(self, message):
@@ -378,7 +401,7 @@ class CustomHelpParser(argparse.ArgumentParser):
         Args:
             message: The error message to be printed.
         """
-        sys.stderr.write('Error: %s\n' % message)
+        sys.stderr.write("Error: %s\n" % message)
         sys.exit(2)
 
 
@@ -463,7 +486,7 @@ def handle_label_argument(args):
     Raises:
         ValueError: If the format for -label argument is invalid.
     """
-    pattern = re.compile(r'^([^=]+=[^=]+)(,\s*[^=]+=[^=]+)*$')
+    pattern = re.compile(r"^([^=]+=[^=]+)(,\s*[^=]+=[^=]+)*$")
     if not pattern.match(args.label):
         raise ValueError("Invalid format for -label argument. Please use the format 'key1=value1, key2=value2, ...'")
 
@@ -580,13 +603,16 @@ def convert_files(args, input_format, pdb_data, logger):
     pdict["pdb_data"] = pdb_data
 
     if args.wave is not None:
-        pdict["wave_cmdline"] = float(args.wave)   # Type checked in argument parser
+        pdict["wave_cmdline"] = float(args.wave)  # Type checked in argument parser
 
     if args.label is not None:
         pdict["label"] = args.label
 
     if args.freer is not None:
         pdict["free"] = args.freer
+
+    if args.pdb_id is not None:
+        pdict["pdb_id"] = args.pdb_id
 
     sfc = SFConvertMain(logger)
 
@@ -605,6 +631,8 @@ def main():
     """
     try:
         args = parse_arguments()
+
+        print(args)
 
         version = get_version()
 
@@ -663,17 +691,18 @@ def parse_arguments() -> argparse.Namespace:
     """
     parser = CustomHelpParser(description="This script allows various operations on files. Refer to the help document for more details.")
 
-    parser.add_argument('-i', type=str, help='Input format')
-    parser.add_argument('-o', type=str, help='Output format. Accepted values are mmCIF, CNS, MTZ')
-    parser.add_argument('-sf', type=str, nargs="+", help='Source file')
-    parser.add_argument('-out', type=str, default=None, help='Output file name (if not given, default by program)')
-    parser.add_argument('-label', type=str, help='Label name for CNS & MTZ')
-    parser.add_argument('-pdb', type=str, help='PDB file (add items to the converted SF file if missing)')
-    parser.add_argument('-freer', type=int, help='Free test number in the reflection (SF) file')
-    parser.add_argument('-wave', type=float, help='Wavelength setting. It overwrites the existing one')
-    parser.add_argument('-diags', type=str, help='Log file containing warning/error message')
-    parser.add_argument('-detail', type=str, help='Give a note to the data set')
-    parser.add_argument('-valid', action='store_true', help='Check various SF errors, and correct!')
+    parser.add_argument("-i", type=str, help="Input format")
+    parser.add_argument("-o", type=str, help="Output format. Accepted values are mmCIF, CNS, MTZ")
+    parser.add_argument("-sf", type=str, nargs="+", help="Source file")
+    parser.add_argument("-out", type=str, default=None, help="Output file name (if not given, default by program)")
+    parser.add_argument("-label", type=str, help="Label name for CNS & MTZ")
+    parser.add_argument("-pdb", type=str, help="PDB file (add items to the converted SF file if missing)")
+    parser.add_argument("-pdb_id", type=str, help="PDB id to set)")
+    parser.add_argument("-freer", type=int, help="Free test number in the reflection (SF) file")
+    parser.add_argument("-wave", type=float, help="Wavelength setting. It overwrites the existing one")
+    parser.add_argument("-diags", type=str, help="Log file containing warning/error message")
+    parser.add_argument("-detail", type=str, help="Give a note to the data set")
+    parser.add_argument("-valid", action="store_true", help="Check various SF errors, and correct!")
 
     return parser.parse_args()
 
