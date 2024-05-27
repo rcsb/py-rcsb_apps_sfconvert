@@ -67,8 +67,9 @@ class PInfoBase:
             # Leave new lines
             err += ln
 
-        if err == "":
-            err = "\n"
+        # We expect an 'empty' value returned - legacy code 'cheated'
+        # by two lines with semi colon - but writer simplies to ?
+        # Do not provide data with simply a newline
 
         info = ""
         for ln in self._lf2:
