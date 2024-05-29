@@ -136,6 +136,7 @@ class MtzToCifConverter:
         }
         self.__logger.pinfo(f"Note: file {self.mtz_file_path} has no _audit. (auto added)", self.__pinfo_value)
 
+        # This is used when depositor specifies labels
         self.__labels = [
             ("H", "H", "index_h"),
             ("K", "H", "index_k"),
@@ -294,7 +295,10 @@ class MtzToCifConverter:
         for label in self.__labels:
             if label[0] in ["?", "&"] and label[1] in key_value_dict.keys():
                 replaced_label = (label[0], key_value_dict[label[1]], label[2], label[3])
-                processed_label = (f"{replaced_label[0]} {replaced_label[1]}", *replaced_label[2:]) if replaced_label[0] in ["?", "&"] else replaced_label
+                if len(label) == 5:
+                    processed_label = (f"{replaced_label[0]} {replaced_label[1]}", *replaced_label[2:], label[4]) if replaced_label[0] in ["?", "&"] else replaced_label
+                else:
+                    processed_label = (f"{replaced_label[0]} {replaced_label[1]}", *replaced_label[2:]) if replaced_label[0] in ["?", "&"] else replaced_label
                 processed_labels.append(processed_label)
             elif label[0] in key_value_dict.keys():
                 replaced_label = (key_value_dict[label[0]], label[1], *label[2:])
