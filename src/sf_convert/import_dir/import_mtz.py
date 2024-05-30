@@ -347,34 +347,34 @@ class MtzToCifConverter:
         elif label_type == "P" and label_content in ["PHFOFCWT", "PHDELWT"]:
             return self.__assign_label("pdbx_DELPHWT")
         elif label_type == "I" and any(
-            term in label_content for term in ["free", "R-free-flag", "flag", "TEST", "FREE", "RFREE", "FREER", "FreeR_flag", "FreeRflag"]
+            term.lower() in label_content.lower() for term in ["free", "R-free-flag", "flag", "TEST", "FREE", "RFREE", "FREER", "FreeR_flag", "FreeRflag"]
         ):  # FREE|RFREE|FREER|FreeR_flag|R-free-flags|FreeRflag
             return self.__assign_label("pdbx_r_free_flag")
 
         # Unusual R flag for free R
         elif label_type == "R" and any(
-            term in label_content for term in ["free", "R-free-flag", "flag", "TEST", "FREE", "RFREE", "FREER", "FreeR_flag", "FreeRflag"]
+            term.lower() in label_content.lower() for term in ["free", "R-free-flag", "flag", "TEST", "FREE", "RFREE", "FREER", "FreeR_flag", "FreeRflag"]
         ):  # FREE|RFREE|FREER|FreeR_flag|R-free-flags|FreeRflag
             return self.__assign_label("pdbx_r_free_flag")
         elif label_type == "D":
             return self.__assign_label("pdbx_anom_difference")
         elif label_type == "A":
-            if "HLA" in label_content:
+            if "HLA" in label_content.upper():
                 return self.__assign_label("pdbx_HL_A_iso")
-            elif "HLB" in label_content:
+            elif "HLB" in label_content.upper():
                 return self.__assign_label("pdbx_HL_B_iso")
-            elif "HLC" in label_content:
+            elif "HLC" in label_content.upper():
                 return self.__assign_label("pdbx_HL_C_iso")
-            elif "HLD" in label_content:
+            elif "HLD" in label_content.upper():
                 return self.__assign_label("pdbx_HL_D_iso")
-        elif label_type == "W" and "FOM" in label_content:
+        elif label_type == "W" and "FOM" in label_content.upper():
             return self.__assign_label("fom")
 
         # Conditional checks based on label content and type of the previous or next label
         if label_type == "F":
-            if label_content in ["FP", "F-obs-filtered", "F-obs"] or (i < len(labels_list) - 1 and labels_list[i + 1][0] == "Q"):
+            if label_content.upper() in ["FP", "F-OBS-FILTERED", "F-OBS"] or (i < len(labels_list) - 1 and labels_list[i + 1][0] == "Q"):
                 return self.__assign_label("F_meas_au")
-            elif label_content in ["FC", "Fcal"]:
+            elif label_content.upper() in ["FC", "FCAL"]:
                 return self.__assign_label("F_calc_au")
         elif label_type == "Q":
             if i > 0:

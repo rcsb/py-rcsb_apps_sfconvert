@@ -221,3 +221,17 @@ def cif_100d_coordinate_path(data_dir):
         str: The path to the CIF data file.
     """
     yield os.path.join(data_dir, "cif_files", "100d.cif")
+
+
+@pytest.fixture
+def mtz_7yra_data_path(data_dir):
+    """
+    Fixture for the path to the MTZ data file.
+
+    Args:
+        data_dir (str): The path to the data directory.
+
+    Returns:
+        str: The path to the CIF data file.
+    """
+    yield os.path.join(data_dir, "mtz_files", "7yra.mtz")
