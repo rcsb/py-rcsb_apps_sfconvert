@@ -54,6 +54,7 @@ class ImportSf:
         format_out = pdict["out_format"]
         pdb_data = pdict.get("pdb_data", {})
         pdb_wave = pdb_data.get("WAVE", None)
+        pdb_symm = pdb_data.get("SYMM", None)
         wave_arg = pdict.get("wave_cmdline", None)
         free_arg = pdict.get("free", None)
         pdb_cell = pdb_data.get("CELL", None)
@@ -102,6 +103,10 @@ class ImportSf:
             if pdb_cell:
                 sfc.set_cell_if_missing(sffile, pdbid, pdb_cell)
 
+            # We take symmetry from model if not set
+            if pdb_symm:
+                sfc.set_space_group_if_missing(sffile, pdbid, pdb_symm)  
+                
             sfc.annotate_wavelength(sffile, pdbid, setwlarg)
 
             sfc.handle_standard(sffile, pdbid)
@@ -158,6 +163,7 @@ class ImportSf:
         sfin = pdict["sfin"]
         pdb_data = pdict.get("pdb_data", {})
         # pdb_wave = pdb_data.get("WAVE", None)
+        pdb_symm = pdb_data.get("SYMM", None)
         pdb_cell = pdb_data.get("CELL", None)
         # wave_arg = pdict.get("wave_cmdline", None)
         pdb_id_cmd = pdict.get("pdb_id", None)
@@ -176,8 +182,12 @@ class ImportSf:
         sfc = SfCorrect(self.__logger, self.__legacy)
         if pdb_cell:
             sfc.set_cell(sffile, pdb_cell)
-            sfc.ensure_catkeys(sffile, pdbid)
-            sfc.reorder_sf_file(sffile)
+
+        if pdb_symm:
+            sfc.set_space_group_if_missing(sffile, pdbid, pdb_symm)  
+            
+        sfc.ensure_catkeys(sffile, pdbid)
+        sfc.reorder_sf_file(sffile)
 
         # Remove duplicate audits for multiple imports
         sfc.cleanup_extra_audit(sffile)

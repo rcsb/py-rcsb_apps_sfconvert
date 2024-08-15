@@ -1329,8 +1329,32 @@ class SfCorrect:
             newObj = DataCategory(cat, keys, [data])
             blk.append(newObj)
 
-            self.__logger.pinfo(f"Note: Creating {cat} in block={blkname}", 0)
+            self.__logger.pinfo(f"Note: Setting {cat} in block={blkname}", 0)
 
+    def set_space_group_if_missing(self, sffile, pdbid, space_group):
+        """If cell is not present, then set"""
+
+        cat = "symmetry"
+
+        for block_index in range(sffile.get_number_of_blocks()):
+            blk = sffile.get_block_by_index(block_index)
+            blkname = blk.getName()
+
+            if cat in blk.getObjNameList():
+                continue
+
+            # Instantiate spacegroup
+            alist = ["space_group_name_H-M"]
+
+            keys = ["entry_id"] + alist
+            data = [pdbid]
+            data.append(space_group)
+
+            newObj = DataCategory(cat, keys, [data])
+            blk.append(newObj)
+
+            self.__logger.pinfo(f"Note: Auto adding {cat} in block={blkname}", 0)
+            
     def __filter_attributes(self, sffile):
 
         df = DictFilter()
