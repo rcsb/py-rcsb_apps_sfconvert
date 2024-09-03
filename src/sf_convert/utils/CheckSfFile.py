@@ -660,7 +660,10 @@ class CheckSfFile:
                     max_I = f
 
                 if self.__sIo:
-                    sigf = float(self.__sIo[i])
+                    if is_float(self.__sIo[i]):
+                        sigf = float(self.__sIo[i])
+                    else:
+                        sigf = 0.0
                     if sigf > 0 and self.__sIo[i] != '?':
                         i_over_si += f / sigf
                         sum_i += f
