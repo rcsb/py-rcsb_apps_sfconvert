@@ -14,18 +14,34 @@ class DictFilter:
         self.__dataPath = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data", "dictdata.json"))
 
         # pdbx_powder_data not in dictionary -- will accept anyways
-        self.__categories = ['audit', 'audit_conform', 'cell',
-                             'diffrn', 'diffrn_measurement',
-                             'diffrn_orient_matrix',
-                             'diffrn_radiation', 'diffrn_radiation_wavelength',
-                             'diffrn_refln', 'diffrn_reflns',
-                             'diffrn_scale_group', 'diffrn_standard_refln',
-                             'entry', 'exptl_crystal', 'pdbx_audit_conform',
-                             'pdbx_exptl_crystal_cryo_treatment',
-                             'pdbx_powder_data', 'pdbx_refln_signal_binning',
-                             'refine', 'refln', 'reflns', 'reflns_scale',
-                             'reflns_shell', 'software', 'symmetry',
-                             'symmetry_equiv']
+        self.__categories = [
+            "audit",
+            "audit_conform",
+            "cell",
+            "diffrn",
+            "diffrn_measurement",
+            "diffrn_orient_matrix",
+            "diffrn_radiation",
+            "diffrn_radiation_wavelength",
+            "diffrn_refln",
+            "diffrn_reflns",
+            "diffrn_scale_group",
+            "diffrn_standard_refln",
+            "entry",
+            "exptl_crystal",
+            "pdbx_audit_conform",
+            "pdbx_exptl_crystal_cryo_treatment",
+            "pdbx_powder_data",
+            "pdbx_refln_signal_binning",
+            "refine",
+            "refln",
+            "reflns",
+            "reflns_scale",
+            "reflns_shell",
+            "software",
+            "symmetry",
+            "symmetry_equiv",
+        ]
 
         self.__datadict = None
 

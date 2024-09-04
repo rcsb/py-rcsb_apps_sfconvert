@@ -1,4 +1,5 @@
 from sf_convert.sffile.sf_file import StructureFactorFile
+
 # from sf_convert.utils.reformat_sfhead import reformat_sfhead, reorder_sf_file, update_exptl_crystal
 
 
@@ -6,8 +7,8 @@ class ExportCif:
     def __init__(self, legacy):
         """Output to cif
 
-           Args:
-           legacy: Boolean - to add some old attributes to refln categor
+        Args:
+        legacy: Boolean - to add some old attributes to refln categor
         """
         self.__legacy = legacy
         self.__sffile = None

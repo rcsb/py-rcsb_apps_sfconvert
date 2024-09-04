@@ -20,7 +20,7 @@ class TestCifToMtzConversion:
 
         # output_path = tmp_path / "output.mtz"
         output_path = os.path.join(tmp_path, "output.mtz")
-        logger = PInfoLogger('path_to_log1.log', 'path_to_log2.log')
+        logger = PInfoLogger("path_to_log1.log", "path_to_log2.log")
 
         print("Loading and converting the file...")
         sffile = StructureFactorFile()

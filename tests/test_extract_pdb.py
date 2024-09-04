@@ -17,14 +17,14 @@ class TestExtractCoordinate:
         p = ProteinDataBank()
         db = p.extract_attributes_from_cif(cif_5pny_coordinate_path)
 
-        assert db['pdb_id'] == "5PNY"
-        assert db['RESOH'] == 1.48
+        assert db["pdb_id"] == "5PNY"
+        assert db["RESOH"] == 1.48
 
         p = ProteinDataBank()
         db = p.extract_attributes_from_cif(cif_5pny_nodb2_coordinate_path)
 
-        assert db['pdb_id'] is None
-        assert db['RESOH'] == 1.48
+        assert db["pdb_id"] is None
+        assert db["RESOH"] == 1.48
 
     def test_pdb(self, cif_5pny_coordinate_pdb_path):
         """
@@ -40,8 +40,8 @@ class TestExtractCoordinate:
         p = ProteinDataBank()
         db = p.extract_attributes_from_pdb(cif_5pny_coordinate_pdb_path)
 
-        assert db['pdb_id'] == "5PNY"
-        assert db['RESOH'] == 1.48
+        assert db["pdb_id"] == "5PNY"
+        assert db["RESOH"] == 1.48
 
     def test_pdb_null(self, pdb_100d_coordinate_pdb_path):
         """
@@ -58,9 +58,9 @@ class TestExtractCoordinate:
         p = ProteinDataBank()
         db = p.extract_attributes_from_pdb(pdb_100d_coordinate_pdb_path)
 
-        assert db['pdb_id'] == "100D"
-        assert db['RESOH'] == 1.9
-        assert db['WAVE'] is None
+        assert db["pdb_id"] == "100D"
+        assert db["RESOH"] == 1.9
+        assert db["WAVE"] is None
 
     def test_cif_null(self, cif_100d_coordinate_path):
         """
@@ -77,6 +77,6 @@ class TestExtractCoordinate:
         p = ProteinDataBank()
         db = p.extract_attributes_from_cif(cif_100d_coordinate_path)
 
-        assert db['pdb_id'] == "100D"
-        assert db['RESOH'] == 1.9
-        assert db['WAVE'] is None
+        assert db["pdb_id"] == "100D"
+        assert db["RESOH"] == 1.9
+        assert db["WAVE"] is None

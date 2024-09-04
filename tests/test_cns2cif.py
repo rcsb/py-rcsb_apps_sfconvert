@@ -23,7 +23,7 @@ class TestCnsToCifConversion:
         output_path = os.path.join(tmp_path, "output_cns2cif.mmcif")
 
         print("Loading and converting the file...")
-        logger = PInfoLogger('path_to_log1.log', 'path_to_log2.log')
+        logger = PInfoLogger("path_to_log1.log", "path_to_log2.log")
 
         processor = ImportCns(logger)
         processor.set_free(1)

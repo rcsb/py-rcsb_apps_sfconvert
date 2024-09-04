@@ -106,7 +106,7 @@ class CNSToCifConverter:
         self.__l_values.append(l)
         current_key = None
         for word in words[4:]:
-            if current_key is None and word.endswith('='):
+            if current_key is None and word.endswith("="):
                 current_key = word[:-1]
             elif current_key is not None:
                 try:
@@ -122,21 +122,21 @@ class CNSToCifConverter:
         Args:
             line (str): The status line to process.
         """
-        if 'INDE' in line:
+        if "INDE" in line:
             ffg = 0
-            if 'TEST' in line or 'FREE' in line:
-                if 'TEST=' in line:
-                    ffg = int(line.split('TEST=')[1].split()[0])
-                elif 'TEST' in line:
-                    ffg = int(line.split('TEST')[1].split()[0])
-                elif 'FREE=' in line:
-                    ffg = int(line.split('FREE=')[1].split()[0])
-                elif 'FREE ' in line:
-                    ffg = int(line.split('FREE ')[1].split()[0])
+            if "TEST" in line or "FREE" in line:
+                if "TEST=" in line:
+                    ffg = int(line.split("TEST=")[1].split()[0])
+                elif "TEST" in line:
+                    ffg = int(line.split("TEST")[1].split()[0])
+                elif "FREE=" in line:
+                    ffg = int(line.split("FREE=")[1].split()[0])
+                elif "FREE " in line:
+                    ffg = int(line.split("FREE ")[1].split()[0])
                 if self.__FREERV:
-                    self.__values['status'].append('f' if ffg == int(self.__FREERV) else 'o')
+                    self.__values["status"].append("f" if ffg == int(self.__FREERV) else "o")
                 else:
-                    self.__values['status'].append('f' if ffg == 1 else 'o')
+                    self.__values["status"].append("f" if ffg == 1 else "o")
 
     def __rename_keys_complete(self):
         """
@@ -174,7 +174,7 @@ class CNSToCifConverter:
         """
         Process the CNS file.
         """
-        with open(self.__file_path, 'r') as file:
+        with open(self.__file_path, "r") as file:
             for line in file:
                 self.__process_line(line)
                 self.__process_status_line(line)
@@ -197,7 +197,7 @@ class CNSToCifConverter:
         aCat.appendAttribute("update_record")
         aCat.append(["1_0", "?", "Initial release"])
         self.__curContainer.append(aCat)
-        self.__logger.pinfo(f'Note: file {self.__file_path} has no _audit. (auto added)', self.__pinfo_value)
+        self.__logger.pinfo(f"Note: file {self.__file_path} has no _audit. (auto added)", self.__pinfo_value)
 
         bCat = DataCategory("diffrn_radiation_wavelength")
         bCat.appendAttribute("id")
@@ -222,16 +222,29 @@ class CNSToCifConverter:
         self.__curContainer.append(eCat)
 
         fCat = DataCategory("refln")
-        fCat.appendAttribute('crystal_id')
-        fCat.appendAttribute('wavelength_id')
-        fCat.appendAttribute('scale_group_code')
-        fCat.appendAttribute('index_h')
-        fCat.appendAttribute('index_k')
-        fCat.appendAttribute('index_l')
+        fCat.appendAttribute("crystal_id")
+        fCat.appendAttribute("wavelength_id")
+        fCat.appendAttribute("scale_group_code")
+        fCat.appendAttribute("index_h")
+        fCat.appendAttribute("index_k")
+        fCat.appendAttribute("index_l")
 
         # Preference order.... status F_meas_au F_meas_sigma_au, pdbx_HL_A, ....
-        pref = ["status", "F_meas_au", "F_meas_sigma_au", "intensity_meas", "intensity_sigma", "phase_meas", "phase_calc",
-                "fom", "F_calc_au", "pdbx_HLA", "pdbx_HLB", "pdbx_HLC", "pdbx_HLD"]
+        pref = [
+            "status",
+            "F_meas_au",
+            "F_meas_sigma_au",
+            "intensity_meas",
+            "intensity_sigma",
+            "phase_meas",
+            "phase_calc",
+            "fom",
+            "F_calc_au",
+            "pdbx_HLA",
+            "pdbx_HLB",
+            "pdbx_HLC",
+            "pdbx_HLD",
+        ]
         cur_key = {}
         for key in self.__values.keys():
             cur_key[key] = 1

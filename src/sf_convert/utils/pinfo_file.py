@@ -139,6 +139,7 @@ class PInfoLogger(PInfoBase):
 
 class PStreamLogger(PInfoBase):
     """Logger but uses StringIO and not tempoary log files"""
+
     def __init__(self):
         super().__init__()
         self._lf1 = io.StringIO()

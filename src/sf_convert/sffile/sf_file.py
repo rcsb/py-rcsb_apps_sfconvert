@@ -444,10 +444,10 @@ class StructureFactorFile:
 
     def merge_sf(self, sfnew):
         """Merge new StructureFactorFile into existing definition.
-           Care is made to ensure unique data block names
+        Care is made to ensure unique data block names
 
-           Args:
-             sfnew (StructureFactorFile): Object to merge
+        Args:
+          sfnew (StructureFactorFile): Object to merge
         """
         for idx in range(sfnew.get_number_of_blocks()):
             blk = sfnew.get_block_by_index(idx)

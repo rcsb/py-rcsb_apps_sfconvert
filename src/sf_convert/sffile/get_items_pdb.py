@@ -23,7 +23,7 @@ class ProteinDataBank:
         attributes = self._get_cif_attributes(container)
 
         # Group cell parameters together
-        attributes['CELL'] = [attributes.pop(key) for key in ['CELL_a', 'CELL_b', 'CELL_c', 'CELL_alpha', 'CELL_beta', 'CELL_gamma'] if key in attributes]
+        attributes["CELL"] = [attributes.pop(key) for key in ["CELL_a", "CELL_b", "CELL_c", "CELL_alpha", "CELL_beta", "CELL_gamma"] if key in attributes]
 
         return attributes
 
@@ -39,11 +39,18 @@ class ProteinDataBank:
         """
         cif_attributes = {
             # 'entry': [('id', 'pdb_id')],
-            'reflns': [('d_resolution_high', 'RESOH'), ('d_resolution_low', 'RESOL'), ('free_R_factor', 'FREERV')],
-            'diffrn_radiation_wavelength': [('wavelength', 'WAVE')],
-            'pdbx_refine': [('free_R_val_test_set_ct_no_cutoff', 'NFREE')],
-            'cell': [('length_a', 'CELL_a'), ('length_b', 'CELL_b'), ('length_c', 'CELL_c'), ('angle_alpha', 'CELL_alpha'), ('angle_beta', 'CELL_beta'), ('angle_gamma', 'CELL_gamma')],
-            'symmetry': [('space_group_name_H-M', 'SYMM')],
+            "reflns": [("d_resolution_high", "RESOH"), ("d_resolution_low", "RESOL"), ("free_R_factor", "FREERV")],
+            "diffrn_radiation_wavelength": [("wavelength", "WAVE")],
+            "pdbx_refine": [("free_R_val_test_set_ct_no_cutoff", "NFREE")],
+            "cell": [
+                ("length_a", "CELL_a"),
+                ("length_b", "CELL_b"),
+                ("length_c", "CELL_c"),
+                ("angle_alpha", "CELL_alpha"),
+                ("angle_beta", "CELL_beta"),
+                ("angle_gamma", "CELL_gamma"),
+            ],
+            "symmetry": [("space_group_name_H-M", "SYMM")],
         }
 
         attributes = {}
@@ -56,7 +63,7 @@ class ProteinDataBank:
                     if obj.hasAttribute(attr):
                         val = obj.getValue(attr)
                         if val not in [".", "?"]:
-                            store = float(val) if val.replace('.', '', 1).isdigit() else val
+                            store = float(val) if val.replace(".", "", 1).isdigit() else val
                     attributes[output_name] = store
             else:
                 for attr, output_name in attrs:
@@ -109,31 +116,31 @@ class ProteinDataBank:
         pdb_id = wave = nfree = resoh = resol = freerv = symm = None
         cell = [None] * 6
 
-        with open(filename, 'r') as file:
+        with open(filename, "r") as file:
             for line in file:
-                if line.startswith('HEADER'):
+                if line.startswith("HEADER"):
                     pdb_id = line[61:66].strip()
 
-                elif 'REMARK 200  WAVELENGTH OR RANGE        (A) :' in line:
+                elif "REMARK 200  WAVELENGTH OR RANGE        (A) :" in line:
                     wave = self._extract_float(line)
 
-                elif 'FREE R VALUE TEST SET COUNT   (NO CUTOFF)' in line:
+                elif "FREE R VALUE TEST SET COUNT   (NO CUTOFF)" in line:
                     nfree = self._extract_int(line)
 
-                elif 'RESOLUTION RANGE HIGH (ANGSTROMS)' in line:
+                elif "RESOLUTION RANGE HIGH (ANGSTROMS)" in line:
                     resoh = self._extract_float(line)
 
-                elif 'RESOLUTION RANGE LOW  (ANGSTROMS)' in line:
+                elif "RESOLUTION RANGE LOW  (ANGSTROMS)" in line:
                     resol = self._extract_float(line)
 
-                elif 'REMARK   test_flag_value:' in line and freerv is None:
-                    freerv = line.split(':')[1].strip()
+                elif "REMARK   test_flag_value:" in line and freerv is None:
+                    freerv = line.split(":")[1].strip()
 
-                elif line.startswith('CRYST1'):
+                elif line.startswith("CRYST1"):
                     cell = self._extract_cell_parameters(line)
                     symm = line[55:66].strip()
 
-        return {'pdb_id': pdb_id, 'RESOH': resoh, 'RESOL': resol, 'FREERV': freerv, 'WAVE': wave, 'NFREE': nfree, 'SYMM': symm, 'CELL': cell}
+        return {"pdb_id": pdb_id, "RESOH": resoh, "RESOL": resol, "FREERV": freerv, "WAVE": wave, "NFREE": nfree, "SYMM": symm, "CELL": cell}
 
     def _extract_float(self, line):
         """
@@ -145,8 +152,8 @@ class ProteinDataBank:
         Returns:
             float: The extracted float value.
         """
-        value = line.split(':')[1]
-        search = re.search(r'[-+]?\d*\.\d+|\d+', value)
+        value = line.split(":")[1]
+        search = re.search(r"[-+]?\d*\.\d+|\d+", value)
 
         ret = None
         if search:
@@ -167,8 +174,8 @@ class ProteinDataBank:
         Returns:
             int: The extracted integer value.
         """
-        value = line.split(':')[1]
-        search = re.search(r'\d+', value)
+        value = line.split(":")[1]
+        search = re.search(r"\d+", value)
 
         ret = None
         if search:

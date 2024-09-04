@@ -9,17 +9,17 @@ def guess_sf_format(inpfile: str) -> str:
         str: The guessed format of the structure factor file, or None if the format is not recognized.
     """
     try:
-        with open(inpfile, 'r', encoding='utf-8') as file:
+        with open(inpfile, "r", encoding="utf-8") as file:
             lines = file.readlines()
 
         # Check CIF
         for line in lines:
-            if line.strip().startswith('_reflns.'):
+            if line.strip().startswith("_reflns."):
                 return "CIF"
 
         # Check mmCIF
         for line in lines:
-            if line.strip().startswith('_refln.'):
+            if line.strip().startswith("_refln."):
                 return "mmCIF"
 
         # Check CNS
@@ -63,7 +63,7 @@ def guess_sf_format(inpfile: str) -> str:
         # Check XSCALE
         n5 = 0
         for line in lines:
-            if line.strip().startswith(('!SPACE_GROUP_NUMBER=', '!UNIT_CELL_CONSTANTS=', '!ITEM_H=', '!ITEM_K=', '!ITEM_L=')):
+            if line.strip().startswith(("!SPACE_GROUP_NUMBER=", "!UNIT_CELL_CONSTANTS=", "!ITEM_H=", "!ITEM_K=", "!ITEM_L=")):
                 n5 += 1
                 if n5 > 4:
                     return "XSCALE"
@@ -73,12 +73,13 @@ def guess_sf_format(inpfile: str) -> str:
         for line in lines:
             line = line.strip()
             if (
-                    line.startswith("CRYSTAL_MOSAICITY=")
-                    or line.startswith("CRYSTAL_SPACEGROUP=")
-                    or line.startswith("CRYSTAL_UNIT_CELL=")
-                    or line.startswith("nH")
-                    or line.startswith("nK")
-                    or line.startswith("nL")):
+                line.startswith("CRYSTAL_MOSAICITY=")
+                or line.startswith("CRYSTAL_SPACEGROUP=")
+                or line.startswith("CRYSTAL_UNIT_CELL=")
+                or line.startswith("nH")
+                or line.startswith("nK")
+                or line.startswith("nL")
+            ):
                 n6 += 1
                 if n6 > 5:
                     return "DTREK"
@@ -88,9 +89,11 @@ def guess_sf_format(inpfile: str) -> str:
         for i, line in enumerate(lines):
             strs = line.split()
             if (
-                    (i == 0 and strs[0] == "1" and len(strs) == 1)
-                    or (i == 1 and (strs[0] == "-985" or strs[0] == "-987") and len(strs) == 1)
-                    or (i == 2 and '.' in strs[0] and len(line) > 60) and len(strs) == 6):
+                (i == 0 and strs[0] == "1" and len(strs) == 1)
+                or (i == 1 and (strs[0] == "-985" or strs[0] == "-987") and len(strs) == 1)
+                or (i == 2 and "." in strs[0] and len(line) > 60)
+                and len(strs) == 6
+            ):
                 n7 += 1
                 if n7 >= 3:
                     return "SCALEPACK"
@@ -113,10 +116,10 @@ def guess_sf_format(inpfile: str) -> str:
 
     except UnicodeDecodeError:
         try:
-            with open(inpfile, 'rb') as file:
+            with open(inpfile, "rb") as file:
                 first_three_bytes = file.read(3)
 
-            if first_three_bytes == b'MTZ':
+            if first_three_bytes == b"MTZ":
                 return "MTZ"
         except Exception as _e:  # noqa: F841
             return None

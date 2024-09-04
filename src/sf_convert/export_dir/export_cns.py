@@ -53,7 +53,7 @@ class ExportCns:
             "pdbx_HL_A_iso": "hla",
             "pdbx_HL_B_iso": "hlb",
             "pdbx_HL_C_iso": "hlc",
-            "pdbx_HL_D_iso": "hld"
+            "pdbx_HL_D_iso": "hld",
         }
 
     def __initialize_data(self):
@@ -89,7 +89,7 @@ class ExportCns:
         check_attributes = {
             "Io": ["intensity_meas", "intensity_meas_au", "intensity"],
             "sIo": ["intensity_sigma", "intensity_sigma_au", "intensity_sigm", "intensity_meas_sigma", "intensity_meas_sigma_au"],
-            "status": ["status", "R_free_flag", "statu", "status_au"]
+            "status": ["status", "R_free_flag", "statu", "status_au"],
         }
 
         for attribute, alternatives in check_attributes.items():
@@ -135,9 +135,7 @@ class ExportCns:
         Args:
             i (int): The index of the sIo attribute to initialize.
         """
-        self.__sIo = self.__get_first_refln_value(["intensity_sigma", "intensity_sigma_au",
-                                                   "intensity_sigm", "intensity_meas_sigma",
-                                                   "intensity_meas_sigma_au"], i)
+        self.__sIo = self.__get_first_refln_value(["intensity_sigma", "intensity_sigma_au", "intensity_sigm", "intensity_meas_sigma", "intensity_meas_sigma_au"], i)
 
     def __initialize_status_at_index(self, i):
         """
@@ -194,21 +192,27 @@ class ExportCns:
         ssf = self.float_or_zero(self.__sFo_au) if self.__sFo_au else self.float_or_zero(self.__sFo) if self.__sFo else 0.0
 
         # for F
-        f = self.float_or_zero(self.__Fo_au) if self.__Fo_au else self.float_or_zero(self.__Fo) if self.__Fo else \
-            self.float_or_zero(self.__Fc_au) if self.__Fc_au else self.float_or_zero(self.__Fc) if self.__Fc else 0.0
+        f = (
+            self.float_or_zero(self.__Fo_au)
+            if self.__Fo_au
+            else self.float_or_zero(self.__Fo) if self.__Fo else self.float_or_zero(self.__Fc_au) if self.__Fc_au else self.float_or_zero(self.__Fc) if self.__Fc else 0.0
+        )
 
         if not self.__Io:
             i = f * f
             si = 2 * f * ssf
 
         # for I
-        i = self.float_or_zero(self.__Io) if self.__Io else self.float_or_zero(self.__F2o) if self.__F2o else \
-            self.float_or_zero(self.__Ic) if self.__Ic else self.float_or_zero(self.__F2c) if self.__F2c else 0.0
+        i = (
+            self.float_or_zero(self.__Io)
+            if self.__Io
+            else self.float_or_zero(self.__F2o) if self.__F2o else self.float_or_zero(self.__Ic) if self.__Ic else self.float_or_zero(self.__F2c) if self.__F2c else 0.0
+        )
 
         if not self.__Fo_au:
             if i > 0.0:
-                f = i ** 0.5
-                ssf = si / (2. * f)
+                f = i**0.5
+                ssf = si / (2.0 * f)
             else:
                 f = 0
                 ssf = 0
@@ -255,7 +259,7 @@ class ExportCns:
 
             if not self.__F_plus:
                 if i >= 0:
-                    f = i ** 0.5
+                    f = i**0.5
                     ssf = si / (2 * f) if f > 0.0001 else 0
 
         ff = f
@@ -284,7 +288,7 @@ class ExportCns:
         """
         Writes the data to a CNS file.
         """
-        with open(pathOut, 'w') as output_file:
+        with open(pathOut, "w") as output_file:
             output_file.write("NREFlection= {}\n".format(self.__nref))
             output_file.write("ANOMalous=FALSe { equiv. to HERMitian=TRUE}\n")
             output_file.write("DECLare NAME=FOBS            DOMAin=RECIprocal   TYPE=REAL END\n")
@@ -292,26 +296,26 @@ class ExportCns:
             output_file.write("DECLare NAME=TEST            DOMAin=RECIprocal   TYPE=INTE END\n")
 
             # Assuming that all the variables here are boolean values
-            if self.__attr_existence['Io'] or self.__attr_existence['F2o']:
+            if self.__attr_existence["Io"] or self.__attr_existence["F2o"]:
                 output_file.write("DECLare NAME=IOBS            DOMAin=RECIprocal   TYPE=REAL END\n")
                 output_file.write("DECLare NAME=SIGI            DOMAin=RECIprocal   TYPE=REAL END\n")
 
-            if self.__attr_existence['F_plus'] and self.__attr_existence['F_minus']:
+            if self.__attr_existence["F_plus"] and self.__attr_existence["F_minus"]:
                 output_file.write("DECLare NAME=F+           DOMAin=RECIprocal   TYPE=REAL END\n")
                 output_file.write("DECLare NAME=SIGF+        DOMAin=RECIprocal   TYPE=REAL END\n")
                 output_file.write("DECLare NAME=F-           DOMAin=RECIprocal   TYPE=REAL END\n")
                 output_file.write("DECLare NAME=SIGF-        DOMAin=RECIprocal   TYPE=REAL END\n")
 
-            elif self.__attr_existence['I_plus'] and self.__attr_existence['I_minus']:
+            elif self.__attr_existence["I_plus"] and self.__attr_existence["I_minus"]:
                 output_file.write("DECLare NAME=I+           DOMAin=RECIprocal   TYPE=REAL END\n")
                 output_file.write("DECLare NAME=SIGI+        DOMAin=RECIprocal   TYPE=REAL END\n")
                 output_file.write("DECLare NAME=I-           DOMAin=RECIprocal   TYPE=REAL END\n")
                 output_file.write("DECLare NAME=SIGI-        DOMAin=RECIprocal   TYPE=REAL END\n")
 
-            if self.__attr_existence['fom']:
+            if self.__attr_existence["fom"]:
                 output_file.write("DECLare NAME=FOM   DOMAin=RECIprocal   TYPE=REAL END\n")
 
-            if self.__attr_existence['hla']:
+            if self.__attr_existence["hla"]:
                 output_file.write("DECLare NAME=HLA   DOMAin=RECIprocal   TYPE=REAL END\n")
                 output_file.write("DECLare NAME=HLB   DOMAin=RECIprocal   TYPE=REAL END\n")
                 output_file.write("DECLare NAME=HLC   DOMAin=RECIprocal   TYPE=REAL END\n")
@@ -324,33 +328,36 @@ class ExportCns:
 
                 h, k, l, ff, sff, ii, sii = self.get_F_I(i)
 
-                if self.__attr_existence['status'] and self.__status == 'x':
+                if self.__attr_existence["status"] and self.__status == "x":
                     continue
 
                 if self.__status:
-                    flag = 1 if (self.__status == 'f' or self.__status == '1') else 0
+                    flag = 1 if (self.__status == "f" or self.__status == "1") else 0
                 else:
                     flag = 0
 
                 output_file.write("INDE  {} {} {} FOBS= {:.2f} SIGMA= {:.2f} TEST= {}\n".format(h, k, l, ff, sff, flag))
 
-                if self.__attr_existence['Io'] or self.__attr_existence['F2o']:
+                if self.__attr_existence["Io"] or self.__attr_existence["F2o"]:
                     output_file.write("IOBS= {:.2f} SIGI= {:.2f}\n".format(ii, sii))
 
-                if self.__attr_existence['F_plus'] and self.__attr_existence['F_minus']:
+                if self.__attr_existence["F_plus"] and self.__attr_existence["F_minus"]:
                     output_file.write("F+= {:.2f} SIGF+= {:.2f}\n".format(self.float_or_zero(self.__F_plus), self.float_or_zero(self.__sF_plus)))
                     output_file.write("F-= {:.2f} SIGF-= {:.2f}\n".format(self.float_or_zero(self.__F_minus), self.float_or_zero(self.__sF_minus)))
 
-                elif self.__attr_existence['I_plus'] and self.__attr_existence['I_minus']:
+                elif self.__attr_existence["I_plus"] and self.__attr_existence["I_minus"]:
                     output_file.write("I+= {:.2f} SIGI+= {:.2f}\n".format(self.float_or_zero(self.__I_plus), self.float_or_zero(self.__sI_plus)))
                     output_file.write("I-= {:.2f} SIGI-= {:.2f}\n".format(self.float_or_zero(self.__I_minus), self.float_or_zero(self.__sI_minus)))
 
-                if self.__attr_existence['fom']:
+                if self.__attr_existence["fom"]:
                     output_file.write("FOM= {:.2f}\n".format(self.float_or_zero(self.__fom)))
 
-                if self.__attr_existence['hla']:
-                    output_file.write("HLA= {:.2f} HLB= {:.2f} HLC= {:.2f} HLD= {:.2f}\n".format(
-                        self.float_or_zero(self.__hla), self.float_or_zero(self.__hlb), self.float_or_zero(self.__hlc), self.float_or_zero(self.__hld)))
+                if self.__attr_existence["hla"]:
+                    output_file.write(
+                        "HLA= {:.2f} HLB= {:.2f} HLC= {:.2f} HLD= {:.2f}\n".format(
+                            self.float_or_zero(self.__hla), self.float_or_zero(self.__hlb), self.float_or_zero(self.__hlc), self.float_or_zero(self.__hld)
+                        )
+                    )
 
     def write_file(self, path_out):
         """

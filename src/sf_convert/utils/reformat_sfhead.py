@@ -113,44 +113,20 @@ def reformat_sfhead(sf_file, pdb_id, logger, DETAIL=None):
         "F_squared_sigma": "intensity_sigma",
         "gsas_i100_meas": "pdbx_gsas_i100_meas",
         "gphl_signal_type": "pdbx_signal_type",
-        "gphl_observed_signal_threshold": "pdbx_observed_signal_threshold"
+        "gphl_observed_signal_threshold": "pdbx_observed_signal_threshold",
     }
 
-    audit = {
-        "update_recor": "update_record"
-    }
+    audit = {"update_recor": "update_record"}
 
-    cell = {
-        "enrty_id": "entry_id",
-        "enry_id": "entry_id",
-        "entry": "entry_id",
-        "ndb_unique_axis": "pdbx_unique_axis"
-    }
+    cell = {"enrty_id": "entry_id", "enry_id": "entry_id", "entry": "entry_id", "ndb_unique_axis": "pdbx_unique_axis"}
 
-    diffrn = {
-        "detail": "details"
-    }
+    diffrn = {"detail": "details"}
 
-    symmetry = {
-        "int_tables_number": "Int_Tables_number",
-        "ndb_full_space_group_name_H-M": "space_group_name_H-M",
-        "space_group_name_h-m": "space_group_name_H-M"
-    }
+    symmetry = {"int_tables_number": "Int_Tables_number", "ndb_full_space_group_name_H-M": "space_group_name_H-M", "space_group_name_h-m": "space_group_name_H-M"}
 
-    mapping_dicts = {
-        "refln": refln,
-        "audit": audit,
-        "cell": cell,
-        "diffrn": diffrn,
-        "symmetry": symmetry
-    }
+    mapping_dicts = {"refln": refln, "audit": audit, "cell": cell, "diffrn": diffrn, "symmetry": symmetry}
 
-    attributes_to_append = {
-        "_diffrn": {
-            "ambient_temp": "?",
-            "crystal_treatment": "?"
-        }
-    }
+    attributes_to_append = {"_diffrn": {"ambient_temp": "?", "crystal_treatment": "?"}}
 
     changes_made |= rename_sfhead(sf_file, mapping_dicts, logger)
     changes_made |= remove_sfhead(sf_file, remove_list, logger)
@@ -237,6 +213,7 @@ def remove_sfhead(sf_file, remove_list, logger, start=0):
                 changes_made = True
                 logger.pinfo(f"Removing {catname} category from block {block.getName()}", 0)
     return changes_made
+
 
 # def remove_duplicate_reflections(sf_file):
 #     """
@@ -348,11 +325,12 @@ def fix_entry_ids(sf_file, pdbid):
         bool: True if the value was modified, False otherwise.
     """
 
-    updates = [["entry", "id"],
-               ["cell", "entry_id"],
-               ["symmetry", "entry_id"],
-               ["reflns", "entry_id"],
-               ]
+    updates = [
+        ["entry", "id"],
+        ["cell", "entry_id"],
+        ["symmetry", "entry_id"],
+        ["reflns", "entry_id"],
+    ]
 
     changes = False
     for idx in range(sf_file.get_number_of_blocks()):
@@ -413,8 +391,20 @@ def reorder_sf_file(sf_file):
 
     """
 
-    earlyorder = ["audit", "cell", "diffrn", "diffrn_radiation", "diffrn_radiation_wavelength", "diffrn_reflns", "diffrn_scale_group",
-                  "diffrn_standard_refln", "entry", "exptl_crystal", "reflns_scale", "symmetry"]
+    earlyorder = [
+        "audit",
+        "cell",
+        "diffrn",
+        "diffrn_radiation",
+        "diffrn_radiation_wavelength",
+        "diffrn_reflns",
+        "diffrn_scale_group",
+        "diffrn_standard_refln",
+        "entry",
+        "exptl_crystal",
+        "reflns_scale",
+        "symmetry",
+    ]
     lateorder = ["refln", "diffrn_refln"]
 
     allbnames = sf_file.get_all_block_names()

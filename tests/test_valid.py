@@ -28,7 +28,7 @@ class TestValid:
         sffile = StructureFactorFile()
         sffile.read_file(cif_5pny_data_path)
         n = sffile.get_number_of_blocks()
-        logger = PInfoLogger('path_to_log1.log', 'path_to_log2.log')
+        logger = PInfoLogger("path_to_log1.log", "path_to_log2.log")
         sf_stat = CheckSfFile(sffile, logger)
         sf_stat.check_sf_all_blocks(n)
         sf_stat.write_sf_4_validation(output_path)

@@ -27,16 +27,16 @@ class TestMmcifConversion:
         # Read and process the mmCIF file
         sffile = StructureFactorFile()
         sffile.read_file(cif_5pny_data_path)
-        logger = PInfoLogger('path_to_log1.log', 'path_to_log2.log')
+        logger = PInfoLogger("path_to_log1.log", "path_to_log2.log")
         _ = reformat_sfhead(sffile, "5pny", logger, DETAIL)
         sffile.write_file(output_path)
 
         # Read the expected output file and filter out comment lines
-        with open(cif_mmcif_5pny_detail_data_path, 'r') as file:
+        with open(cif_mmcif_5pny_detail_data_path, "r") as file:
             expected_lines = [line.strip() for line in file.readlines() if not line.strip().startswith("#")]
 
         # Read the generated output file and filter out comment lines
-        with open(output_path, 'r') as file:
+        with open(output_path, "r") as file:
             output_lines = [line.strip() for line in file.readlines() if not line.strip().startswith("#")]
 
         # Join split lines
@@ -44,15 +44,15 @@ class TestMmcifConversion:
         output_lines = self.join_split_lines(output_lines)
 
         # Normalize whitespace in each line for accurate comparison
-        expected_lines = [' '.join(line.split()) for line in expected_lines]
-        output_lines = [' '.join(line.split()) for line in output_lines]
+        expected_lines = [" ".join(line.split()) for line in expected_lines]
+        output_lines = [" ".join(line.split()) for line in output_lines]
 
         # Compare the files
         differ = difflib.Differ()
         diffs = list(differ.compare(expected_lines, output_lines))
 
         # Check if there are differences
-        differences = [diff for diff in diffs if diff[0] in ('-', '+')]
+        differences = [diff for diff in diffs if diff[0] in ("-", "+")]
 
         if differences:
             print("\nDifferences found:")

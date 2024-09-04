@@ -22,7 +22,7 @@ class TestCifToCnsConversion:
         print("Starting the test...")
 
         output_path = os.path.join(tmp_path, "output.CNS")
-        logger = PInfoLogger('path_to_log1.log', 'path_to_log2.log')
+        logger = PInfoLogger("path_to_log1.log", "path_to_log2.log")
 
         print("Reading the input file...")
         sffile = StructureFactorFile()
@@ -34,22 +34,22 @@ class TestCifToCnsConversion:
         converter.write_file(output_path)
 
         # Read the files
-        with open(cns_5pny_data_path, 'r') as file:
+        with open(cns_5pny_data_path, "r") as file:
             file1_lines = file.read().splitlines()
 
-        with open(output_path, 'r') as file:
+        with open(output_path, "r") as file:
             file2_lines = file.read().splitlines()
 
         # Normalize whitespace in each line
-        file1_lines = [' '.join(line.split()) for line in file1_lines]
-        file2_lines = [' '.join(line.split()) for line in file2_lines]
+        file1_lines = [" ".join(line.split()) for line in file1_lines]
+        file2_lines = [" ".join(line.split()) for line in file2_lines]
 
         # Compare the files
         differ = difflib.Differ()
         diffs = list(differ.compare(file1_lines, file2_lines))
 
         # Check if there are differences
-        differences = [diff for diff in diffs if diff[0] in ('-', '+')]
+        differences = [diff for diff in diffs if diff[0] in ("-", "+")]
 
         assert len(differences) == 0, "Files are not the same"
 

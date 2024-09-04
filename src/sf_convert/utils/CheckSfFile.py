@@ -159,13 +159,7 @@ class CheckSfFile:
             else:
                 setattr(self, "_CheckSfFile__" + var, None)
 
-        diffrn_attributes = {
-            "intensity_net": "unmerge_i",
-            "intensity_sigma": "unmerge_si",
-            "index_h": "dH",
-            "index_k": "dK",
-            "index_l": "dL"
-        }
+        diffrn_attributes = {"intensity_net": "unmerge_i", "intensity_sigma": "unmerge_si", "index_h": "dH", "index_k": "dK", "index_l": "dL"}
 
         for attr, var in diffrn_attributes.items():
             if self.__diffrn_refln_data and self.__diffrn_refln_data.hasAttribute(attr):
@@ -323,7 +317,7 @@ class CheckSfFile:
             sinb = math.sin(math.radians(cell[4]))
             sinc = math.sin(math.radians(cell[5]))
 
-            v = cell[0] * cell[1] * cell[2] * math.sqrt(1. - cosa * cosa - cosb * cosb - cosc * cosc + 2. * cosa * cosb * cosc)
+            v = cell[0] * cell[1] * cell[2] * math.sqrt(1.0 - cosa * cosa - cosb * cosb - cosc * cosc + 2.0 * cosa * cosb * cosc)
 
             rcell[0] = cell[1] * cell[2] * sina / v
             rcell[1] = cell[0] * cell[2] * sinb / v
@@ -421,8 +415,9 @@ class CheckSfFile:
             self.__logger.pinfo(f"Error: File has no 'index_h, index_k, index_l' (data block= {nblock + 1}).", self.__pinfo_value)
             return
 
-        if not (self.__Fo_au or self.__Fo or self.__Io or self.__F2o or self.__I_plus or self.__I_minus
-                or self.__F_plus or self.__F_minus or self.__unmerge_i or self.__unmerge_si):
+        if not (
+            self.__Fo_au or self.__Fo or self.__Io or self.__F2o or self.__I_plus or self.__I_minus or self.__F_plus or self.__F_minus or self.__unmerge_i or self.__unmerge_si
+        ):
             msg = "Error" if nblock == 0 else "Warning"
             self.__logger.pinfo(f"{msg}: File has no mandatory items 'F/I/F+/F-/I+/I-' (data block= {nblock + 1}). ", self.__pinfo_value)
             return
@@ -434,11 +429,17 @@ class CheckSfFile:
             self.__logger.pinfo(f"Error: File has too few reflections ({self.__nref}) (data block= {nblock + 1}).", self.__pinfo_value)
             return
 
-        if (self.__Fo_au and not self.__sFo_au) or (self.__Fo and not self.__sFo) \
-           or (self.__Io and not self.__sIo) or (self.__F2o and not self.__sF2o) \
-           or (self.__I_plus and not self.__sI_plus) or (self.__I_minus and not self.__sI_minus) \
-           or (self.__F_plus and not self.__sF_plus) or (self.__F_minus and not self.__sF_minus) \
-           or (self.__unmerge_i and not self.__unmerge_si):
+        if (
+            (self.__Fo_au and not self.__sFo_au)
+            or (self.__Fo and not self.__sFo)
+            or (self.__Io and not self.__sIo)
+            or (self.__F2o and not self.__sF2o)
+            or (self.__I_plus and not self.__sI_plus)
+            or (self.__I_minus and not self.__sI_minus)
+            or (self.__F_plus and not self.__sF_plus)
+            or (self.__F_minus and not self.__sF_minus)
+            or (self.__unmerge_i and not self.__unmerge_si)
+        ):
             self.__logger.pinfo(f"Warning: Sigma values are missing (data block= {nblock + 1})!", self.__pinfo_value)
 
         if self.__status is None:
@@ -471,23 +472,23 @@ class CheckSfFile:
             max_K = max(max_K, ak)
             max_L = max(max_L, al)
 
-            if not ((self.__Fo_au and self.__Fo_au[i] != '?')
-                    or (self.__Io and self.__Io[i] != '?')
-                    or (self.__I_plus and self.__I_plus[i] != '?')
-                    or (self.__I_minus and self.__I_minus[i] != '?')
-                    or (self.__F_plus and self.__F_plus[i] != '?')
-                    or (self.__F_minus and self.__F_minus[i] != '?')
-                    or (self.__unmerge_i and self.__unmerge_i[i] != '?')
-                    or (self.__F2o and self.__F2o[i] != '?')
-                    or (self.__Fo and self.__Fo[i] != '?')):
+            if not (
+                (self.__Fo_au and self.__Fo_au[i] != "?")
+                or (self.__Io and self.__Io[i] != "?")
+                or (self.__I_plus and self.__I_plus[i] != "?")
+                or (self.__I_minus and self.__I_minus[i] != "?")
+                or (self.__F_plus and self.__F_plus[i] != "?")
+                or (self.__F_minus and self.__F_minus[i] != "?")
+                or (self.__unmerge_i and self.__unmerge_i[i] != "?")
+                or (self.__F2o and self.__F2o[i] != "?")
+                or (self.__Fo and self.__Fo[i] != "?")
+            ):
                 continue
 
             temp_nref += 1
             hkl = f"HKL={ah:4d} {ak:4d} {al:4d}"
 
-            if (
-                    (ah == 0 and ak == 0 and al == 0)
-                    or (abs(ah) > 800 or abs(ak) > 800 or abs(al) > 800)):
+            if (ah == 0 and ak == 0 and al == 0) or (abs(ah) > 800 or abs(ak) > 800 or abs(al) > 800):
                 n1 += 1
                 if n1 == 1:
                     self.__logger.pinfo(f"Error: File has wrong indices ({hkl}).", self.__pinfo_value)
@@ -530,17 +531,17 @@ class CheckSfFile:
 
                 val = 0
                 sval = 0
-                if self.__Io and self.__sIo and self.__sIo[i] != '?':
+                if self.__Io and self.__sIo and self.__sIo[i] != "?":
                     val = self.__float_or_zero(self.__Io[i])
                     sval = self.__float_or_zero(self.__sIo[i])
-                elif self.__Fo_au and self.__sFo_au and self.__sFo_au[i] != '?':
+                elif self.__Fo_au and self.__sFo_au and self.__sFo_au[i] != "?":
                     fval = self.__float_or_zero(self.__Fo_au[i])
                     val = fval * fval
                     sval = 2 * fval * self.__float_or_zero(self.__sFo_au[i])
-                elif self.__F2o and self.__sFo and self.__sF2o[i] != '?':
+                elif self.__F2o and self.__sFo and self.__sF2o[i] != "?":
                     val = self.__float_or_zero(self.__F2o[i])
                     sval = self.__float_or_zero(self.__sF2o[i])
-                elif self.__Fo and self.__sFo and self.__sFo[i] != '?':
+                elif self.__Fo and self.__sFo and self.__sFo[i] != "?":
                     fval = self.__float_or_zero(self.__Fo[i])
                     val = fval * fval
                     sval = 2 * fval * self.__float_or_zero(self.__sFo[i])
@@ -567,17 +568,17 @@ class CheckSfFile:
                 if self.__I_minus and self.__I_minus[i] != "?":
                     nin += 1
 
-                if ((self.__Fo and self.__Fo[i] != "?")
+                if (
+                    (self.__Fo and self.__Fo[i] != "?")
                     or (self.__Fo_au and self.__Fo_au[i] != "?")
                     or (self.__Io and self.__Io[i] != "?")
                     or (self.__F2o and self.__F2o[i] != "?")
-                    or ((self.__F_plus and self.__F_plus[i] != "?")
-                        or (self.__F_minus and self.__F_minus[i] != "?"))
-                    or ((self.__I_plus and self.__I_plus[i] != "?")
-                        or (self.__I_minus and self.__I_minus[i] != "?"))):
+                    or ((self.__F_plus and self.__F_plus[i] != "?") or (self.__F_minus and self.__F_minus[i] != "?"))
+                    or ((self.__I_plus and self.__I_plus[i] != "?") or (self.__I_minus and self.__I_minus[i] != "?"))
+                ):
                     if self.__status and self.__status[i] == "o":
                         n_obs += 1
-                    elif self.__status and 'f' in self.__status[i]:
+                    elif self.__status and "f" in self.__status[i]:
                         n_free += 1
 
             if self.__Fo_au:
@@ -594,7 +595,7 @@ class CheckSfFile:
 
                 if self.__sFo_au and self.__is_float(self.__sFo_au[i]):
                     sigf = float(self.__sFo_au[i])
-                    if sigf > 0 and self.__sFo_au[i] != '?':
+                    if sigf > 0 and self.__sFo_au[i] != "?":
                         f_over_sf += f / sigf
                         sum_f += f
                         sum_sf += sigf
@@ -609,7 +610,7 @@ class CheckSfFile:
 
                 if self.__sF2o:
                     sigf = float(self.__sF2o[i])
-                    if sigf > 0 and self.__sF2o[i] != '?':
+                    if sigf > 0 and self.__sF2o[i] != "?":
                         f2_over_sf2 += f / sigf
                         sum_f2 += f
                         sum_sf2 += sigf
@@ -627,7 +628,7 @@ class CheckSfFile:
                         sigf = float(self.__sIo[i])
                     else:
                         sigf = 0.0
-                    if sigf > 0 and self.__sIo[i] != '?':
+                    if sigf > 0 and self.__sIo[i] != "?":
                         i_over_si += f / sigf
                         sum_i += f
                         sum_si += sigf
@@ -684,8 +685,9 @@ class CheckSfFile:
             self.__logger.pinfo(f"Sum of observed I+ and I-  = {(nin + nip)}", self.__pinfo_value)
 
         if key > 0 and self.__cell[0] > 0.001:
-            self.__logger.pinfo(f"Cell = {self.__cell[0]:.2f} {self.__cell[1]:.2f} {self.__cell[2]:.2f} {self.__cell[3]:.2f} {self.__cell[4]:.2f} {self.__cell[5]:.2f}",
-                                self.__pinfo_value)
+            self.__logger.pinfo(
+                f"Cell = {self.__cell[0]:.2f} {self.__cell[1]:.2f} {self.__cell[2]:.2f} {self.__cell[3]:.2f} {self.__cell[4]:.2f} {self.__cell[5]:.2f}", self.__pinfo_value
+            )
             self.__logger.pinfo(f"Lowest resolution= {max_R:.2f} ; corresponding HKL={self.__hkl_max}", self.__pinfo_value)
             self.__logger.pinfo(f"Highest resolution={min_R:.2f} ; corresponding HKL={self.__hkl_min}", self.__pinfo_value)
             if RESOH > 0.11 and abs(RESOH - min_R) > 0.4 and nblock == 0:
@@ -753,7 +755,7 @@ class CheckSfFile:
         Fs = 0.01
 
         if self.__Io:  # Io
-            if self.__Io[i] != '?':
+            if self.__Io[i] != "?":
                 I = float(self.__Io[i])  # noqa: E741
 
                 if I > 0 and self.__sIo:
@@ -761,8 +763,8 @@ class CheckSfFile:
                     Fs = float(self.__sIo[i]) / (2.0 * F)
 
         elif self.__sI_plus and self.__sI_minus:  # I_plus
-            sp1 = -1 if self.__sI_plus[i] == '?' else self.__float_or_zero(self.__sI_plus[i])
-            sp2 = -1 if self.__sI_minus[i] == '?' else self.__float_or_zero(self.__sI_minus[i])
+            sp1 = -1 if self.__sI_plus[i] == "?" else self.__float_or_zero(self.__sI_plus[i])
+            sp2 = -1 if self.__sI_minus[i] == "?" else self.__float_or_zero(self.__sI_minus[i])
 
             I = 0  # noqa: E741
             Is = 0
@@ -796,18 +798,18 @@ class CheckSfFile:
                 Fs = Is / (2.0 * F)
 
         elif self.__F_plus and self.__F_minus:  # F_plus
-            if self.__F_plus[i] == '?' and self.__F_minus[i] == '?':
+            if self.__F_plus[i] == "?" and self.__F_minus[i] == "?":
                 F = 0
                 Fs = 0
-            elif self.__F_plus[i] != '?' and self.__F_minus[i] == '?':
+            elif self.__F_plus[i] != "?" and self.__F_minus[i] == "?":
                 F = float(self.__F_plus[i])
                 if self.__sF_plus:
                     Fs = float(self.__sF_plus[i])
-            elif self.__F_plus[i] == '?' and self.__F_minus[i] != '?':
+            elif self.__F_plus[i] == "?" and self.__F_minus[i] != "?":
                 F = float(self.__F_minus[i])
                 if self.__sF_minus:
                     Fs = float(self.__sF_minus[i])
-            elif self.__F_plus[i] != '?' and self.__F_minus[i] != '?':
+            elif self.__F_plus[i] != "?" and self.__F_minus[i] != "?":
                 F = (float(self.__F_plus[i]) + float(self.__F_minus[i])) / 2.0
                 if self.__sF_plus and self.__sF_minus:
                     Fs = (float(self.__sF_plus[i]) + float(self.__sF_minus[i])) / 2.0
@@ -1001,12 +1003,10 @@ class CheckSfFile:
 
             if resol and (RESCUT > 0.0001 and resol < RESCUT and resol > 0.0001):
                 continue
-            if (abs(SIGCUT) > 0.0001 and i_sigi < SIGCUT):
+            if abs(SIGCUT) > 0.0001 and i_sigi < SIGCUT:
                 continue
 
-            values_to_append = (self.__H[i], self.__K[i], self.__L[i], flag, fp, sigfp,
-                                "{:0.2f}".format(round(resol, 2)),
-                                "{:0.2f}".format(round(i_sigi, 2)))
+            values_to_append = (self.__H[i], self.__K[i], self.__L[i], flag, fp, sigfp, "{:0.2f}".format(round(resol, 2)), "{:0.2f}".format(round(i_sigi, 2)))
 
             if self.__Io and self.__sIo:
                 values_to_append += (self.__Io[i], self.__sIo[i])
@@ -1084,8 +1084,7 @@ class CheckSfFile:
 
         cObj = blk.getObj("cell")
 
-        alist = ["length_a", "length_b", "length_c",
-                 "angle_alpha", "angle_beta", "angle_gamma"]
+        alist = ["length_a", "length_b", "length_c", "angle_alpha", "angle_beta", "angle_gamma"]
 
         sfcell = []
         try:
@@ -1098,20 +1097,24 @@ class CheckSfFile:
 
         pdb = self.__pdbcell
 
-        if abs(sfcell[0] - pdb[0]) > 0.1 \
-           or abs(sfcell[1] - pdb[1]) > 0.1 \
-           or abs(sfcell[2] - pdb[2]) > 0.1 \
-           or abs(sfcell[3] - pdb[3]) > 0.1 \
-           or abs(sfcell[4] - pdb[4]) > 0.1 \
-           or abs(sfcell[5] - pdb[5]) > 0.1:
+        if (
+            abs(sfcell[0] - pdb[0]) > 0.1
+            or abs(sfcell[1] - pdb[1]) > 0.1
+            or abs(sfcell[2] - pdb[2]) > 0.1
+            or abs(sfcell[3] - pdb[3]) > 0.1
+            or abs(sfcell[4] - pdb[4]) > 0.1
+            or abs(sfcell[5] - pdb[5]) > 0.1
+        ):
             self.__logger.pinfo(f"Warning! SF and PDB ({blkname}) cell values mismatch", 0)
 
-            if abs(sfcell[0] - pdb[0]) > 3.0 \
-               or abs(sfcell[1] - pdb[1]) > 3.0 \
-               or abs(sfcell[2] - pdb[2]) > 3.0 \
-               or abs(sfcell[3] - pdb[3]) > 3.0 \
-               or abs(sfcell[4] - pdb[4]) > 3.0 \
-               or abs(sfcell[5] - pdb[5]) > 3.0:
+            if (
+                abs(sfcell[0] - pdb[0]) > 3.0
+                or abs(sfcell[1] - pdb[1]) > 3.0
+                or abs(sfcell[2] - pdb[2]) > 3.0
+                or abs(sfcell[3] - pdb[3]) > 3.0
+                or abs(sfcell[4] - pdb[4]) > 3.0
+                or abs(sfcell[5] - pdb[5]) > 3.0
+            ):
 
                 scell = ""
                 pcell = ""
