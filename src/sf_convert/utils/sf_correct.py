@@ -1354,7 +1354,7 @@ class SfCorrect:
             blk.append(newObj)
 
             self.__logger.pinfo(f"Note: Auto adding {cat} in block={blkname}", 0)
-            
+
     def __filter_attributes(self, sffile):
 
         df = DictFilter()

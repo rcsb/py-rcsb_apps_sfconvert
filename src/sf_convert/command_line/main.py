@@ -105,8 +105,8 @@ class ImportSf:
 
             # We take symmetry from model if not set
             if pdb_symm:
-                sfc.set_space_group_if_missing(sffile, pdbid, pdb_symm)  
-                
+                sfc.set_space_group_if_missing(sffile, pdbid, pdb_symm)
+
             sfc.annotate_wavelength(sffile, pdbid, setwlarg)
 
             sfc.handle_standard(sffile, pdbid)
@@ -184,8 +184,8 @@ class ImportSf:
             sfc.set_cell(sffile, pdb_cell)
 
         if pdb_symm:
-            sfc.set_space_group_if_missing(sffile, pdbid, pdb_symm)  
-            
+            sfc.set_space_group_if_missing(sffile, pdbid, pdb_symm)
+
         sfc.ensure_catkeys(sffile, pdbid)
         sfc.reorder_sf_file(sffile)
 

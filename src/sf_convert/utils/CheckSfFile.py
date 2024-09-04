@@ -40,10 +40,10 @@ class CheckSfFile:
         self.__pdbcell = None
 
     def set_pdb_cell(self, cell):
-        """Sets the cell to the list cell [a, b, c, alpha, beta, gamma] from the coordinat file"""
+        """Sets the cell to the list cell [a, b, c, alpha, beta, gamma] from the coordinate file"""
         self.__pdbcell = cell
 
-    def initialize_data(self):
+    def __initialize_data(self):
         """
         Initializes the data for the SF file.
 
@@ -68,12 +68,12 @@ class CheckSfFile:
         self.__phase_c = self.__phase_o = self.__fom = []
         self.__dH = self.__dK = self.__dL = []
         self.__unmerge_i = self.__unmerge_si = []
-        self.initialize_refln_data()
-        self.initialize_diffrn_refln_data()
-        self.initialize_counts()
-        self.initialize_columns()
+        self.__initialize_refln_data()
+        self.__initialize_diffrn_refln_data()
+        self.__initialize_counts()
+        self.__initialize_columns()
 
-    def initialize_refln_data(self):
+    def __initialize_refln_data(self):
         """
         Initializes the refln data.
 
@@ -87,7 +87,7 @@ class CheckSfFile:
         if self.__refln_data is not None:
             self.__rcell, self.__cell = self.__calc_cell_and_recip()
 
-    def initialize_diffrn_refln_data(self):
+    def __initialize_diffrn_refln_data(self):
         """
         Initializes the diffrn_refln data.
 
@@ -99,7 +99,7 @@ class CheckSfFile:
         """
         self.__diffrn_refln_data = self.__sf_block.getObj("diffrn_refln")
 
-    def initialize_counts(self):
+    def __initialize_counts(self):
         """
         Initializes the counts of reflections.
 
@@ -118,7 +118,7 @@ class CheckSfFile:
         else:
             self.__dnref = 0
 
-    def initialize_columns(self):
+    def __initialize_columns(self):
         """
         Initializes the columns of the SF file.
 
@@ -173,11 +173,11 @@ class CheckSfFile:
             else:
                 setattr(self, "_CheckSfFile__" + var, None)
 
-        self.initialize_Io()
-        self.initialize_sIo()
-        self.initialize_status()
+        self.__initialize_Io()
+        self.__initialize_sIo()
+        self.__initialize_status()
 
-    def initialize_Io(self):
+    def __initialize_Io(self):
         """
         Initializes the Io column.
 
@@ -200,7 +200,7 @@ class CheckSfFile:
 
             # If attribute "intensity_meas_au" is present and was successfully set to self.__Io, change the token
             if self.__Io:
-                self.cif_token_change("intensity_meas_au", "intensity_meas")
+                self.__cif_token_change("intensity_meas_au", "intensity_meas")
 
         # If self.__Io is still None, check for attribute "intensity"
         if not self.__Io:
@@ -209,9 +209,9 @@ class CheckSfFile:
 
             # If attribute "intensity" is present and was successfully set to self.__Io, change the token
             if self.__Io:
-                self.cif_token_change("intensity", "intensity_meas")
+                self.__cif_token_change("intensity", "intensity_meas")
 
-    def initialize_sIo(self):
+    def __initialize_sIo(self):
         """
         Initializes the sIo column.
 
@@ -234,7 +234,7 @@ class CheckSfFile:
 
             # If attribute "intensity_sigma_au" is present and was successfully set to self.__sIo, change the token
             if self.__sIo:
-                self.cif_token_change("intensity_sigma_au", "intensity_sigma")
+                self.__cif_token_change("intensity_sigma_au", "intensity_sigma")
 
         # If self.__sIo is still None, check for attribute "intensity_sigm"
         if not self.__sIo:
@@ -243,7 +243,7 @@ class CheckSfFile:
 
             # If attribute "intensity_sigm" is present and was successfully set to self.__sIo, change the token
             if self.__sIo:
-                self.cif_token_change("intensity_sigm", "intensity_sigma")
+                self.__cif_token_change("intensity_sigm", "intensity_sigma")
 
         # If self.__sIo is still None, check for attribute "intensity_meas_sigma"
         if not self.__sIo:
@@ -252,7 +252,7 @@ class CheckSfFile:
 
             # If attribute "intensity_meas_sigma" is present and was successfully set to self.__sIo, change the token
             if self.__sIo:
-                self.cif_token_change("intensity_meas_sigma", "intensity_sigma")
+                self.__cif_token_change("intensity_meas_sigma", "intensity_sigma")
 
         # If self.__sIo is still None, check for attribute "intensity_meas_sigma_au"
         if not self.__sIo:
@@ -261,9 +261,9 @@ class CheckSfFile:
 
             # If attribute "intensity_meas_sigma_au" is present and was successfully set to self.__sIo, change the token
             if self.__sIo:
-                self.cif_token_change("intensity_meas_sigma_au", "intensity_sigma")
+                self.__cif_token_change("intensity_meas_sigma_au", "intensity_sigma")
 
-    def initialize_status(self):
+    def __initialize_status(self):
         """
         Initializes the status column.
 
@@ -280,17 +280,17 @@ class CheckSfFile:
         if not self.__status:
             self.__status = self.__refln_data.getColumn(self.__refln_data.getIndex("R_free_flag"))
             if self.__status:
-                self.cif_token_change("R_free_flag", "status")
+                self.__cif_token_change("R_free_flag", "status")
 
             if not self.__status:
                 self.__status = self.__refln_data.getColumn(self.__refln_data.getIndex("statu"))
                 if self.__status:
-                    self.cif_token_change("statu", "status")
+                    self.__cif_token_change("statu", "status")
 
                 if not self.__status:
                     self.__status = self.__refln_data.getColumn(self.__refln_data.getIndex("status_au"))
                     if self.__status:
-                        self.cif_token_change("status_au", "status")
+                        self.__cif_token_change("status_au", "status")
 
     def __calc_cell_and_recip(self):
         """
@@ -370,38 +370,7 @@ class CheckSfFile:
 
         return resol
 
-    # def calc_resolution(self):
-    #     """
-    #     Calculates the resolution for the SF file.
-
-    #     Args:
-    #         None
-
-    #     Returns:
-    #         None
-    #     """
-    #     refln_data = self.__sf_block.getObj("refln")
-    #     if refln_data is not None:
-    #         rcell, _cell = self.__calc_cell_and_recip()
-
-    #         best_resolution = 0.0
-    #         n = refln_data.getRowCount()
-
-    #         for i in range(n):
-    #             h = int(refln_data.getValue("index_h", i))
-    #             k = int(refln_data.getValue("index_k", i))
-    #             l = int(refln_data.getValue("index_l", i))  # noqa: E741
-
-    #             resolution = self.__get_resolution(h, k, l, rcell)
-
-    #             if resolution > best_resolution:   # This might be backwards -- check XXX
-    #                 best_resolution = resolution
-
-    #         self.__logger.pinfo("Best Resolution: {:.2f} Angstroms".format(best_resolution), self.__pinfo_value)
-    #     else:
-    #         self.__logger.pinfo("Error: No refln data found in the mmCIF file.", self.__pinfo_value)
-
-    def cif_token_change(self, old_token, new_token):
+    def __cif_token_change(self, old_token, new_token):
         """
         Changes the cif token.
 
@@ -415,7 +384,7 @@ class CheckSfFile:
         self.__logger.pinfo(f"Warning! The mmcif token  _refln.{old_token} is wrong!", self.__pinfo_value)
         self.__logger.pinfo(f"It has been corrected as _refln.{new_token}", self.__pinfo_value)
 
-    def check_sf(self, nblock):
+    def __check_sf(self, nblock):
         """
         Checks the SF file for a given block.
 
@@ -427,7 +396,7 @@ class CheckSfFile:
         """
         self.__sf_block = self.__sf_file.get_block_by_index(nblock)
         self.__logger.pinfo(f"Data_block_id={self.__sf_block.getName()}, block_number={nblock+1}\n", 0)  # self.__pinfo_value)
-        self.initialize_data()
+        self.__initialize_data()
 
         temp_nref, nstart, n1, n4, n5, nfpairF, nfpairI, nf_sFo, nf_sIo, key = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
         # n2 removed
@@ -524,18 +493,10 @@ class CheckSfFile:
                     self.__logger.pinfo(f"Error: File has wrong indices ({hkl}).", self.__pinfo_value)
 
             # --------------------------------------------------------------
-
-            def is_float(value):
-                try:
-                    float(value)
-                    return True
-                except ValueError:
-                    return False
-
-            if self.__sFo_au and i > 0 and is_float(self.__sFo_au[i - 1]) and is_float(self.__sFo_au[i]):
+            if self.__sFo_au and i > 0 and self.__is_float(self.__sFo_au[i - 1]) and self.__is_float(self.__sFo_au[i]):
                 if float(self.__sFo_au[i - 1]) == float(self.__sFo_au[i]):
                     nf_sFo += 1
-            if self.__sIo and i > 0 and is_float(self.__sIo[i - 1]) and is_float(self.__sIo[i]):
+            if self.__sIo and i > 0 and self.__is_float(self.__sIo[i - 1]) and self.__is_float(self.__sIo[i]):
                 if float(self.__sIo[i - 1]) == float(self.__sIo[i]):
                     nf_sIo += 1
 
@@ -544,7 +505,7 @@ class CheckSfFile:
             # if self.__sIo and i > 0 and float(self.__sIo[i - 1]) == float(self.__sIo[i]):
             #     nf_sIo += 1
 
-            if self.__F_plus and is_float(self.__F_plus[i]):
+            if self.__F_plus and self.__is_float(self.__F_plus[i]):
                 f = float(self.__F_plus[i])
                 nfpairF += 1
                 if f < 0:
@@ -552,7 +513,7 @@ class CheckSfFile:
                     if n4 == 1:
                         self.__logger.pinfo(f"Error: File has negative amplitude (F+: {self.__F_plus[i]}) for ({hkl}).", self.__pinfo_value)
 
-            if self.__I_plus and is_float(self.__I_plus[i]):
+            if self.__I_plus and self.__is_float(self.__I_plus[i]):
                 nfpairI += 1
                 f = float(self.__I_plus[i])
 
@@ -570,17 +531,19 @@ class CheckSfFile:
                 val = 0
                 sval = 0
                 if self.__Io and self.__sIo and self.__sIo[i] != '?':
-                    val = float(self.__Io[i])
-                    sval = float(self.__sIo[i])
+                    val = self.__float_or_zero(self.__Io[i])
+                    sval = self.__float_or_zero(self.__sIo[i])
                 elif self.__Fo_au and self.__sFo_au and self.__sFo_au[i] != '?':
-                    val = float(self.__Fo_au[i]) * float(self.__Fo_au[i])
-                    sval = 2 * float(self.__Fo_au[i]) * float(self.__sFo_au[i])
+                    fval = self.__float_or_zero(self.__Fo_au[i])
+                    val = fval * fval
+                    sval = 2 * fval * self.__float_or_zero(self.__sFo_au[i])
                 elif self.__F2o and self.__sFo and self.__sF2o[i] != '?':
-                    val = float(self.__F2o[i])
-                    sval = float(self.__sF2o[i])
+                    val = self.__float_or_zero(self.__F2o[i])
+                    sval = self.__float_or_zero(self.__sF2o[i])
                 elif self.__Fo and self.__sFo and self.__sFo[i] != '?':
-                    val = float(self.__Fo[i]) * float(self.__Fo[i])
-                    sval = 2 * float(self.__Fo[i]) * float(self.__sFo[i])
+                    fval = self.__float_or_zero(self.__Fo[i])
+                    val = fval * fval
+                    sval = 2 * fval * self.__float_or_zero(self.__sFo[i])
 
                 if sval > 0:
                     sum_sigii += sval
@@ -618,7 +581,7 @@ class CheckSfFile:
                         n_free += 1
 
             if self.__Fo_au:
-                f = self.float_or_zero(self.__Fo_au[i])
+                f = self.__float_or_zero(self.__Fo_au[i])
                 if f < 0:
                     n5 += 1
                     if n5 == 1:
@@ -629,7 +592,7 @@ class CheckSfFile:
                 if f > max_F:
                     max_F = f
 
-                if self.__sFo_au and is_float(self.__sFo_au[i]):
+                if self.__sFo_au and self.__is_float(self.__sFo_au[i]):
                     sigf = float(self.__sFo_au[i])
                     if sigf > 0 and self.__sFo_au[i] != '?':
                         f_over_sf += f / sigf
@@ -652,7 +615,7 @@ class CheckSfFile:
                         sum_sf2 += sigf
                         nf_F2o += 1
 
-            if self.__Io and is_float(self.__Io[i]):
+            if self.__Io and self.__is_float(self.__Io[i]):
                 f = float(self.__Io[i])
                 if f < min_I:
                     min_I = f
@@ -660,7 +623,7 @@ class CheckSfFile:
                     max_I = f
 
                 if self.__sIo:
-                    if is_float(self.__sIo[i]):
+                    if self.__is_float(self.__sIo[i]):
                         sigf = float(self.__sIo[i])
                     else:
                         sigf = 0.0
@@ -670,17 +633,17 @@ class CheckSfFile:
                         sum_si += sigf
                         nf_Io += 1
 
-            if self.__fom and is_float(self.__fom[i]) and abs(float(self.__fom[i])) > 1.01:
+            if self.__fom and self.__is_float(self.__fom[i]) and abs(float(self.__fom[i])) > 1.01:
                 if n6 == 0:
                     n6 += 1
                     self.__logger.pinfo(f"Warning: File has wrong values of FOM ({self.__fom[i]}) for ({hkl}).", self.__pinfo_value)
 
-            if self.__phase_c and is_float(self.__phase_c[i]) and abs(float(self.__phase_c[i])) > 361.0:
+            if self.__phase_c and self.__is_float(self.__phase_c[i]) and abs(float(self.__phase_c[i])) > 361.0:
                 if n7 == 0:
                     n7 += 1
                     self.__logger.pinfo(f"Warning: File has wrong values of phase ({self.__phase_c[i]}) for ({hkl}).", self.__pinfo_value)
 
-            if self.__phase_o and is_float(self.__phase_o[i]) and abs(float(self.__phase_o[i])) > 361.0:
+            if self.__phase_o and self.__is_float(self.__phase_o[i]) and abs(float(self.__phase_o[i])) > 361.0:
                 if n8 == 0:
                     n8 += 1
                     self.__logger.pinfo(f"Warning: File has wrong values of phase ({self.__phase_o[i]}) for ({hkl}).", self.__pinfo_value)
@@ -770,23 +733,7 @@ class CheckSfFile:
 
         return
 
-    def float_or_zero(self, value):
-        """
-        Converts a value to float or returns zero if it is not a valid float.
-
-        Args:
-            value: The value to convert.
-
-        Returns:
-            The float value or zero.
-        """
-        try:
-            float(value)
-            return float(value)
-        except ValueError:
-            return 0
-
-    def other_to_f(self, i):
+    def __other_to_f(self, i):
         """
         Converts other columns to F and Fs values.
 
@@ -814,8 +761,8 @@ class CheckSfFile:
                     Fs = float(self.__sIo[i]) / (2.0 * F)
 
         elif self.__sI_plus and self.__sI_minus:  # I_plus
-            sp1 = -1 if self.__sI_plus[i] == '?' else float(self.__sI_plus[i])
-            sp2 = -1 if self.__sI_minus[i] == '?' else float(self.__sI_minus[i])
+            sp1 = -1 if self.__sI_plus[i] == '?' else self.__float_or_zero(self.__sI_plus[i])
+            sp2 = -1 if self.__sI_minus[i] == '?' else self.__float_or_zero(self.__sI_minus[i])
 
             I = 0  # noqa: E741
             Is = 0
@@ -867,7 +814,7 @@ class CheckSfFile:
 
         return F, Fs
 
-    def i_to_f(self, idx, I, sI, sf_default):  # noqa: E741
+    def __i_to_f(self, idx, I, sI, sf_default):  # noqa: E741
         """
         Converts I column to F and Fs values.
 
@@ -886,7 +833,7 @@ class CheckSfFile:
 
         if float(I) > 0:
             f = math.sqrt(float(I))
-            if sI and float(sI[idx]) > 0:
+            if sI and self.__float_or_zero(sI[idx]) > 0:
                 sf = float(sI[idx]) / (2.0 * f)
             else:
                 sf = sf_default
@@ -909,15 +856,8 @@ class CheckSfFile:
         # file_name = 'sf_4_validate.cif'
         # file_path = os.path.join(self.__fout_path, file_name)
 
-        def is_float(value):
-            try:
-                float(value)
-                return True
-            except ValueError:
-                return False
-
         self.__sf_block = self.__sf_file.get_block_by_index(nblock)
-        self.initialize_data()
+        self.__initialize_data()
 
         myDataList = []
         curContainer = DataContainer("cif2cif")
@@ -1015,13 +955,13 @@ class CheckSfFile:
                     sigfp = f"{sig:.4f}"
 
             elif self.__Io:
-                if is_float(self.__Io[i]):
-                    fp, sigfp = self.i_to_f(i, self.__Io[i], self.__sIo, sig)
+                if self.__is_float(self.__Io[i]):
+                    fp, sigfp = self.__i_to_f(i, self.__Io[i], self.__sIo, sig)
                 else:
                     fp, sigfp = "?", "?"
 
             elif self.__I_plus or self.__F_plus:
-                F, Fs = self.other_to_f(i)
+                F, Fs = self.__other_to_f(i)
                 fp = f"{F:.4f}"
                 sigfp = f"{Fs:.4f}"
 
@@ -1036,7 +976,7 @@ class CheckSfFile:
                     sigfp = f"{sig:.4f}"
 
             elif self.__F2o:
-                fp, sigfp = self.i_to_f(i, self.__F2o[i], self.__sF2o, sig)
+                fp, sigfp = self.__i_to_f(i, self.__F2o[i], self.__sF2o, sig)
 
             try:
                 ah = int(self.__H[i])
@@ -1051,11 +991,11 @@ class CheckSfFile:
                 resol = 0.00  # This is stupid but what was done -- should not output
 
             i_sigi = 0.0
-            if self.__Io and self.__sIo and is_float(self.__sIo[i]) and is_float(self.__Io[i]) and float(self.__sIo[i]) > 0:
+            if self.__Io and self.__sIo and self.__is_float(self.__sIo[i]) and self.__is_float(self.__Io[i]) and float(self.__sIo[i]) > 0:
                 i_sigi = float(self.__Io[i]) / float(self.__sIo[i])
             else:
-                af = self.float_or_zero(fp)
-                afs = self.float_or_zero(sigfp)
+                af = self.__float_or_zero(fp)
+                afs = self.__float_or_zero(sigfp)
                 if afs > 0:
                     i_sigi = af / (2 * afs)
 
@@ -1100,7 +1040,7 @@ class CheckSfFile:
             None
         """
         for i in range(n):
-            self.check_sf(i)
+            self.__check_sf(i)
 
     def sf_stat(self, fname, sf4name=None):
         """Produces statistics"""
@@ -1111,7 +1051,7 @@ class CheckSfFile:
         self.__logger.pinfo(f"Total number of data blocks = {numblocks}\n", 0)
 
         for blkid in range(numblocks):
-            self.check_sf(blkid)
+            self.__check_sf(blkid)
             if sf4name and blkid == 0:
                 self.write_sf_4_validation(sf4name, blkid)
 
@@ -1121,6 +1061,14 @@ class CheckSfFile:
             return True
         except ValueError:
             return False
+
+    def __float_or_zero(self, value):
+        # Handle cases where values are "?" or "****" or other garbage
+        # C++ atof would return 0.0
+        try:
+            return float(value)
+        except ValueError:
+            return 0.0
 
     def __check_cell(self, blk, blkidx):
         """Checks provided cell against SF file"""
