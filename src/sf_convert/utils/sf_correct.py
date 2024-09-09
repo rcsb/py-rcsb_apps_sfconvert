@@ -126,10 +126,12 @@ class SfCorrect:
                         if wave > 2.0 or wave < 0.6:
                             self.__logger.pinfo(f"Warning: ({pdb_id} nblock={idx} wavelength value {curwave} is abnormal (double check)!", 0)
                     except ValueError:
+                        # Wavelnegth might be a range
                         self.__logger.pinfo(f"Wavelength not a float {curwave}", 0)
+                        wave = None
 
                     if setwl != ".":
-                        if setwlf > 0.8 and setwlf < 1.8 and setwlf != 1.0:
+                        if setwlf > 0.8 and setwlf < 1.8 and setwlf != 1.0 and wave:
                             if abs(setwlf - wave) > 0.0001 and idx == 0:
                                 self.__logger.pinfo(f"Warning: ({pdb_id} nblock={idx}) wavelength mismatch (pdb= {setwlf} : sf= {curwave})!", 0)
                             elif setwlf > 0 and abs(setwlf - wave) > 0.0001 and idx == 0:
