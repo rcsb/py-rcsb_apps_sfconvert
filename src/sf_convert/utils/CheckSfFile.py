@@ -664,6 +664,10 @@ class CheckSfFile:
         if temp_nref > 10 and ((nf_sFo > 0 and temp_nref - nf_sFo < 3) or (nf_sIo > 0 and temp_nref - nf_sIo < 3)):
             self.__logger.pinfo("Warning! File has Sigma_Fo all the same!", self.__pinfo_value)
 
+        # Warn if test set is more than 33% of working set...
+        if (3 * n_free) > n_obs:
+            self.__logger.pinfo("Warning! Free test set much larger than working set!", self.__pinfo_value)
+
         # Following are the messages related to total number of reflections
         self.__logger.pinfo(f"Total number of observed reflections = {(n_obs + n_free)}", self.__pinfo_value)
         self.__logger.pinfo(f"Total number of observed reflections (status='o') = {n_obs}", self.__pinfo_value)

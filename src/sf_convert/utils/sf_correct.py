@@ -1291,6 +1291,7 @@ class SfCorrect:
                 self.__logger.pinfo(f"Warning: status not in {cat} in block {blkname} no changes made", 0)
                 continue
 
+            setflag = False
             for idx in range(cObj.getRowCount()):
                 curstat = cObj.getValue("status", idx)
                 flag = cObj.getValue("pdbx_r_free_flag", idx)
@@ -1302,9 +1303,13 @@ class SfCorrect:
                     newval = "x"
                 if flag == freer:
                     newval = "f"
+                    setflag = True
                 else:
                     newval = "o"
                 cObj.setValue(newval, "status", idx)
+
+            if not setflag:
+                self.__logger.pinfo(f"Warning: test set {freer} not in block {blkname} - nothing flagged as test set", 0)
 
     def set_cell_if_missing(self, sffile, pdbid, cell):
         """If cell is not present, then set"""
