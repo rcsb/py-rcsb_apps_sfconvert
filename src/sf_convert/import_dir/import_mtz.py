@@ -128,7 +128,7 @@ class MtzToCifConverter:
 
         self.sffile = SFFile()
         self.__logger = logger
-        self.assigned_labels = set()
+        self.__assigned_labels = set()  # List of labels already assigned
         self.__categories = {
             "audit": {"revision_id": "1_0", "creation_date": "?", "update_record": "Initial release"},
             "exptl_crystal": {"id": "1"},
@@ -317,8 +317,8 @@ class MtzToCifConverter:
         Returns:
             str: The assigned label.
         """
-        if desired_label not in self.assigned_labels:
-            self.assigned_labels.add(desired_label)
+        if desired_label not in self.__assigned_labels:
+            self.__assigned_labels.add(desired_label)
             return desired_label
         return "Unknown Label"
 
@@ -428,8 +428,24 @@ class MtzToCifConverter:
             list: The list of generated full labels.
         """
         results = []
+
+        # We pull out the "Standard" test flags first - before going through the list. Otherwise first come first server, and SA_flag is mistaken for free
+        # set
+        free_label = -1
+
         for i in range(len(labels_list)):
-            generated_label = self.__generate_full_label(i, labels_list)
+            label_type, label_content = labels_list[i]
+            if label_type == "I" and label_content in ["free", "R-free-flag", "flag", "TEST", "FREE", "RFREE", "FREER", "FreeR_flag", "FreeRflag"]:
+                free_label = i
+                # Mark as used so will not be picked up by another
+                self.__assign_label("pdbx_r_free_flag")
+                break
+
+        for i in range(len(labels_list)):
+            if i != free_label:
+                generated_label = self.__generate_full_label(i, labels_list)
+            else:
+                generated_label = "pdbx_r_free_flag"
             results.append((labels_list[i][0], labels_list[i][1], generated_label))
             if generated_label == "pdbx_r_free_flag":
                 self.__CUSTOM_END = []
