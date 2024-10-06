@@ -1,5 +1,6 @@
 import math
 
+from sf_convert.utils.SpaceGroup import SpaceGroup
 from mmcif.api.DataCategory import DataCategory
 from mmcif.api.PdbxContainers import DataContainer
 from mmcif.io.IoAdapterCore import IoAdapterCore
@@ -38,10 +39,15 @@ class CheckSfFile:
         self.__dH = self.__dK = self.__dL = []
         self.__unmerge_i = self.__unmerge_si = []
         self.__pdbcell = None
+        self.__pdbsymm = None
 
     def set_pdb_cell(self, cell):
         """Sets the cell to the list cell [a, b, c, alpha, beta, gamma] from the coordinate file"""
         self.__pdbcell = cell
+
+    def set_pdb_symm(self, symm):
+        """Sets the symmetry from the coordinate file"""
+        self.__pdbsymm = symm
 
     def __initialize_data(self):
         """
@@ -286,27 +292,30 @@ class CheckSfFile:
                     if self.__status:
                         self.__cif_token_change("status_au", "status")
 
-    def __calc_cell_and_recip(self):
+    def __calc_cell_and_recip(self, override=False):
         """
         Calculates the cell and reciprocal cell.
 
         Args:
-            None
+            override: Boolean - if set and PDB cell set use it.
 
         Returns:
             rcell: The reciprocal cell.
             cell: The cell.
         """
         data = self.__sf_block.getObj("cell")
-        if data is not None:
-            a = float(data.getValue("length_a"))
-            b = float(data.getValue("length_b"))
-            c = float(data.getValue("length_c"))
-            alpha = float(data.getValue("angle_alpha"))
-            beta = float(data.getValue("angle_beta"))
-            gamma = float(data.getValue("angle_gamma"))
+        if data is not None or (override and self.__pdbcell):
+            if override and self.__pdbcell:
+                cell = self.__pdbcell
+            else:
+                a = float(data.getValue("length_a"))
+                b = float(data.getValue("length_b"))
+                c = float(data.getValue("length_c"))
+                alpha = float(data.getValue("angle_alpha"))
+                beta = float(data.getValue("angle_beta"))
+                gamma = float(data.getValue("angle_gamma"))
 
-            cell = [a, b, c, alpha, beta, gamma]
+                cell = [a, b, c, alpha, beta, gamma]
 
             rcell = [0.0] * 6
 
@@ -410,6 +419,9 @@ class CheckSfFile:
 
         if self.__pdbcell:
             self.__check_cell(self.__sf_block, nblock)
+
+        if self.__pdbsymm:
+            self.__check_symm(self.__sf_block, nblock)
 
         if not (self.__dH or self.__dK or self.__dL or self.__H or self.__K or self.__L):
             self.__logger.pinfo(f"Error: File has no 'index_h, index_k, index_l' (data block= {nblock + 1}).", self.__pinfo_value)
@@ -876,17 +888,22 @@ class CheckSfFile:
         RESCUT, SIGCUT = 0.0, 0.0
         n = self.__nref
 
-        rcell, CELL = self.__calc_cell_and_recip()
+        # If pdb cell provided use it
+        rcell, CELL = self.__calc_cell_and_recip(override=True)
 
-        # XXX This looks strange... Different cutoffs here than below?
+        # Add spacegroup.  Override with coordinate file if set
         if CELL and CELL[0] > 2 and CELL[4] > 2:
-            data = self.__sf_block.getObj("symmetry")
-            if data:
-                SYMM = data.getValueOrDefault("space_group_name_H-M", 0, None)
-                sg_no = data.getValueOrDefault("Int_Tables_number", 0, None)
-            else:
-                SYMM = None
+            if self.__pdbsymm:
+                SYMM = self.__pdbsymm
                 sg_no = None
+            else:
+                data = self.__sf_block.getObj("symmetry")
+                if data:
+                    SYMM = data.getValueOrDefault("space_group_name_H-M", 0, None)
+                    sg_no = data.getValueOrDefault("Int_Tables_number", 0, None)
+                else:
+                    SYMM = None
+                    sg_no = None
 
             aCat = DataCategory("symmetry")
 
@@ -1130,3 +1147,23 @@ class CheckSfFile:
                 print(f"cell in PDB: {pcell}")
 
                 self.__logger.pinfo(f"Error: {blkname} large cell value mismatch (> 3.0)", 0)
+
+    def __check_symm(self, blk, blkidx):
+        """Checks provided symmetry against SF file"""
+
+        if "symmetry" not in blk.getObjNameList():
+            return
+
+        # Only check first block
+        if blkidx > 0:
+            return
+
+        cObj = blk.getObj("symmetry")
+        sfsymm = cObj.getValueOrDefault("space_group_name_H-M", 0, None)
+
+        sg = SpaceGroup(self.__logger)
+        sfsymm_norm = sg.standardize_sg_name(sfsymm)
+        pdbsymm_norm = sg.standardize_sg_name(self.__pdbsymm)
+
+        if sfsymm_norm != pdbsymm_norm:
+            self.__logger.pinfo(f"Warning! (nblock = {blkidx}) space group mismatch (pdb= {pdbsymm_norm} : sf= {sfsymm_norm})", 0)
