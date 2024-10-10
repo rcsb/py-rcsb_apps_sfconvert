@@ -398,7 +398,7 @@ class CheckSfFile:
             None
         """
         self.__sf_block = self.__sf_file.get_block_by_index(nblock)
-        self.__logger.pinfo(f"Data_block_id={self.__sf_block.getName()}, block_number={nblock+1}\n", 0)  # self.__pinfo_value)
+        self.__logger.pinfo(f"Data_block_id={self.__sf_block.getName()}, block_number={nblock + 1}\n", 0)  # self.__pinfo_value)
         self.__initialize_data()
 
         temp_nref, nstart, n1, n4, n5, nfpairF, nfpairI, nf_sFo, nf_sIo, key = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0

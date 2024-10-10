@@ -363,27 +363,32 @@ class StructureFactorFile:
 
         Args:
             pdbid (str): The PDB ID.
-            block (int): The block index.
+            block (int): The block index. 0...n
 
         Returns:
             str: The expected block name.
         """
-        # Special case for block equals 0
-        if block == 0:
-            return f"r{pdbid}sf"
-
         # Set bid
-        bid = "_ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789abcdefghijklmnopqrstuvwxyz"
+        bid = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-        # Calculate rem and mod
-        rem = (block - 1) // 36
-        mod = (block - 1) % 36
+        bname = ""
 
-        # Conditionally set bname
-        if rem > 0:
-            return f"r{pdbid}{bid[mod+1]}{bid[rem]}sf"
+        if block > 0:
+            cont = True
         else:
-            return f"r{pdbid}{bid[mod+1]}sf"
+            cont = False
+
+        while cont:
+            block = block - 1
+            # we are numbering 1...26, 27...52, 53...
+            mod = block % 26
+            block = int((block) / 26.0)
+            if block == 0:
+                cont = False
+
+            bname = bname + bid[mod]
+
+        return f"r{pdbid}{bname}sf"
 
     def correct_block_names(self, pdbid):
         """
