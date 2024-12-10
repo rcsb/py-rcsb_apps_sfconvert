@@ -337,6 +337,9 @@ class SfCorrect:
 
         sffile.correct_block_names(pdbid)
 
+        # Add status column if missing
+        self.__instantiate_refln_status(sffile)
+
         # In case some blocks need updating
         self.__reorder_refln_all(sffile)
 
@@ -1400,3 +1403,16 @@ class SfCorrect:
                 # Category no attributes. Remove
                 if len(cObj.getAttributeList()) == 0:
                     blk.remove(cat)
+
+    def __instantiate_refln_status(self, sffile):
+        """Instantiate _refln.status if missing."""
+
+        cat = "refln"
+        for idx in range(sffile.get_number_of_blocks()):
+            blk = sffile.get_block_by_index(idx)
+
+            cObj = blk.getObj(cat)
+            if cObj:
+                if "status" not in cObj.getAttributeList():
+                    cObj.appendAttributeExtendRows("status", "o")
+                    self.__logger.pinfo(f"Adding status to {cat} in nblock={idx}", 0)
