@@ -122,6 +122,6 @@ def guess_sf_format(inpfile: str) -> str:
             if first_three_bytes == b"MTZ":
                 return "MTZ"
         except Exception as _e:  # noqa: F841
-            return None
+            pass
 
     return "Format not recognized"

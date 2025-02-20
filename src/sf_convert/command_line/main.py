@@ -708,7 +708,7 @@ def parse_arguments() -> argparse.Namespace:
 
     parser.add_argument("-i", type=str, help="Input format")
     parser.add_argument("-o", type=str, help="Output format. Accepted values are mmCIF, CNS, MTZ")
-    parser.add_argument("-sf", type=str, nargs="+", help="Source file")
+    parser.add_argument("-sf", type=str, nargs="+", help="Structure factor files")
     parser.add_argument("-out", type=str, default=None, help="Output file name (if not given, default by program)")
     parser.add_argument("-label", type=str, nargs="*", help="Label name for CNS & MTZ")
     parser.add_argument("-pdb", type=str, help="PDB file (add items to the converted SF file if missing)")
