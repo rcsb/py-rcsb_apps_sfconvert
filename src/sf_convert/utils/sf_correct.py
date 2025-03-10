@@ -121,7 +121,7 @@ class SfCorrect:
                 self.__logger.pinfo("Error: trying to set wavelength to non float", 0)
 
             if curwave is not None:
-                # Category present, attribute available - could bt "."
+                # Category present, attribute available - could be "."
                 if curwave not in ["?", "."]:
                     try:
                         wave = float(curwave)
@@ -133,7 +133,7 @@ class SfCorrect:
                         wave = None
 
                     if setwl != ".":
-                        if setwlf > 0.8 and setwlf < 1.8 and setwlf != 1.0 and wave:
+                        if setwlf > 0.8 and setwlf < 2.5 and setwlf != 1.0 and wave:
                             if abs(setwlf - wave) > 0.0001 and idx == 0:
                                 self.__logger.pinfo(f"Warning: ({pdb_id} nblock={idx}) wavelength mismatch (pdb= {setwlf} : sf= {curwave})!", 0)
                             elif setwlf > 0 and abs(setwlf - wave) > 0.0001 and idx == 0:
