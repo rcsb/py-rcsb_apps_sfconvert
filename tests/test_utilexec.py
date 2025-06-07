@@ -34,13 +34,13 @@ class TestCliUtil:
             parser.parse_args(["checkfmts"])
         assert e.type == SystemExit
         assert e.value.code == 2
-        assert "the following arguments are required: -sf" in capsys.readouterr().err
+        assert "the following arguments are required: --sf" in capsys.readouterr().err
 
     def test_parser_checkfmt_param(self, cif_5pny_data_path):
         """ Tests parser checkfmt no parameter"""
 
         parser = create_parser()
-        args = parser.parse_args(["checkfmts", "-sf", cif_5pny_data_path])
+        args = parser.parse_args(["checkfmts", "--sf", cif_5pny_data_path])
         assert len(vars(args)) == 4
         assert hasattr(args, "func")
         assert args.sf == [cif_5pny_data_path]
@@ -51,7 +51,7 @@ class TestCliUtil:
         """ Tests parser checkfmt no parameter"""
 
         parser = create_parser()
-        args = parser.parse_args(["checkfmts", "-sf", cif_5pny_data_path, "--json"])
+        args = parser.parse_args(["checkfmts", "--sf", cif_5pny_data_path, "--json"])
         assert len(vars(args)) == 4
         assert hasattr(args, "func")
         assert args.sf == [cif_5pny_data_path]
@@ -62,7 +62,7 @@ class TestCliUtil:
         """ Tests parser checkfmt no parameter"""
 
         parser = create_parser()
-        args = parser.parse_args(["checkfmts", "-sf", cif_5pny_data_path, "--text"])
+        args = parser.parse_args(["checkfmts", "--sf", cif_5pny_data_path, "--text"])
         assert len(vars(args)) == 4
         assert hasattr(args, "func")
         assert args.sf == [cif_5pny_data_path]
@@ -73,7 +73,7 @@ class TestCliUtil:
         """ Tests parser checkfmt no parameter"""
 
         parser = create_parser()
-        args = parser.parse_args(["checkfmts", "-sf", cif_5pny_data_path, "--text"])
+        args = parser.parse_args(["checkfmts", "--sf", cif_5pny_data_path, "--text"])
         ret = checkfmts(args)
         assert ret == 0
         assert "mmCIF" in capsys.readouterr().out
@@ -82,7 +82,7 @@ class TestCliUtil:
         """ Tests parser checkfmt no parameter"""
 
         parser = create_parser()
-        args = parser.parse_args(["checkfmts", "-sf", cif_5pny_data_path, "--json"])
+        args = parser.parse_args(["checkfmts", "--sf", cif_5pny_data_path, "--json"])
         ret = checkfmts(args)
         assert ret == 0
         out = capsys.readouterr().out

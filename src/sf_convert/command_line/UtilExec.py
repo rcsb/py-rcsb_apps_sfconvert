@@ -32,7 +32,7 @@ def checkfmts(args):
 
 def create_parser():
     # Need to be local for parameters
-    def usagecallback(args):
+    def usagecallback(args):  # pylint: disable=unused-argument
         parser.print_help()
 
     parser = argparse.ArgumentParser(description="Some utilities for support sf-tool server")

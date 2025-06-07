@@ -1,3 +1,4 @@
+# pylint: disable=E1101
 import gemmi
 import os
 from mmcif.api.DataCategory import DataCategory
