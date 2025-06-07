@@ -88,6 +88,9 @@ def guess_sf_format(inpfile: str) -> str:
         n7 = 0
         for i, line in enumerate(lines):
             strs = line.split()
+            if len(strs) == 0:
+                # Scalepack file has no empty lines
+                break
             if (
                 (i == 0 and strs[0] == "1" and len(strs) == 1)
                 or (i == 1 and (strs[0] == "-985" or strs[0] == "-987") and len(strs) == 1)
