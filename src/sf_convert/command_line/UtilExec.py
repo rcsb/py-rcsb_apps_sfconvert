@@ -43,7 +43,7 @@ def create_parser():
 
     parser_fmt = subparsers.add_parser("checkfmts",
                                        help="Checks the format of SF files")
-    parser_fmt.add_argument("-sf", type=str, nargs="+", required=True,
+    parser_fmt.add_argument("--sf", type=str, nargs="+", required=True,
                             help="Structure factor files")
 
     group_fmt = parser_fmt.add_mutually_exclusive_group()
