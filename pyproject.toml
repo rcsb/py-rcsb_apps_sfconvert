@@ -21,7 +21,7 @@ classifiers = [
 ]
 dependencies = [
     "mmcif ~= 0.87",
-    "gemmi",
+    "gemmi < 0.7.3",
     "numpy",
 ]
 dynamic = ["version"]
