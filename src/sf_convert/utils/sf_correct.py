@@ -139,9 +139,9 @@ class SfCorrect:
                             elif setwlf > 0 and abs(setwlf - wave) > 0.0001 and idx == 0:
                                 self.__logger.pinfo("Warning: ({pdb_id} nblock={idx}) wavelength mismatch (pdb= {setwlf} : sf= {curwave}). (double check!)", 0)
 
-                # Set the values....
-                for row in range(cObj.getRowCount()):
-                    cObj.setValue(setwl, "wavelength", row)
+                        # Set the values....
+                        for row in range(cObj.getRowCount()):
+                            cObj.setValue(setwl, "wavelength", row)
 
             else:
                 # Create category - for dictionary compliance purposes. Might not be needed depending on data.
