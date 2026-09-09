@@ -20,9 +20,10 @@ classifiers = [
     "License :: OSI Approved :: Apache Software License",
 ]
 dependencies = [
-    "mmcif ~= 0.87",
+    "mmcif >= 0.87",
     "gemmi < 0.7.3",
     "numpy",
+    "typing_extensions"
 ]
 dynamic = ["version"]
 
@@ -44,4 +45,84 @@ sf_convert_util = "sf_convert.command_line.UtilExec:main"
 [tool.pytest.ini_options]
 pythonpath = ["src", "tests/helpers"]
 
+
+# -------------------- default environment scripts ------------------
+[tool.hatch.envs.default]
+dependencies = ["mypy", "pytest",
+    "mmcif",
+    "gemmi", 
+    "numpy",
+    "typing_extensions"
+]
+
+
+[tool.hatch.envs.default.scripts]
+# 'format' formats and fixes issues but does not complain
+format = [
+  "ruff format",
+  "ruff check --fix-only",
+]
+
+# 'format-python' just excludes Prettier
+format-python = ["ruff format", "ruff check --fix-only"]
+
+# 'check' only checks but never fixes
+check = ["ruff check --no-fix .", "mypy --non-interactive --install-types -p src -p tests"]
+
+# only checks with ruff (mypy has a lot of false positives)
+check-ruff = "ruff check --no-fix . {args}"
+
+# to complement 'check-ruff'
+check-mypy = "mypy --non-interactive --install-types -p wwpdb -p tests {args}"
+
+# only check security via Bandit; we require these rules to pass
+check-security = "ruff check --select S --no-fix ."
+
+
+
+#=================================== Ruff basics =============================#
+[tool.ruff]
+target-version = "py38"
+output-format = "concise"
+
+line-length = 120 # 120 is hatch's default via 'hatch init'
+include = [
+  "*.py",           # Source
+  "pyproject.toml", # This file (RUF rules only)
+  "*.ipynb",        # Jupyter notebooks
+]
+
+extend-exclude = ["BulkTest"]
+
+#
+#=================================== Ruff lint ==============================#
+
+[tool.ruff.lint]
+
+#
+# ------------------------- Ruff misc. options ----------------------
+preview = false
+explicit-preview-rules = true
+
+ignore = [
+    "N999",     # Invalid module name
+    "PERF401",  # Use a list comprehension to create a transformed list
+    "RUF100",   # [*] Unused `noqa` directive (non-enabled: `E721`)
+    "SIM102",   # Use a single `if` statement instead of nested `if` statements
+    "SIM210",   # Use `bool(...)` instead of `True if ... else False`
+    "UP031",    # Use format specifiers instead of percent format
+    "UP045",    # Use `X | None` for type annotations
+]
+
+# -------------------------  Mypy disable ---------
+[[tool.mypy.overrides]]
+# Older oslo.concurrency in python 3.8 does not have typing
+module = ["mmcif.*", "sf_convert.*"]
+ignore_missing_imports = true
+
+
+[tool.mypy]
+exclude = [
+	"test-output",
+]
 

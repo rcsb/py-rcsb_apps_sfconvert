@@ -1,17 +1,28 @@
+from __future__ import annotations
+
 import io
 import os
+from typing import IO, Optional
 
 from mmcif.api.DataCategory import DataCategory
 from mmcif.api.PdbxContainers import DataContainer
 from mmcif.io.IoAdapterCore import IoAdapterCore
 
+# For python 3.8 compatibility
+from typing_extensions import NotRequired, TypedDict, Unpack
+
+
+class PinfoConfig(TypedDict):
+    onlyfirstblock: NotRequired[bool]
+
 
 class PInfoBase:
-    def __init__(self):
-        self._lf1 = None
-        self._lf2 = None
+    def __init__(self, **kwargs: Unpack[PinfoConfig]) -> None:
+        self._lf1: IO[str] | None = None
+        self._lf2: IO[str] | None = None
+        self._firstblock = kwargs.get("onlyfirstblock", False)
 
-    def pinfo(self, info, pid):
+    def pinfo(self, info: str, pid: int, block: Optional[int] = None) -> None:
         """
         Logs information and prints it to the console.
 
@@ -25,19 +36,32 @@ class PInfoBase:
             - If the ID is 1, the information is logged to the second log file.
             - If the ID is 2, the information is only printed to the console.
         """
+        assert self._lf1 is not None
+        assert self._lf2 is not None
+
+        skip = False
+        if self._firstblock and block and block != 0:
+            skip = True
+
         if "Warning" in info or "Error" in info:
-            self._lf1.write(f"{info}\n")  # Log to FTMP1.log
+            if not skip:
+                self._lf1.write(f"{info}\n")  # Log to FTMP1.log
             print(info)  # Also print to console
         elif pid == 0:
-            self._lf2.write(f"{info}\n")  # Log to FTMP2.log
+            if not skip:
+                self._lf2.write(f"{info}\n")  # Log to FTMP2.log
             print(info)  # Also print to console
         elif pid == 1:
-            self._lf2.write(f"{info}\n")  # Log to FTMP2.log
+            if not skip:
+                self._lf2.write(f"{info}\n")  # Log to FTMP2.log
         elif pid == 2:
-            print(info)  # Only print to console
+            if not skip:
+                print(info)  # Only print to console
 
-    def output_reports(self, sfinfo="sf_information.cif", diag=None):
+    def output_reports(self, sfinfo: str = "sf_information.cif", diag: str | None = None) -> None:
         """Output diagnostics file (if requested) and the sf_information.cif file"""
+
+        assert self._lf1 is not None
 
         if diag:
             self._lf1.seek(0)
@@ -51,12 +75,16 @@ class PInfoBase:
                         fout.write(f"{ln}\n")
 
                 if num == 0:
+                    # The following phrase is known by deposition system - do not change
                     fout.write("No Error/Warning messages were found.\n")
 
         self.__output_sf_info(sfinfo)
 
-    def __output_sf_info(self, sfpath):
+    def __output_sf_info(self, sfpath: str) -> None:
         """Outputs sf_info class"""
+
+        assert self._lf1 is not None
+        assert self._lf2 is not None
 
         self._lf1.seek(0)
         self._lf2.seek(0)
@@ -91,7 +119,7 @@ class PInfoBase:
 
 
 class PInfoLogger(PInfoBase):
-    def __init__(self, log_file1_path, log_file2_path):
+    def __init__(self, log_file1_path: str, log_file2_path: str, **kwargs: Unpack[PinfoConfig]) -> None:
         """
         Initializes a new instance of the PInfoLogger class.
 
@@ -99,7 +127,7 @@ class PInfoLogger(PInfoBase):
             log_file1_path (str): The path to the first log file.
             log_file2_path (str): The path to the second log file.
         """
-        super().__init__()
+        super().__init__(**kwargs)
 
         self.__log_file1 = log_file1_path
         self.__log_file2 = log_file2_path
@@ -109,20 +137,20 @@ class PInfoLogger(PInfoBase):
         self._lf1 = open(self.__log_file1, "w")  # noqa: SIM115
         self._lf2 = open(self.__log_file2, "w")  # noqa: SIM115
 
-    def __del__(self):
+    def __del__(self) -> None:
         if self._lf1:
             self._lf1.close()
         if self._lf2:
-            self._lf1.close()
+            self._lf2.close()
 
-    def clear_logs(self):
+    def clear_logs(self) -> None:
         """
         Clears the log files.
         """
         self.__remove_if_exists(self.__log_file1)
         self.__remove_if_exists(self.__log_file2)
 
-    def __remove_if_exists(self, file_path):
+    def __remove_if_exists(self, file_path: str) -> None:
         """
         Removes a file if it exists.
 
@@ -139,7 +167,7 @@ class PInfoLogger(PInfoBase):
 class PStreamLogger(PInfoBase):
     """Logger but uses StringIO and not tempoary log files"""
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, **kwargs: Unpack[PinfoConfig]) -> None:
+        super().__init__(**kwargs)
         self._lf1 = io.StringIO()
         self._lf2 = io.StringIO()
