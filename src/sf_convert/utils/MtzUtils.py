@@ -1,6 +1,4 @@
-# pylint: disable=E1101
 import gemmi
-
 import numpy as np
 
 
@@ -66,7 +64,7 @@ class GetMtzInfo:
             fout.write(f"* Number of Reflections = {self.__mtz.nreflections}\n\n")
 
             fout.write("* HISTORY for current MTZ file :\n")
-            for h in self.__mtz.history:
+            for h in self.__mtz.history:  # noqa: FURB122
                 fout.write(f"    {h}\n")
 
             fout.write("\n")

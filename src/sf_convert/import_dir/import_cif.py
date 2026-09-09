@@ -26,7 +26,7 @@ class ImportCif:
             if not os.path.exists(fpath):
                 self.__logger.pinfo(f"File {fpath} does not exist", 0)
                 self.__sf = None
-                return None
+                return
 
             sf = StructureFactorFile()
             sf.read_file(fpath)

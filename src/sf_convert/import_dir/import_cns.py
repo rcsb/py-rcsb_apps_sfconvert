@@ -28,7 +28,7 @@ class ImportCns:
             if not os.path.exists(fpath):
                 self.__logger.pinfo(f"File {fpath} does not exist", 0)
                 self.__sf = None
-                return None
+                return
 
             cns2cif = CNSToCifConverter(fpath, "xxxx", self.__logger, self.__free)
             cns2cif.import_file()
@@ -245,7 +245,7 @@ class CNSToCifConverter:
             "pdbx_HLD",
         ]
         cur_key = {}
-        for key in self.__values.keys():
+        for key in self.__values:
             cur_key[key] = 1
 
         ordered_keys = []
@@ -255,7 +255,7 @@ class CNSToCifConverter:
                 del cur_key[p]
 
         for key in cur_key:
-            ordered_keys.append(key)
+            ordered_keys.append(key)  # noqa: PERF402
 
         for key in ordered_keys:
             fCat.appendAttribute(key)

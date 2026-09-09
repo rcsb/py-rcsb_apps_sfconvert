@@ -90,7 +90,7 @@ class ExportMtz:
         """
         spec_lines = []
         column_labels = self.__rblock.column_labels()
-        for _key, alternatives in self.__mappings.items():
+        for alternatives in self.__mappings.values():
             for alternative in alternatives:
                 if alternative[0] in column_labels:
                     spec_line = " ".join([alternative[0]] + list(map(str, alternative[1:])))

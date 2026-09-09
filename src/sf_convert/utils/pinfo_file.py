@@ -106,8 +106,8 @@ class PInfoLogger(PInfoBase):
 
         self.clear_logs()  # Clear the logs if they already exist
 
-        self._lf1 = open(self.__log_file1, "w")
-        self._lf2 = open(self.__log_file2, "w")
+        self._lf1 = open(self.__log_file1, "w")  # noqa: SIM115
+        self._lf2 = open(self.__log_file2, "w")  # noqa: SIM115
 
     def __del__(self):
         if self._lf1:
@@ -132,7 +132,7 @@ class PInfoLogger(PInfoBase):
         try:
             if os.path.exists(file_path):
                 os.remove(file_path)
-        except Exception as e:  # pylint: disable=broad-exception-caught
+        except Exception as e:  # noqa: BLE001 pylint: disable=broad-exception-caught
             print(f"An error occurred while removing {file_path}: {e}")
 
 

@@ -36,7 +36,7 @@ class ImportMtz:
             if not os.path.exists(fpath):
                 self.__logger.pinfo(f"File {fpath} does not exist", 0)
                 self.__sf = None
-                return None
+                return
 
             mtz2cif = MtzToCifConverter(fpath, self.__logger)
             if self.__label:
@@ -66,13 +66,13 @@ class ImportMtz:
         if len(fileList) > 1:
             self.__logger.pinfo("Error: When using labels, only a single file can be used", 0)
             self.__sf = None
-            return None
+            return
 
         fpath = fileList[0]
         if not os.path.exists(fpath):
             self.__logger.pinfo(f"File {fpath} does not exist", 0)
             self.__sf = None
-            return None
+            return
 
         for idx, label in enumerate(self.__label.split(":")):
             self.__logger.pinfo(f"Processing datablock {idx + 1}", 0)
@@ -105,7 +105,7 @@ class ImportMtz:
 
     def __have_multi_label(self):
         """Returns True if multiple datasets present in labels - i.e. with a ":" character"""
-        if self.__label and ":" in self.__label:
+        if self.__label and ":" in self.__label:  # noqa: SIM103
             return True
         return False
 
@@ -258,7 +258,7 @@ class MtzToCifConverter:
         """
         for category_name, data_dict in categories.items():
             category = DataCategory(category_name)
-            for key in data_dict.keys():
+            for key in data_dict:
                 category.appendAttribute(key)
             category.append(tuple(data_dict.values()))
             self.sffile.append_category_to_block(category)

@@ -210,7 +210,7 @@ class StructureFactorFile:
                 print(f"Block {block_name} does not exist.")
                 return
         new_category = DataCategory(category_name)
-        for attribute in data_dict.keys():
+        for attribute in data_dict:
             new_category.appendAttribute(attribute)
         new_category.append(list(data_dict.values()))
         block.append(new_category)

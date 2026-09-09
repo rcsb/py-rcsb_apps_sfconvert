@@ -28,7 +28,7 @@ def is_cif(fpath, pinfo):
                 if found > threshold:
                     break
 
-    if found > threshold:
+    if found > threshold:  # noqa: SIM103
         return True
 
     return False

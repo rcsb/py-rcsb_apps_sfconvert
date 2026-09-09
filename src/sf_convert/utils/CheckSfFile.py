@@ -1088,7 +1088,7 @@ class CheckSfFile:
                 ah = int(self.__H[i])
                 ak = int(self.__K[i])
                 al = int(self.__L[i])
-            except:  # noqa: E722 pylint: disable=bare-except
+            except:  # noqa: E722,S112 pylint: disable=bare-except
                 # Non integral - reported in check - skip
                 continue
             if rcell:
@@ -1210,7 +1210,7 @@ class CheckSfFile:
             for attr in alist:
                 val = float(cObj.getValue(attr))
                 sfcell.append(val)
-        except Exception:
+        except Exception:  # noqa: BLE001
             self.__logger.pinfo(f"Error: Could not parse cell from {blkname}", 0)
             return
 

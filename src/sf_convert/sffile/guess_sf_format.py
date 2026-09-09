@@ -74,14 +74,7 @@ def guess_sf_format(inpfile: str) -> str:
         n6 = 0
         for line in lines:
             line = line.strip()
-            if (
-                line.startswith("CRYSTAL_MOSAICITY=")
-                or line.startswith("CRYSTAL_SPACEGROUP=")
-                or line.startswith("CRYSTAL_UNIT_CELL=")
-                or line.startswith("nH")
-                or line.startswith("nK")
-                or line.startswith("nL")
-            ):
+            if line.startswith(("CRYSTAL_MOSAICITY=", "CRYSTAL_SPACEGROUP=", "CRYSTAL_UNIT_CELL=", "nH", "nK", "nL")):
                 n6 += 1
                 if n6 > 5:
                     return "DTREK"
@@ -125,7 +118,7 @@ def guess_sf_format(inpfile: str) -> str:
 
             if first_three_bytes == b"MTZ":
                 return "MTZ"
-        except Exception:
+        except Exception:  # noqa: S110,BLE001
             pass
 
     return "Format not recognized"
