@@ -5,8 +5,8 @@ import math
 from mmcif.api.DataCategory import DataCategory
 from mmcif.api.PdbxContainers import CifName
 
-from sf_convert.utils.reformat_sfhead import reformat_sfhead, reorder_sf_file
 from sf_convert.utils.dict_filter import DictFilter
+from sf_convert.utils.reformat_sfhead import reformat_sfhead, reorder_sf_file
 
 
 class SfCorrect:
@@ -126,7 +126,10 @@ class SfCorrect:
                     try:
                         wave = float(curwave)
                         if wave > 2.0 or wave < 0.6:
-                            self.__logger.pinfo(f"Warning: ({pdb_id} nblock={idx} wavelength value {curwave} is abnormal (double check)!", 0)
+                            self.__logger.pinfo(
+                                f"Warning: ({pdb_id} nblock={idx} wavelength value {curwave} is abnormal (double check)!",
+                                0,
+                            )
                     except ValueError:
                         # Wavelnegth might be a range
                         self.__logger.pinfo(f"Wavelength not a float {curwave}", 0)
@@ -135,9 +138,15 @@ class SfCorrect:
                     if setwl != ".":
                         if setwlf > 0.8 and setwlf < 2.5 and setwlf != 1.0 and wave:
                             if abs(setwlf - wave) > 0.0001 and idx == 0:
-                                self.__logger.pinfo(f"Warning: ({pdb_id} nblock={idx}) wavelength mismatch (pdb= {setwlf} : sf= {curwave})!", 0)
+                                self.__logger.pinfo(
+                                    f"Warning: ({pdb_id} nblock={idx}) wavelength mismatch (pdb= {setwlf} : sf= {curwave})!",
+                                    0,
+                                )
                             elif setwlf > 0 and abs(setwlf - wave) > 0.0001 and idx == 0:
-                                self.__logger.pinfo("Warning: ({pdb_id} nblock={idx}) wavelength mismatch (pdb= {setwlf} : sf= {curwave}). (double check!)", 0)
+                                self.__logger.pinfo(
+                                    "Warning: ({pdb_id} nblock={idx}) wavelength mismatch (pdb= {setwlf} : sf= {curwave}). (double check!)",
+                                    0,
+                                )
 
                         # Set the values....
                         for row in range(cObj.getRowCount()):
@@ -622,7 +631,9 @@ class SfCorrect:
             if details and "details" not in cObj.getAttributeList():
                 cObj.appendAttributeExtendRows("details", details)
 
-            sffile.reorder_category_attributes("diffrn", ["id", "crystal_id", "ambient_temp", "crystal_treatment", "details"], blk.getName())
+            sffile.reorder_category_attributes(
+                "diffrn", ["id", "crystal_id", "ambient_temp", "crystal_treatment", "details"], blk.getName()
+            )
 
     def _cleanup_audit(self, sffile):
         """Cleanup audit records that should not be present
@@ -725,7 +736,7 @@ class SfCorrect:
                 if val:
                     data[k] = val
 
-            if not data.get("resh", None) and not data.get("nall", None) and not data.get("nobs", None):
+            if not data.get("resh") and not data.get("nall") and not data.get("nobs"):
                 continue
 
             if cObjref:
@@ -812,7 +823,9 @@ class SfCorrect:
             if not cObj:
                 continue
 
-            sffile.reorder_category_attributes("symmetry", ["entry_id", "space_group_name_H-M", "Int_Tables_number"], blk.getName())
+            sffile.reorder_category_attributes(
+                "symmetry", ["entry_id", "space_group_name_H-M", "Int_Tables_number"], blk.getName()
+            )
 
     def correct_cell_precision(self, sffile):
         """We limit cell to 3 significant digits
@@ -980,7 +993,9 @@ class SfCorrect:
                     continue
 
                 if have_diffrn_refln:
-                    self.__logger.pinfo(f"Error: Block {blkname} has both _reflns and _diffrn_reflns and both unmerged", 0)
+                    self.__logger.pinfo(
+                        f"Error: Block {blkname} has both _reflns and _diffrn_reflns and both unmerged", 0
+                    )
                     continue
 
                 # Rename block.
@@ -1024,13 +1039,19 @@ class SfCorrect:
                 # Reassign data if need be.....
                 if "intensity_net" not in cObj.getAttributeList():
                     # We fake it...
-                    for attrl in (["F_squared_meas", "F_squared_sigma"], ["pdbx_I_plus", "pdbx_I_plus_sigma"], ["pdbx_I_minus", "pdbx_I_minus_sigma"]):
+                    for attrl in (
+                        ["F_squared_meas", "F_squared_sigma"],
+                        ["pdbx_I_plus", "pdbx_I_plus_sigma"],
+                        ["pdbx_I_minus", "pdbx_I_minus_sigma"],
+                    ):
                         if attrl[0] in cObj.getAttributeList():
                             cObj.renameAttributes({attrl[0]: "intensity_net"})
                             self.__logger.pinfo(f"Warning: Copying {attrl[0]} to intensity_net in block {blkname}", 0)
                             if attrl[1] in cObj.getAttributeList():
                                 cObj.renameAttributes({attrl[1]: "intensity_sigma"})
-                                self.__logger.pinfo(f"Warning: Copying {attrl[1]} to intensity_sigma in block {blkname}", 0)
+                                self.__logger.pinfo(
+                                    f"Warning: Copying {attrl[1]} to intensity_sigma in block {blkname}", 0
+                                )
                             break
 
                 # Delete columns cannot deal with
@@ -1219,7 +1240,9 @@ class SfCorrect:
 
                 if bad:
                     if not warn:
-                        self.__logger.pinfo(f"Warning: In {blkname}, {item} value {val} is not integral -- truncating", 0)
+                        self.__logger.pinfo(
+                            f"Warning: In {blkname}, {item} value {val} is not integral -- truncating", 0
+                        )
                         warn = True
                     try:
                         newval = str(math.trunc(float(val)))
@@ -1312,7 +1335,9 @@ class SfCorrect:
                 cObj.setValue(newval, "status", idx)
 
             if not setflag:
-                self.__logger.pinfo(f"Warning: test set {freer} not in block {blkname} - nothing flagged as test set", 0)
+                self.__logger.pinfo(
+                    f"Warning: test set {freer} not in block {blkname} - nothing flagged as test set", 0
+                )
 
     def set_cell_if_missing(self, sffile, pdbid, cell):
         """If cell is not present, then set"""
@@ -1368,7 +1393,6 @@ class SfCorrect:
             self.__logger.pinfo(f"Note: Auto adding {cat} in block={blkname}", 0)
 
     def __filter_attributes(self, sffile):
-
         df = DictFilter()
         df.loadDataDictionary()
 

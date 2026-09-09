@@ -28,14 +28,13 @@ class PInfoBase:
         if "Warning" in info or "Error" in info:
             self._lf1.write(f"{info}\n")  # Log to FTMP1.log
             print(info)  # Also print to console
-        else:
-            if pid == 0:
-                self._lf2.write(f"{info}\n")  # Log to FTMP2.log
-                print(info)  # Also print to console
-            elif pid == 1:
-                self._lf2.write(f"{info}\n")  # Log to FTMP2.log
-            elif pid == 2:
-                print(info)  # Only print to console
+        elif pid == 0:
+            self._lf2.write(f"{info}\n")  # Log to FTMP2.log
+            print(info)  # Also print to console
+        elif pid == 1:
+            self._lf2.write(f"{info}\n")  # Log to FTMP2.log
+        elif pid == 2:
+            print(info)  # Only print to console
 
     def output_reports(self, sfinfo="sf_information.cif", diag=None):
         """Output diagnostics file (if requested) and the sf_information.cif file"""

@@ -1,11 +1,11 @@
 # Class to import cif files.
 
 import os
+
 from sf_convert.sffile.sf_file import StructureFactorFile
 
 
 class ImportCif:
-
     def __init__(self, logger):
         """Class to import CIF files - multiple supported"""
         self.__logger = logger

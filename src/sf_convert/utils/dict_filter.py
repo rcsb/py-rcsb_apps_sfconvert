@@ -1,8 +1,8 @@
 # Class to convert dictionary to a data file and provide lists of categories
 # and attributes that can be used in files.
 
-import os
 import json
+import os
 import sys
 
 from mmcif.api.DictionaryApi import DictionaryApi
@@ -64,7 +64,7 @@ class DictFilter:
             json.dump(data, fout, indent=4)
 
     def loadDataDictionary(self):
-        with open(self.__dataPath, "r") as fin:
+        with open(self.__dataPath) as fin:
             self.__datadict = json.load(fin)
 
     def getAllowedCats(self):

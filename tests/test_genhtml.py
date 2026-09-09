@@ -1,4 +1,5 @@
 import os
+
 from sf_convert.utils.GenMtzHtml import GenMtzHtml
 
 
@@ -18,7 +19,7 @@ class TesGenHtml:
 
         assert os.path.exists(outfile)
 
-        with open(outfile, "r") as fin:
+        with open(outfile) as fin:
             lines = fin.readlines()
 
         assert len(lines) > 50

@@ -54,7 +54,9 @@ class GetMtzInfo:
 
                 icell = ds.cell if ds.cell.is_crystal() else cell
 
-                fout.write(f"            {icell.a:.4f}     {icell.b:.4f}     {icell.c:.4f}     {icell.alpha:.4f}     {icell.beta:.4f}     {icell.gamma:.4f}\n")
+                fout.write(
+                    f"            {icell.a:.4f}     {icell.b:.4f}     {icell.c:.4f}     {icell.alpha:.4f}     {icell.beta:.4f}     {icell.gamma:.4f}\n"
+                )
                 fout.write(f"            {ds.wavelength:.4f}\n\n")
 
             ncols = len(self.__mtz.columns)
@@ -83,7 +85,9 @@ class GetMtzInfo:
             fout.write(" ".join(dlist) + "\n\n")
 
             fout.write("# * Cell Dimensions : (obsolete - refer to dataset cell dimensions above)\n\n")
-            fout.write(f" {cell.a:.4f}     {cell.b:.4f}     {cell.c:.4f}     {cell.alpha:.4f}     {cell.beta:.4f}     {cell.gamma:.4f}\n")
+            fout.write(
+                f" {cell.a:.4f}     {cell.b:.4f}     {cell.c:.4f}     {cell.alpha:.4f}     {cell.beta:.4f}     {cell.gamma:.4f}\n"
+            )
 
             fout.write("*  Resolution Range :\n\n")
             fout.write(f"  {self.__mtz.resolution_low():.4f} - {self.__mtz.resolution_high():.4f} A\n\n")
@@ -112,6 +116,10 @@ class GetMtzInfo:
                     complper = 0
 
                 if col.is_integer():
-                    fout.write(f"{idx + 1:2}  {cmin:7n}  {cmax:9n}   {nummis:5n}     {complper:6.2f}   {mean:6.2f}    {col.type}    {col.label}\n")
+                    fout.write(
+                        f"{idx + 1:2}  {cmin:7n}  {cmax:9n}   {nummis:5n}     {complper:6.2f}   {mean:6.2f}    {col.type}    {col.label}\n"
+                    )
                 else:
-                    fout.write(f"{idx + 1:2}  {cmin:7.2f}  {cmax:9.2f}   {nummis:5n}     {complper:6.2f}   {mean:6.2f}    {col.type}    {col.label}\n")
+                    fout.write(
+                        f"{idx + 1:2}  {cmin:7.2f}  {cmax:9.2f}   {nummis:5n}     {complper:6.2f}   {mean:6.2f}    {col.type}    {col.label}\n"
+                    )

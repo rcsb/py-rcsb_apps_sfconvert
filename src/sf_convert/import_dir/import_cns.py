@@ -1,13 +1,13 @@
 import os
-
 from collections import defaultdict
+
 from mmcif.api.DataCategory import DataCategory
 from mmcif.api.PdbxContainers import DataContainer
+
 from sf_convert.sffile.sf_file import StructureFactorFile as SFFile
 
 
 class ImportCns:
-
     def __init__(self, logger):
         """Class to import CNS files - multiple supported"""
         self.__logger = logger
@@ -60,7 +60,6 @@ class CNSToCifConverter:
     """
 
     def __init__(self, file_path, pdb_id, logger, FREERV=None):
-
         if FREERV:
             self.__FREERV = int(FREERV)
         else:
@@ -174,7 +173,7 @@ class CNSToCifConverter:
         """
         Process the CNS file.
         """
-        with open(self.__file_path, "r") as file:
+        with open(self.__file_path) as file:
             for line in file:
                 self.__process_line(line)
                 self.__process_status_line(line)
@@ -255,7 +254,7 @@ class CNSToCifConverter:
                 ordered_keys.append(p)
                 del cur_key[p]
 
-        for key in cur_key.keys():
+        for key in cur_key:
             ordered_keys.append(key)
 
         for key in ordered_keys:

@@ -1,4 +1,5 @@
 from mmcif.api.DataCategory import DataCategory
+
 from sf_convert.utils.CifUtils import reorderCategoryAttr
 
 

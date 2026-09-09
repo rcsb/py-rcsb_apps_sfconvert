@@ -1,9 +1,10 @@
 import math
 
-from sf_convert.utils.SpaceGroup import SpaceGroup
 from mmcif.api.DataCategory import DataCategory
 from mmcif.api.PdbxContainers import DataContainer
 from mmcif.io.IoAdapterCore import IoAdapterCore
+
+from sf_convert.utils.SpaceGroup import SpaceGroup
 
 
 class CheckSfFile:
@@ -165,11 +166,21 @@ class CheckSfFile:
             else:
                 setattr(self, "_CheckSfFile__" + var, None)
 
-        diffrn_attributes = {"intensity_net": "unmerge_i", "intensity_sigma": "unmerge_si", "index_h": "dH", "index_k": "dK", "index_l": "dL"}
+        diffrn_attributes = {
+            "intensity_net": "unmerge_i",
+            "intensity_sigma": "unmerge_si",
+            "index_h": "dH",
+            "index_k": "dK",
+            "index_l": "dL",
+        }
 
         for attr, var in diffrn_attributes.items():
             if self.__diffrn_refln_data and self.__diffrn_refln_data.hasAttribute(attr):
-                setattr(self, "_CheckSfFile__" + var, self.__diffrn_refln_data.getColumn(self.__diffrn_refln_data.getIndex(attr)))
+                setattr(
+                    self,
+                    "_CheckSfFile__" + var,
+                    self.__diffrn_refln_data.getColumn(self.__diffrn_refln_data.getIndex(attr)),
+                )
             else:
                 setattr(self, "_CheckSfFile__" + var, None)
 
@@ -326,7 +337,12 @@ class CheckSfFile:
             sinb = math.sin(math.radians(cell[4]))
             sinc = math.sin(math.radians(cell[5]))
 
-            v = cell[0] * cell[1] * cell[2] * math.sqrt(1.0 - cosa * cosa - cosb * cosb - cosc * cosc + 2.0 * cosa * cosb * cosc)
+            v = (
+                cell[0]
+                * cell[1]
+                * cell[2]
+                * math.sqrt(1.0 - cosa * cosa - cosb * cosb - cosc * cosc + 2.0 * cosa * cosb * cosc)
+            )
 
             rcell[0] = cell[1] * cell[2] * sina / v
             rcell[1] = cell[0] * cell[2] * sinb / v
@@ -341,9 +357,8 @@ class CheckSfFile:
             rcell[5] = math.acos(coscst) / math.radians(1.0)
 
             return rcell, cell
-        else:
-            self.__logger.pinfo("Warning: No cell data found in the mmCIF file.", self.__pinfo_value)
-            return None, None
+        self.__logger.pinfo("Warning: No cell data found in the mmCIF file.", self.__pinfo_value)
+        return None, None
 
     def __get_resolution(self, h, k, l, rcell):  # noqa: E741
         """
@@ -398,12 +413,27 @@ class CheckSfFile:
             None
         """
         self.__sf_block = self.__sf_file.get_block_by_index(nblock)
-        self.__logger.pinfo(f"Data_block_id={self.__sf_block.getName()}, block_number={nblock + 1}\n", 0)  # self.__pinfo_value)
+        self.__logger.pinfo(
+            f"Data_block_id={self.__sf_block.getName()}, block_number={nblock + 1}\n", 0
+        )  # self.__pinfo_value)
         self.__initialize_data()
 
         temp_nref, nstart, n1, n4, n5, nfpairF, nfpairI, nf_sFo, nf_sIo, key = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
         # n2 removed
-        sum_sigii, ii_sigii, ii_sigii_low, nnii, sum_ii, nnii_low, nfp, nfn, nip, nin, n_obs, n_free = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+        sum_sigii, ii_sigii, ii_sigii_low, nnii, sum_ii, nnii_low, nfp, nfn, nip, nin, n_obs, n_free = (
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+        )
         max_H, min_H, max_K, min_K, max_L, min_L = -500, 500, -500, 500, -500, 500
         max_F, min_F, max_I, min_I = -500000.0, 500000.0, -5000000.0, 5000000.0
         max_R, min_R, max_F2, min_F2 = -500.0, 900.0, -500000.0, 500000.0
@@ -424,21 +454,36 @@ class CheckSfFile:
             self.__check_symm(self.__sf_block, nblock)
 
         if not (self.__dH or self.__dK or self.__dL or self.__H or self.__K or self.__L):
-            self.__logger.pinfo(f"Error: File has no 'index_h, index_k, index_l' (data block= {nblock + 1}).", self.__pinfo_value)
+            self.__logger.pinfo(
+                f"Error: File has no 'index_h, index_k, index_l' (data block= {nblock + 1}).", self.__pinfo_value
+            )
             return
 
         if not (
-            self.__Fo_au or self.__Fo or self.__Io or self.__F2o or self.__I_plus or self.__I_minus or self.__F_plus or self.__F_minus or self.__unmerge_i or self.__unmerge_si
+            self.__Fo_au
+            or self.__Fo
+            or self.__Io
+            or self.__F2o
+            or self.__I_plus
+            or self.__I_minus
+            or self.__F_plus
+            or self.__F_minus
+            or self.__unmerge_i
+            or self.__unmerge_si
         ):
             msg = "Error" if nblock == 0 else "Warning"
-            self.__logger.pinfo(f"{msg}: File has no mandatory items 'F/I/F+/F-/I+/I-' (data block= {nblock + 1}). ", self.__pinfo_value)
+            self.__logger.pinfo(
+                f"{msg}: File has no mandatory items 'F/I/F+/F-/I+/I-' (data block= {nblock + 1}). ", self.__pinfo_value
+            )
             return
 
         if self.__nref < 30 and self.__dnref > 30:
             return  # do not further check the unmerged data!!
 
         if self.__nref < 30:
-            self.__logger.pinfo(f"Error: File has too few reflections ({self.__nref}) (data block= {nblock + 1}).", self.__pinfo_value)
+            self.__logger.pinfo(
+                f"Error: File has too few reflections ({self.__nref}) (data block= {nblock + 1}).", self.__pinfo_value
+            )
             return
 
         if (
@@ -472,7 +517,10 @@ class CheckSfFile:
             except:  # noqa: E722 pylint: disable=bare-except
                 if not invalid_miller:
                     # Report once
-                    self.__logger.pinfo(f"Error: Miller indices are not integral ({self.__H[i]}, {self.__K[i]}, {self.__L[i]})", self.__pinfo_value)
+                    self.__logger.pinfo(
+                        f"Error: Miller indices are not integral ({self.__H[i]}, {self.__K[i]}, {self.__L[i]})",
+                        self.__pinfo_value,
+                    )
                     invalid_miller = True
                 continue
 
@@ -524,7 +572,10 @@ class CheckSfFile:
                 if f < 0:
                     n4 += 1
                     if n4 == 1:
-                        self.__logger.pinfo(f"Error: File has negative amplitude (F+: {self.__F_plus[i]}) for ({hkl}).", self.__pinfo_value)
+                        self.__logger.pinfo(
+                            f"Error: File has negative amplitude (F+: {self.__F_plus[i]}) for ({hkl}).",
+                            self.__pinfo_value,
+                        )
 
             if self.__I_plus and self.__is_float(self.__I_plus[i]):
                 nfpairI += 1
@@ -566,8 +617,7 @@ class CheckSfFile:
                     if resolution > 7.0:  # low resolution I/sigI
                         ii_sigii_low += ratio
                         nnii_low += 1
-                    if ratio > ii_sigii_max:
-                        ii_sigii_max = ratio
+                    ii_sigii_max = max(ii_sigii_max, ratio)
                     nnii += 1
 
             if RESOL + 0.01 >= resolution >= RESOH - 0.01:  # for onedep
@@ -598,12 +648,13 @@ class CheckSfFile:
                 if f < 0:
                     n5 += 1
                     if n5 == 1:
-                        self.__logger.pinfo(f"Error: File has negative amplitude (Fo: {self.__Fo_au[i]}) for ({hkl}).", self.__pinfo_value)
+                        self.__logger.pinfo(
+                            f"Error: File has negative amplitude (Fo: {self.__Fo_au[i]}) for ({hkl}).",
+                            self.__pinfo_value,
+                        )
 
-                if f < min_F:
-                    min_F = f
-                if f > max_F:
-                    max_F = f
+                min_F = min(min_F, f)
+                max_F = max(max_F, f)
 
                 if self.__sFo_au and self.__is_float(self.__sFo_au[i]):
                     sigf = float(self.__sFo_au[i])
@@ -615,10 +666,8 @@ class CheckSfFile:
 
             if self.__F2o:
                 f = float(self.__F2o[i])
-                if f < min_F2:
-                    min_F2 = f
-                if f > max_F2:
-                    max_F2 = f
+                min_F2 = min(min_F2, f)
+                max_F2 = max(max_F2, f)
 
                 if self.__sF2o:
                     sigf = float(self.__sF2o[i])
@@ -630,10 +679,8 @@ class CheckSfFile:
 
             if self.__Io and self.__is_float(self.__Io[i]):
                 f = float(self.__Io[i])
-                if f < min_I:
-                    min_I = f
-                if f > max_I:
-                    max_I = f
+                min_I = min(min_I, f)
+                max_I = max(max_I, f)
 
                 if self.__sIo:
                     if self.__is_float(self.__sIo[i]):
@@ -649,17 +696,25 @@ class CheckSfFile:
             if self.__fom and self.__is_float(self.__fom[i]) and abs(float(self.__fom[i])) > 1.01:
                 if n6 == 0:
                     n6 += 1
-                    self.__logger.pinfo(f"Warning: File has wrong values of FOM ({self.__fom[i]}) for ({hkl}).", self.__pinfo_value)
+                    self.__logger.pinfo(
+                        f"Warning: File has wrong values of FOM ({self.__fom[i]}) for ({hkl}).", self.__pinfo_value
+                    )
 
             if self.__phase_c and self.__is_float(self.__phase_c[i]) and abs(float(self.__phase_c[i])) > 361.0:
                 if n7 == 0:
                     n7 += 1
-                    self.__logger.pinfo(f"Warning: File has wrong values of phase ({self.__phase_c[i]}) for ({hkl}).", self.__pinfo_value)
+                    self.__logger.pinfo(
+                        f"Warning: File has wrong values of phase ({self.__phase_c[i]}) for ({hkl}).",
+                        self.__pinfo_value,
+                    )
 
             if self.__phase_o and self.__is_float(self.__phase_o[i]) and abs(float(self.__phase_o[i])) > 361.0:
                 if n8 == 0:
                     n8 += 1
-                    self.__logger.pinfo(f"Warning: File has wrong values of phase ({self.__phase_o[i]}) for ({hkl}).", self.__pinfo_value)
+                    self.__logger.pinfo(
+                        f"Warning: File has wrong values of phase ({self.__phase_o[i]}) for ({hkl}).",
+                        self.__pinfo_value,
+                    )
 
         if n1 > 0:
             self.__logger.pinfo(f"Error: File has ({n1}) reflections with wrong indices.", self.__pinfo_value)
@@ -702,12 +757,20 @@ class CheckSfFile:
 
         if key > 0 and self.__cell[0] > 0.001:
             self.__logger.pinfo(
-                f"Cell = {self.__cell[0]:.2f} {self.__cell[1]:.2f} {self.__cell[2]:.2f} {self.__cell[3]:.2f} {self.__cell[4]:.2f} {self.__cell[5]:.2f}", self.__pinfo_value
+                f"Cell = {self.__cell[0]:.2f} {self.__cell[1]:.2f} {self.__cell[2]:.2f} {self.__cell[3]:.2f} {self.__cell[4]:.2f} {self.__cell[5]:.2f}",
+                self.__pinfo_value,
             )
-            self.__logger.pinfo(f"Lowest resolution= {max_R:.2f} ; corresponding HKL={self.__hkl_max}", self.__pinfo_value)
-            self.__logger.pinfo(f"Highest resolution={min_R:.2f} ; corresponding HKL={self.__hkl_min}", self.__pinfo_value)
+            self.__logger.pinfo(
+                f"Lowest resolution= {max_R:.2f} ; corresponding HKL={self.__hkl_max}", self.__pinfo_value
+            )
+            self.__logger.pinfo(
+                f"Highest resolution={min_R:.2f} ; corresponding HKL={self.__hkl_min}", self.__pinfo_value
+            )
             if RESOH > 0.11 and abs(RESOH - min_R) > 0.4 and nblock == 0:
-                self.__logger.pinfo(f"Warning: large difference between reportedre ({RESOH:.2f}) and calculated({min_R:.2f}) resolution.", self.__pinfo_value)
+                self.__logger.pinfo(
+                    f"Warning: large difference between reportedre ({RESOH:.2f}) and calculated({min_R:.2f}) resolution.",
+                    self.__pinfo_value,
+                )
             resol[0] = min_R
 
         self.__logger.pinfo(f"Max indices (Hmax={max_H:4d}  Kmax={max_K:4d}  Lmax={max_L:4d})", self.__pinfo_value)
@@ -717,26 +780,44 @@ class CheckSfFile:
             self.__logger.pinfo(f"maximum value of amplitude= {max_F:.2f}", self.__pinfo_value)
             self.__logger.pinfo(f"minimum value of amplitude= {min_F:.2f}", self.__pinfo_value)
             if nf_Fo:
-                self.__logger.pinfo(f"<F/sigmaF> = {f_over_sf / nf_Fo:.2f};  <F>/<sigmaF> = {sum_f / sum_sf:.2f}", self.__pinfo_value)
+                self.__logger.pinfo(
+                    f"<F/sigmaF> = {f_over_sf / nf_Fo:.2f};  <F>/<sigmaF> = {sum_f / sum_sf:.2f}", self.__pinfo_value
+                )
             if sum_sf and (sum_f / sum_sf > 140 or sum_f / sum_sf < 4):
-                self.__logger.pinfo(f"Warning: Value of (Fo_avg/sigFo_avg = {sum_f / sum_sf:.2f}) is out of range (check Fo or SigFo in SF file).", self.__pinfo_value)
+                self.__logger.pinfo(
+                    f"Warning: Value of (Fo_avg/sigFo_avg = {sum_f / sum_sf:.2f}) is out of range (check Fo or SigFo in SF file).",
+                    self.__pinfo_value,
+                )
 
         if self.__F2o:
             self.__logger.pinfo(f"maximum value of F square= {max_F2:.2f}", self.__pinfo_value)
             self.__logger.pinfo(f"minimum value of F square= {min_F2:.2f}", self.__pinfo_value)
-            self.__logger.pinfo(f"<F2/sigmaF2> = {f2_over_sf2 / nf_F2o:.2f};  <F2>/<sigmaF2> = {sum_f2 / sum_sf2:.2f}", self.__pinfo_value)
+            self.__logger.pinfo(
+                f"<F2/sigmaF2> = {f2_over_sf2 / nf_F2o:.2f};  <F2>/<sigmaF2> = {sum_f2 / sum_sf2:.2f}",
+                self.__pinfo_value,
+            )
 
         if self.__Io:
             self.__logger.pinfo(f"maximum value of intensity= {max_I:.2f}", self.__pinfo_value)
             self.__logger.pinfo(f"minimum value of intensity= {min_I:.2f}", self.__pinfo_value)
             if sum_si:
-                self.__logger.pinfo(f"<I/sigmaI> = {i_over_si / nf_Io:.2f};  <I>/<sigmaI> = {sum_i / sum_si:.2f}", self.__pinfo_value)
+                self.__logger.pinfo(
+                    f"<I/sigmaI> = {i_over_si / nf_Io:.2f};  <I>/<sigmaI> = {sum_i / sum_si:.2f}", self.__pinfo_value
+                )
                 if sum_i / sum_si > 80 or sum_i / sum_si < 2:
-                    self.__logger.pinfo(f"Warning: Value of (I_avg/sigI_avg = {sum_i / sum_si:.2f}) is out of range (check Io or SigIo in SF file). ", self.__pinfo_value)
+                    self.__logger.pinfo(
+                        f"Warning: Value of (I_avg/sigI_avg = {sum_i / sum_si:.2f}) is out of range (check Io or SigIo in SF file). ",
+                        self.__pinfo_value,
+                    )
 
             if nf_Fo and nf_Io:
-                if f_over_sf / nf_Fo > 0 and (f_over_sf / nf_Fo > 2.5 * i_over_si / nf_Io or f_over_sf / nf_Fo < 1.0 * i_over_si / nf_Io):
-                    self.__logger.pinfo(f"Warning: too much difference Fo/sigFo = {f_over_sf / nf_Fo:.2f};  Io/sigIo = {i_over_si / nf_Io:.2f}", self.__pinfo_value)
+                if f_over_sf / nf_Fo > 0 and (
+                    f_over_sf / nf_Fo > 2.5 * i_over_si / nf_Io or f_over_sf / nf_Fo < 1.0 * i_over_si / nf_Io
+                ):
+                    self.__logger.pinfo(
+                        f"Warning: too much difference Fo/sigFo = {f_over_sf / nf_Fo:.2f};  Io/sigIo = {i_over_si / nf_Io:.2f}",
+                        self.__pinfo_value,
+                    )
 
         if nnii > 10:
             self.__logger.pinfo(f"Using all data:  <I/sigI>={ii_sigii / nnii:.2f}", self.__pinfo_value)
@@ -745,7 +826,10 @@ class CheckSfFile:
             self.__logger.pinfo(f"The maximum value of <I/sigI>_max={ii_sigii_max:.2f}", self.__pinfo_value)
 
         if nnii_low > 10:
-            self.__logger.pinfo(f"Use data with resolution >7.0 Angstrom: <I/sigI>_low={ii_sigii_low / nnii_low:.2f}", self.__pinfo_value)
+            self.__logger.pinfo(
+                f"Use data with resolution >7.0 Angstrom: <I/sigI>_low={ii_sigii_low / nnii_low:.2f}",
+                self.__pinfo_value,
+            )
 
         self.__logger.pinfo("\n", self.__pinfo_value)
 
@@ -856,8 +940,8 @@ class CheckSfFile:
             else:
                 sf = sf_default
 
-        fp = "{:.2f}".format(f)
-        sigfp = "{:.2f}".format(sf)
+        fp = f"{f:.2f}"
+        sigfp = f"{sf:.2f}"
 
         return fp, sigfp
 
@@ -959,7 +1043,6 @@ class CheckSfFile:
         sigfp = "?"
 
         for i in range(n):
-
             if self.__status:
                 if self.__status[i] != "o" and self.__status[i] != "f":
                     continue
@@ -1014,7 +1097,13 @@ class CheckSfFile:
                 resol = 0.00  # This is stupid but what was done -- should not output
 
             i_sigi = 0.0
-            if self.__Io and self.__sIo and self.__is_float(self.__sIo[i]) and self.__is_float(self.__Io[i]) and float(self.__sIo[i]) > 0:
+            if (
+                self.__Io
+                and self.__sIo
+                and self.__is_float(self.__sIo[i])
+                and self.__is_float(self.__Io[i])
+                and float(self.__sIo[i]) > 0
+            ):
                 i_sigi = float(self.__Io[i]) / float(self.__sIo[i])
             else:
                 af = self.__float_or_zero(fp)
@@ -1027,7 +1116,16 @@ class CheckSfFile:
             if abs(SIGCUT) > 0.0001 and i_sigi < SIGCUT:
                 continue
 
-            values_to_append = (self.__H[i], self.__K[i], self.__L[i], flag, fp, sigfp, "{:0.2f}".format(round(resol, 2)), "{:0.2f}".format(round(i_sigi, 2)))
+            values_to_append = (
+                self.__H[i],
+                self.__K[i],
+                self.__L[i],
+                flag,
+                fp,
+                sigfp,
+                f"{round(resol, 2):0.2f}",
+                f"{round(i_sigi, 2):0.2f}",
+            )
 
             if self.__Io and self.__sIo:
                 values_to_append += (self.__Io[i], self.__sIo[i])
@@ -1112,7 +1210,7 @@ class CheckSfFile:
             for attr in alist:
                 val = float(cObj.getValue(attr))
                 sfcell.append(val)
-        except Exception as _e:  # noqa: F841
+        except Exception:
             self.__logger.pinfo(f"Error: Could not parse cell from {blkname}", 0)
             return
 
@@ -1136,7 +1234,6 @@ class CheckSfFile:
                 or abs(sfcell[4] - pdb[4]) > 3.0
                 or abs(sfcell[5] - pdb[5]) > 3.0
             ):
-
                 scell = ""
                 pcell = ""
                 for idx in range(6):
@@ -1166,4 +1263,6 @@ class CheckSfFile:
         pdbsymm_norm = sg.standardize_sg_name(self.__pdbsymm)
 
         if sfsymm_norm != pdbsymm_norm:
-            self.__logger.pinfo(f"Warning! (nblock = {blkidx}) space group mismatch (pdb= {pdbsymm_norm} : sf= {sfsymm_norm})", 0)
+            self.__logger.pinfo(
+                f"Warning! (nblock = {blkidx}) space group mismatch (pdb= {pdbsymm_norm} : sf= {sfsymm_norm})", 0
+            )

@@ -122,7 +122,11 @@ def reformat_sfhead(sf_file, pdb_id, logger, DETAIL=None):
 
     diffrn = {"detail": "details"}
 
-    symmetry = {"int_tables_number": "Int_Tables_number", "ndb_full_space_group_name_H-M": "space_group_name_H-M", "space_group_name_h-m": "space_group_name_H-M"}
+    symmetry = {
+        "int_tables_number": "Int_Tables_number",
+        "ndb_full_space_group_name_H-M": "space_group_name_H-M",
+        "space_group_name_h-m": "space_group_name_H-M",
+    }
 
     mapping_dicts = {"refln": refln, "audit": audit, "cell": cell, "diffrn": diffrn, "symmetry": symmetry}
 
@@ -153,7 +157,9 @@ def reformat_sfhead(sf_file, pdb_id, logger, DETAIL=None):
                 changes_made = modify_attribute_value(sf_file, "diffrn", "details", DETAIL, block_name)
                 changes_made = modify_attribute_value(sf_file, "diffrn", "crystal_id", 1, block_name)
 
-            sf_file.reorder_category_attributes("diffrn", ["id", "crystal_id", "ambient_temp", "crystal_treatment", "details"], block_name)
+            sf_file.reorder_category_attributes(
+                "diffrn", ["id", "crystal_id", "ambient_temp", "crystal_treatment", "details"], block_name
+            )
             sf_file.reorder_categories_in_block(old_order_copy, block_name)
 
     # Reorder to ensure we have what we need.
@@ -187,7 +193,9 @@ def rename_sfhead(sf_file, mapping_dicts, logger):
                 if renameDict:
                     changes_made = True
                     for old_name, new_name in renameDict.items():
-                        logger.pinfo(f"Renaming {old_name} to {new_name} in {dict_name} category of block {block.getName()}", 0)
+                        logger.pinfo(
+                            f"Renaming {old_name} to {new_name} in {dict_name} category of block {block.getName()}", 0
+                        )
                 category_object.renameAttributes(renameDict)
     return changes_made
 

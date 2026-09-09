@@ -1,14 +1,13 @@
 """Script to provide utilities support sftool-server."""
 
 import argparse
-import os
 import json
+import os
 
 from sf_convert.sffile.guess_sf_format import guess_sf_format
 
 
 def checkfmts(args):
-
     # Determine output - default json
     out_json = args.json or not args.text
     out_text = args.text
@@ -41,16 +40,12 @@ def create_parser():
     # group = parser.add_mutually_exclusive_group(required=True)
     subparsers = parser.add_subparsers(help="subcommand help")
 
-    parser_fmt = subparsers.add_parser("checkfmts",
-                                       help="Checks the format of SF files")
-    parser_fmt.add_argument("--sf", type=str, nargs="+", required=True,
-                            help="Structure factor files")
+    parser_fmt = subparsers.add_parser("checkfmts", help="Checks the format of SF files")
+    parser_fmt.add_argument("--sf", type=str, nargs="+", required=True, help="Structure factor files")
 
     group_fmt = parser_fmt.add_mutually_exclusive_group()
-    group_fmt.add_argument('--json', action='store_true',
-                           help="Output json format")
-    group_fmt.add_argument('--text', action='store_true',
-                           help="Output text format")
+    group_fmt.add_argument("--json", action="store_true", help="Output json format")
+    group_fmt.add_argument("--text", action="store_true", help="Output text format")
 
     parser_fmt.set_defaults(func=checkfmts)
 
@@ -58,7 +53,6 @@ def create_parser():
 
 
 def main():
-
     parser = create_parser()
     args = parser.parse_args()
     return args.func(args)

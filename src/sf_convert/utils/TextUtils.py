@@ -20,7 +20,7 @@ def is_cif(fpath, pinfo):
 
     found = 0
     threshold = 60
-    with open(fpath, "r") as fin:
+    with open(fpath) as fin:
         for line in fin:
             sline = line.strip()
             if regexp.match(sline):

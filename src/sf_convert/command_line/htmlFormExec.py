@@ -24,10 +24,20 @@ from sf_convert.utils.GenMtzHtml import GenMtzHtml
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Generates HTML forms for use in manually providing input for SF conversion")
+    parser = argparse.ArgumentParser(
+        description="Generates HTML forms for use in manually providing input for SF conversion"
+    )
     # Currently required argument. Could add CNS manual operation
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("-mtz_man_html", type=int, action="store", const=1, nargs="?", metavar="num_datasets", help="The number of datasets to consider")
+    group.add_argument(
+        "-mtz_man_html",
+        type=int,
+        action="store",
+        const=1,
+        nargs="?",
+        metavar="num_datasets",
+        help="The number of datasets to consider",
+    )
 
     parser.add_argument("-url_users_data", type=str, default="", help="URL path for where to store data")
     parser.add_argument("-users_data", type=str, default="", help="Session path")

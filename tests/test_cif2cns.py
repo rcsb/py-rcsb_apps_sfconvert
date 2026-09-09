@@ -1,8 +1,8 @@
-import os
 import difflib
+import os
 
-from sf_convert.sffile.sf_file import StructureFactorFile
 from sf_convert.export_dir.export_cns import ExportCns
+from sf_convert.sffile.sf_file import StructureFactorFile
 from sf_convert.utils.pinfo_file import PInfoLogger
 
 
@@ -34,10 +34,10 @@ class TestCifToCnsConversion:
         converter.write_file(output_path)
 
         # Read the files
-        with open(cns_5pny_data_path, "r") as file:
+        with open(cns_5pny_data_path) as file:
             file1_lines = file.read().splitlines()
 
-        with open(output_path, "r") as file:
+        with open(output_path) as file:
             file2_lines = file.read().splitlines()
 
         # Normalize whitespace in each line

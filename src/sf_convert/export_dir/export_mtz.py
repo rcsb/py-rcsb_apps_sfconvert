@@ -1,9 +1,10 @@
 # pylint: disable=E1101
-import tempfile
 import os
+import tempfile
+
+import gemmi
 
 from sf_convert.sffile.sf_file import StructureFactorFile
-import gemmi
 
 
 class ExportMtz:
@@ -19,7 +20,10 @@ class ExportMtz:
             "h_index_mapping": [["index_h", "H", "H", 0]],
             "k_index_mapping": [["index_k", "K", "H", 0]],
             "l_index_mapping": [["index_l", "L", "H", 0]],
-            "status_mapping": [["status", "FREE", "I", 0, "o=1,f=0"], ["pdbx_r_free_flag", "FREE", "I", 0]],  # add more tags if needed
+            "status_mapping": [
+                ["status", "FREE", "I", 0, "o=1,f=0"],
+                ["pdbx_r_free_flag", "FREE", "I", 0],
+            ],  # add more tags if needed
             "F_meas_mapping": [["F_meas_au", "FP", "F", 1], ["F_meas", "FP", "F", 1]],
             "F_sigma_mapping": [["F_meas_sigma_au", "SIGFP", "Q", 1], ["F_meas_sigma", "SIGFP", "Q", 1]],
             "F_calc_mapping": [["F_calc_au", "FC", "F", 1], ["F_calc", "FC", "F", 1]],

@@ -1,5 +1,5 @@
 # The version and history
-from sf_convert import __version__, __date__
+from sf_convert import __date__, __version__
 
 
 def get_version():

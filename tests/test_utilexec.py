@@ -1,12 +1,13 @@
-import pytest
 import json
 
-from sf_convert.command_line.UtilExec import create_parser, checkfmts
+import pytest
+
+from sf_convert.command_line.UtilExec import checkfmts, create_parser
 
 
 class TestCliUtil:
     def test_parser_default(self):
-        """ Tests parser no parameters"""
+        """Tests parser no parameters"""
 
         # Nothing - only func
         parser = create_parser()
@@ -15,29 +16,29 @@ class TestCliUtil:
         assert hasattr(args, "func")
 
     def test_parser_wrong(self, capsys):
-        """ Tests parser wrong parameter"""
+        """Tests parser wrong parameter"""
 
         # Error one
         parser = create_parser()
         with pytest.raises(SystemExit) as e:
             parser.parse_args(["something"])
-        assert e.type == SystemExit
+        assert e.type == SystemExit  # noqa: E721
         assert e.value.code == 2
         assert "checkfmts" in capsys.readouterr().err
 
     def test_parser_checkfmt_noparam(self, capsys):
-        """ Tests parser checkfmt no parameter"""
+        """Tests parser checkfmt no parameter"""
 
         # Error one
         parser = create_parser()
         with pytest.raises(SystemExit) as e:
             parser.parse_args(["checkfmts"])
-        assert e.type == SystemExit
+        assert e.type == SystemExit  # noqa: E721
         assert e.value.code == 2
         assert "the following arguments are required: --sf" in capsys.readouterr().err
 
     def test_parser_checkfmt_param(self, cif_5pny_data_path):
-        """ Tests parser checkfmt no parameter"""
+        """Tests parser checkfmt no parameter"""
 
         parser = create_parser()
         args = parser.parse_args(["checkfmts", "--sf", cif_5pny_data_path])
@@ -48,7 +49,7 @@ class TestCliUtil:
         assert args.text is False
 
     def test_parser_checkfmt_param_json(self, cif_5pny_data_path):
-        """ Tests parser checkfmt no parameter"""
+        """Tests parser checkfmt no parameter"""
 
         parser = create_parser()
         args = parser.parse_args(["checkfmts", "--sf", cif_5pny_data_path, "--json"])
@@ -59,7 +60,7 @@ class TestCliUtil:
         assert args.text is False
 
     def test_parser_checkfmt_param_text(self, cif_5pny_data_path):
-        """ Tests parser checkfmt no parameter"""
+        """Tests parser checkfmt no parameter"""
 
         parser = create_parser()
         args = parser.parse_args(["checkfmts", "--sf", cif_5pny_data_path, "--text"])
@@ -70,7 +71,7 @@ class TestCliUtil:
         assert args.text is True
 
     def test_checkfmt_output_text(self, capsys, cif_5pny_data_path):
-        """ Tests parser checkfmt no parameter"""
+        """Tests parser checkfmt no parameter"""
 
         parser = create_parser()
         args = parser.parse_args(["checkfmts", "--sf", cif_5pny_data_path, "--text"])
@@ -79,7 +80,7 @@ class TestCliUtil:
         assert "mmCIF" in capsys.readouterr().out
 
     def test_checkfmt_output_json(self, capsys, cif_5pny_data_path):
-        """ Tests parser checkfmt no parameter"""
+        """Tests parser checkfmt no parameter"""
 
         parser = create_parser()
         args = parser.parse_args(["checkfmts", "--sf", cif_5pny_data_path, "--json"])

@@ -1,8 +1,10 @@
+import os
+
+from mmcif.io.IoAdapterCore import IoAdapterCore
+from TestHelper import comp_sfcif
+
 from sf_convert.import_dir.import_mtz import ImportMtz
 from sf_convert.utils.pinfo_file import PInfoLogger
-from TestHelper import comp_sfcif
-from mmcif.io.IoAdapterCore import IoAdapterCore
-import os
 
 
 class TestMtzToCifConversion:
@@ -98,7 +100,9 @@ class TestMtzToCifConversion:
         print("Loading and converting the file...")
         logger = PInfoLogger("path_to_log1.log", "path_to_log2.log")
         converter = ImportMtz(logger)
-        converter.set_labels("FP=F_XDSdataset ,  SIGFP=SIGF_XDSdataset : FP=F_XDSdataset ,  SIGFP=SIGF_XDSdataset, FREE=FreeR_flag")
+        converter.set_labels(
+            "FP=F_XDSdataset ,  SIGFP=SIGF_XDSdataset : FP=F_XDSdataset ,  SIGFP=SIGF_XDSdataset, FREE=FreeR_flag"
+        )
 
         # converter.process_labels()  # if labels are required
         converter.import_files([mtz_Ras_NAD_data_path])
