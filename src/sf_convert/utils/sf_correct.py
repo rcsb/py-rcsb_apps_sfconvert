@@ -118,7 +118,7 @@ class SfCorrect:
                     setwl = setwlarg
                     setwlf = float(setwlarg)
             except ValueError:
-                self.__logger.pinfo("Error: trying to set wavelength to non float", 0)
+                self.__logger.pinfo("Error: trying to set wavelength to non float", 0, block=idx)
 
             if curwave is not None:
                 # Category present, attribute available - could be "."
@@ -129,10 +129,11 @@ class SfCorrect:
                             self.__logger.pinfo(
                                 f"Warning: ({pdb_id} nblock={idx} wavelength value {curwave} is abnormal (double check)!",
                                 0,
+                                block=idx,
                             )
                     except ValueError:
                         # Wavelnegth might be a range
-                        self.__logger.pinfo(f"Wavelength not a float {curwave}", 0)
+                        self.__logger.pinfo(f"Wavelength not a float {curwave}", 0, block=idx)
                         wave = None
 
                     if setwl != ".":
@@ -141,11 +142,13 @@ class SfCorrect:
                                 self.__logger.pinfo(
                                     f"Warning: ({pdb_id} nblock={idx}) wavelength mismatch (pdb= {setwlf} : sf= {curwave})!",
                                     0,
+                                    block=idx,
                                 )
                             elif setwlf > 0 and abs(setwlf - wave) > 0.0001 and idx == 0:
                                 self.__logger.pinfo(
                                     "Warning: ({pdb_id} nblock={idx}) wavelength mismatch (pdb= {setwlf} : sf= {curwave}). (double check!)",
                                     0,
+                                    block=idx,
                                 )
 
                         # Set the values....
@@ -170,7 +173,7 @@ class SfCorrect:
 
                 newObj = DataCategory(cat, ["id", "wavelength"], data)
                 blk.append(newObj)
-                self.__logger.pinfo(f"Creating {cat} in nblock={idx}", 0)
+                self.__logger.pinfo(f"Creating {cat} in nblock={idx}", 0, block=idx)
 
     def __instantiate_diffrn_rad_wavelength(self, sffile):
         """Instantiate diffrn_radiation_wavelength if needed.  In case wavelength is not set, but needed for dictionary purposes"""
@@ -198,7 +201,7 @@ class SfCorrect:
 
             newObj = DataCategory(cat, ["id", "wavelength"], data)
             blk.append(newObj)
-            self.__logger.pinfo(f"Creating {cat} in nblock={idx}", 0)
+            self.__logger.pinfo(f"Creating {cat} in nblock={idx}", 0, block=idx)
 
     def __instantiate_diffrn_scale_group(self, sffile):
         """Instantiate diffrn_scale_group needed if dirrn_refln.scale_group_code present."""
@@ -226,7 +229,7 @@ class SfCorrect:
 
             newObj = DataCategory(cat, ["code"], data)
             blk.append(newObj)
-            self.__logger.pinfo(f"Creating {cat} in nblock={idx}", 0)
+            self.__logger.pinfo(f"Creating {cat} in nblock={idx}", 0, block=idx)
 
     def __instantiate_diffrn_standard_refln(self, sffile):
         """Instantiate diffrn_standard_refln if diffrrn_refln.standard_code present."""
@@ -270,7 +273,7 @@ class SfCorrect:
 
             newObj = DataCategory(cat, ["code", "diffrn_id", "index_h", "index_k", "index_l"], data)
             blk.append(newObj)
-            self.__logger.pinfo(f"Creating {cat} in nblock={idx}", 0)
+            self.__logger.pinfo(f"Creating {cat} in nblock={idx}", 0, block=idx)
 
     def handle_standard(self, sffile, pdbid):
         """Handles standard operations"""
@@ -662,7 +665,7 @@ class SfCorrect:
         for attr in curlist:
             if attr not in allowed:
                 cObj.removeAttribute(attr)
-                self.__logger.pinfo(f"Warning: block has unwanted CIF item _{cat}.{attr} and is removed", 0)
+                self.__logger.pinfo(f"Warning: block has unwanted CIF item _{cat}.{attr} and is removed", 0, block=0)
                 upd = True
 
         return upd
@@ -684,7 +687,7 @@ class SfCorrect:
             blk = sffile.get_block_by_index(block_index)
             if cat in blk.getObjNameList():
                 blk.remove(cat)
-                self.__logger.pinfo(f"Removing {cat} category from block {blk.getName()}", 0)
+                self.__logger.pinfo(f"Removing {cat} category from block {blk.getName()}", 0, block=block_index)
 
                 blk = sffile.get_block_by_index(0)
 
@@ -897,7 +900,7 @@ class SfCorrect:
             blk = sffile.get_block_by_index(block_index)
             if cat in blk.getObjNameList():
                 blk.remove(cat)
-                self.__logger.pinfo(f"Removing {cat} category from block {blk.getName()}", 0)
+                self.__logger.pinfo(f"Removing {cat} category from block {blk.getName()}", 0, block=block_index)
 
     def remove_empty_blocks(self, sffile):
         """Removes blocks with too little real data"""
@@ -915,7 +918,7 @@ class SfCorrect:
 
             if total < 30:
                 bname = blk.getName()
-                self.__logger.pinfo(f"Error: block {bname} has no data in this block -- removing", 0)
+                self.__logger.pinfo(f"Error: block {bname} has no data in this block -- removing", 0, block=block_index)
                 remove.append(block_index)
 
         if remove:
@@ -925,7 +928,7 @@ class SfCorrect:
             for rem in remove:
                 sffile.remove_block(rem)
 
-    def __check_hkl_duplcate(self, blk, blkname):
+    def __check_hkl_duplcate(self, blk, blkname, block_idx):
         """Provides a count of duplicate HKL.  Report first four, return count"""
 
         # Note for those who wonder.  Using a dictionary is a little faster than set() and must faster than using a list()
@@ -949,7 +952,9 @@ class SfCorrect:
             key = (ah, ak, al)
             if key in ref:
                 if ndup <= 4:
-                    self.__logger.pinfo(f"Warning: Duplicated H,K,L ({ah}, {ak}, {al}) (data block={blkname}).", 0)
+                    self.__logger.pinfo(
+                        f"Warning: Duplicated H,K,L ({ah}, {ak}, {al}) (data block={blkname}).", 0, block=block_idx
+                    )
                 ndup += 1
             else:
                 ref[key] = True
@@ -963,7 +968,7 @@ class SfCorrect:
             blk = sffile.get_block_by_index(block_index)
             blkname = blk.getName()
 
-            ndup = self.__check_hkl_duplcate(blk, blkname)
+            ndup = self.__check_hkl_duplcate(blk, blkname, block_index)
 
             cObj = blk.getObj("refln")
             if not cObj:
@@ -984,9 +989,9 @@ class SfCorrect:
             # Legacy logic...
             if (ndup > 1 and (have_Io or have_I_plus)) or have_unmerge_i:
                 if block_index == 0:
-                    self.__logger.pinfo(f"Warning: Unmerged data in block 1 (blockId={blkname})!", 0)
+                    self.__logger.pinfo(f"Warning: Unmerged data in block 1 (blockId={blkname})!", 0, block=block_index)
                 else:
-                    self.__logger.pinfo(f"Note: Unmerged data in (blockId={blkname})!", 0)
+                    self.__logger.pinfo(f"Note: Unmerged data in (blockId={blkname})!", 0, block=block_index)
 
                 if block_index == 0:
                     # do not change token for 1st block even it is unmerged.
@@ -994,7 +999,9 @@ class SfCorrect:
 
                 if have_diffrn_refln:
                     self.__logger.pinfo(
-                        f"Error: Block {blkname} has both _reflns and _diffrn_reflns and both unmerged", 0
+                        f"Error: Block {blkname} has both _reflns and _diffrn_reflns and both unmerged",
+                        0,
+                        block=block_index,
                     )
                     continue
 
@@ -1046,18 +1053,24 @@ class SfCorrect:
                     ):
                         if attrl[0] in cObj.getAttributeList():
                             cObj.renameAttributes({attrl[0]: "intensity_net"})
-                            self.__logger.pinfo(f"Warning: Copying {attrl[0]} to intensity_net in block {blkname}", 0)
+                            self.__logger.pinfo(
+                                f"Warning: Copying {attrl[0]} to intensity_net in block {blkname}", 0, block=block_index
+                            )
                             if attrl[1] in cObj.getAttributeList():
                                 cObj.renameAttributes({attrl[1]: "intensity_sigma"})
                                 self.__logger.pinfo(
-                                    f"Warning: Copying {attrl[1]} to intensity_sigma in block {blkname}", 0
+                                    f"Warning: Copying {attrl[1]} to intensity_sigma in block {blkname}",
+                                    0,
+                                    block=block_index,
                                 )
                             break
 
                 # Delete columns cannot deal with
                 for attr in ("pdbx_I_plus", "pdbx_I_plus_sigma", "pdbx_I_minus", "pdbx_I_minus_sigma"):
                     if attr in cObj.getAttributeList():
-                        self.__logger.pinfo(f"Warning: Removing attribute {attr} in block {blkname}", 0)
+                        self.__logger.pinfo(
+                            f"Warning: Removing attribute {attr} in block {blkname}", 0, block=block_index
+                        )
                         cObj.removeAttribute(attr)
 
                 sffile.reorder_category_attributes("diffrn_refln", self.__unmergedorder, blk.getName())
@@ -1181,7 +1194,9 @@ class SfCorrect:
                 if cat in nlist:
                     cObj = blk.getObj(cat)
                     if attr in cObj.getAttributeList():
-                        self.__logger.pinfo(f"Warning: Block {blkname} has unwanted CIF item ({chk})", 0)
+                        self.__logger.pinfo(
+                            f"Warning: Block {blkname} has unwanted CIF item ({chk})", 0, block=block_index
+                        )
 
     def __getUniqueTuples(self, cObj, attL):
         """Returns unique tuples of attributes"""
@@ -1241,7 +1256,9 @@ class SfCorrect:
                 if bad:
                     if not warn:
                         self.__logger.pinfo(
-                            f"Warning: In {blkname}, {item} value {val} is not integral -- truncating", 0
+                            f"Warning: In {blkname}, {item} value {val} is not integral -- truncating",
+                            0,
+                            block=block_index,
                         )
                         warn = True
                     try:
@@ -1310,11 +1327,15 @@ class SfCorrect:
 
             alist = cObj.getAttributeList()
             if "pdbx_r_free_flag" not in alist:
-                self.__logger.pinfo(f"Warning: pdbx_r_free_flag not in {cat} in block {blkname} no changes made", 0)
+                self.__logger.pinfo(
+                    f"Warning: pdbx_r_free_flag not in {cat} in block {blkname} no changes made", 0, block=block_index
+                )
                 continue
 
             if "status" not in alist:
-                self.__logger.pinfo(f"Warning: status not in {cat} in block {blkname} no changes made", 0)
+                self.__logger.pinfo(
+                    f"Warning: status not in {cat} in block {blkname} no changes made", 0, block=block_index
+                )
                 continue
 
             setflag = False
@@ -1336,7 +1357,9 @@ class SfCorrect:
 
             if not setflag:
                 self.__logger.pinfo(
-                    f"Warning: test set {freer} not in block {blkname} - nothing flagged as test set", 0
+                    f"Warning: test set {freer} not in block {blkname} - nothing flagged as test set",
+                    0,
+                    block=block_index,
                 )
 
     def set_cell_if_missing(self, sffile, pdbid, cell):
@@ -1366,7 +1389,7 @@ class SfCorrect:
             newObj = DataCategory(cat, keys, [data])
             blk.append(newObj)
 
-            self.__logger.pinfo(f"Note: Setting {cat} in block={blkname}", 0)
+            self.__logger.pinfo(f"Note: Setting {cat} in block={blkname}", 0, block=block_index)
 
     def set_space_group_if_missing(self, sffile, pdbid, space_group):
         """If cell is not present, then set"""
@@ -1390,7 +1413,7 @@ class SfCorrect:
             newObj = DataCategory(cat, keys, [data])
             blk.append(newObj)
 
-            self.__logger.pinfo(f"Note: Auto adding {cat} in block={blkname}", 0)
+            self.__logger.pinfo(f"Note: Auto adding {cat} in block={blkname}", 0, block=block_index)
 
     def __filter_attributes(self, sffile):
         df = DictFilter()
@@ -1407,7 +1430,9 @@ class SfCorrect:
             allowed = df.getAllowedCats()
             for cat in nlist:
                 if cat not in allowed:
-                    self.__logger.pinfo(f"Warning: Category '{cat}' not recognized in {blkname}.  Removing.", 0)
+                    self.__logger.pinfo(
+                        f"Warning: Category '{cat}' not recognized in {blkname}.  Removing.", 0, block=block_index
+                    )
                     blk.remove(cat)
                     continue
 
@@ -1421,7 +1446,7 @@ class SfCorrect:
 
                 for att in attl:
                     if att not in catAttrs:
-                        self.__logger.pinfo(f"Warning: '{cat}.{att}' is unknown.  Removing.", 0)
+                        self.__logger.pinfo(f"Warning: '{cat}.{att}' is unknown.  Removing.", 0, block=block_index)
                         cObj.removeAttribute(att)
 
                 # Category no attributes. Remove
@@ -1439,4 +1464,4 @@ class SfCorrect:
             if cObj:
                 if "status" not in cObj.getAttributeList():
                     cObj.appendAttributeExtendRows("status", "o")
-                    self.__logger.pinfo(f"Adding status to {cat} in nblock={idx}", 0)
+                    self.__logger.pinfo(f"Adding status to {cat} in nblock={idx}", 0, block=idx)

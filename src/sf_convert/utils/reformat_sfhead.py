@@ -194,7 +194,9 @@ def rename_sfhead(sf_file, mapping_dicts, logger):
                     changes_made = True
                     for old_name, new_name in renameDict.items():
                         logger.pinfo(
-                            f"Renaming {old_name} to {new_name} in {dict_name} category of block {block.getName()}", 0
+                            f"Renaming {old_name} to {new_name} in {dict_name} category of block {block.getName()}",
+                            0,
+                            block=block_index,
                         )
                 category_object.renameAttributes(renameDict)
     return changes_made
@@ -219,7 +221,7 @@ def remove_sfhead(sf_file, remove_list, logger, start=0):
             removed_flag = sf_file.remove_category_by_name(catname, block.getName())
             if removed_flag:
                 changes_made = True
-                logger.pinfo(f"Removing {catname} category from block {block.getName()}", 0)
+                logger.pinfo(f"Removing {catname} category from block {block.getName()}", 0, block=block_index)
     return changes_made
 
 
@@ -387,7 +389,7 @@ def add_audit_if_needed(sf_file, logger):
 
     blk.append(aCat)
 
-    logger.pinfo("Note: File has no _audit. (auto added)", 0)
+    logger.pinfo("Note: File has no _audit. (auto added)", 0, block=0)
     return True
 
 

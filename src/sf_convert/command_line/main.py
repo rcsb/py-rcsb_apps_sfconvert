@@ -320,6 +320,7 @@ class CustomHelpParser(argparse.ArgumentParser):
 
         Other not often used options (below) can be added to the argument:
     -valid   check various SF errors, and correct!(sf_convert -valid sffile)
+    -firstblocklogs  only list the first data block warnings/errors in the -diags file
 
     ==============================================================================
     Note:
@@ -654,7 +655,7 @@ def main():
         print("=======================================================================")
 
         pdb = ProteinDataBank()
-        logger = PStreamLogger()
+        logger = PStreamLogger(onlyfirstblock=args.firstblocklogs)
 
         input_format = get_input_format(args)
 
@@ -718,6 +719,9 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument("-diags", type=str, help="Log file containing warning/error message")
     parser.add_argument("-detail", type=str, help="Give a note to the data set")
     parser.add_argument("-valid", action="store_true", help="Check various SF errors, and correct!")
+    parser.add_argument(
+        "-firstblocklogs", action="store_true", help="Diagnostic file will only retain warnings for the block"
+    )
 
     return parser.parse_args()
 
