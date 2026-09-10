@@ -320,6 +320,7 @@ class CustomHelpParser(argparse.ArgumentParser):
 
         Other not often used options (below) can be added to the argument:
     -valid   check various SF errors, and correct!(sf_convert -valid sffile)
+    -firstblocklogs  only list the first data block warnings/errors in the -diags file
 
     ==============================================================================
     Note:
