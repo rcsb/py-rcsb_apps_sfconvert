@@ -29,7 +29,11 @@ class ImportCif:
                 return
 
             sf = StructureFactorFile()
-            sf.read_file(fpath)
+            ok = sf.read_file(fpath)
+            if ok is False:
+                self.__logger.pinfo(f"File {fpath} could not be parsed", 0)
+                self.__sf = None
+                return
 
             if self.__sf:
                 self.__sf.merge_sf(sf)

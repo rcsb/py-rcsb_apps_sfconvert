@@ -5,6 +5,7 @@ import traceback
 from mmcif.api.DataCategory import DataCategory
 from mmcif.api.PdbxContainers import DataContainer
 from mmcif.io.IoAdapterCore import IoAdapterCore
+from mmcif.io.PdbxExceptions import PdbxSyntaxError
 
 from sf_convert.utils.CifUtils import reorderCategoryAttr
 
@@ -15,10 +16,10 @@ class StructureFactorFile:
         Initializes a new instance of the StructureFactorFile class.
         """
         self.__data_blocks = []  # Contains the data blocks in the file
-        self.__file_io = IoAdapterCore()  # Handles file input/output
+        self.__file_io = IoAdapterCore(raiseExceptions=True)  # Handles file input/output
         self.__default_block_index = 0  # The index of the default data block
 
-    def read_file(self, filename):
+    def read_file(self, filename: str) -> bool:
         """
         Reads a structure factor file.
 
@@ -30,8 +31,15 @@ class StructureFactorFile:
         """
         try:
             self.__data_blocks = self.__file_io.readFile(filename)
+            return True
+        except PdbxSyntaxError:
+            pass
+
         except Exception as e:
-            raise RuntimeError(f"Failed to read file {filename}") from e
+            raise RuntimeError(f"Failed to read/parse file {filename}") from e
+
+        self.__data_blocks = []
+        return False
 
     def get_block_by_index(self, block_index):
         """

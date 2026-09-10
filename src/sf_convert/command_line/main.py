@@ -63,6 +63,9 @@ class ImportSf:
         ic = ImportCif(self.__logger)
         ic.import_files(sfin)
         sffile = ic.get_sf()
+        if sffile is None:
+            self.__logger.pinfo("++ERROR: Could not parse file", 0)
+            sys.exit(1)
 
         # We apply corrections if cif -> cif conversion, otherwise bring in
         sfc = SfCorrect(self.__logger, self.__legacy)
