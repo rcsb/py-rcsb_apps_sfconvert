@@ -1,24 +1,24 @@
 import argparse
-import traceback
 import os
 import re
 import sys
+import traceback
 
-from sf_convert.sffile.sf_file import StructureFactorFile
-from sf_convert.sffile.get_items_pdb import ProteinDataBank
-from sf_convert.import_dir.import_mtz import ImportMtz
-from sf_convert.import_dir.import_cif import ImportCif
-from sf_convert.import_dir.import_cns import ImportCns
+from sf_convert.export_dir.export_cif import ExportCif
 from sf_convert.export_dir.export_cns import ExportCns
 from sf_convert.export_dir.export_mtz import ExportMtz
-from sf_convert.export_dir.export_cif import ExportCif
+from sf_convert.import_dir.import_cif import ImportCif
+from sf_convert.import_dir.import_cns import ImportCns
+from sf_convert.import_dir.import_mtz import ImportMtz
+from sf_convert.sffile.get_items_pdb import ProteinDataBank
 from sf_convert.sffile.guess_sf_format import guess_sf_format
-from sf_convert.utils.reformat_sfhead import reformat_sfhead, fix_entry_ids
-from sf_convert.utils.sf_correct import SfCorrect
-from sf_convert.utils.pinfo_file import PStreamLogger
+from sf_convert.sffile.sf_file import StructureFactorFile
 from sf_convert.utils.CheckSfFile import CheckSfFile
-from sf_convert.utils.version import get_version
+from sf_convert.utils.pinfo_file import PStreamLogger
+from sf_convert.utils.reformat_sfhead import fix_entry_ids, reformat_sfhead
+from sf_convert.utils.sf_correct import SfCorrect
 from sf_convert.utils.TextUtils import is_cif
+from sf_convert.utils.version import get_version
 
 VALID_FORMATS = ["CNS", "MTZ", "MMCIF", "CIF"]
 
@@ -67,7 +67,6 @@ class ImportSf:
         # We apply corrections if cif -> cif conversion, otherwise bring in
         sfc = SfCorrect(self.__logger, self.__legacy)
         if format_out == "MMCIF":
-
             # Warn about bad names
             sfc.check_unwanted_cif_items(sffile)
 
@@ -486,8 +485,7 @@ def handle_pdb_argument(args, pdb, logger):
     validate_file_exists(args.pdb)
     if is_cif(args.pdb, logger):
         return pdb.extract_attributes_from_cif(args.pdb)
-    else:
-        return pdb.extract_attributes_from_pdb(args.pdb)
+    return pdb.extract_attributes_from_pdb(args.pdb)
 
 
 def handle_label_argument(args):
@@ -704,7 +702,9 @@ def parse_arguments() -> argparse.Namespace:
     Returns:
         The parsed command line arguments.
     """
-    parser = CustomHelpParser(description="This script allows various operations on files. Refer to the help document for more details.")
+    parser = CustomHelpParser(
+        description="This script allows various operations on files. Refer to the help document for more details."
+    )
 
     parser.add_argument("-i", type=str, help="Input format")
     parser.add_argument("-o", type=str, help="Output format. Accepted values are mmCIF, CNS, MTZ")

@@ -1,9 +1,10 @@
 import os
 
+from TestHelper import comp_sfcif
+
 from sf_convert.sffile.sf_file import StructureFactorFile
 from sf_convert.utils.CheckSfFile import CheckSfFile
 from sf_convert.utils.pinfo_file import PInfoLogger
-from TestHelper import comp_sfcif
 
 
 class TestValid:

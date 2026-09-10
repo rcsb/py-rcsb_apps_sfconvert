@@ -1,10 +1,11 @@
 import os
-import traceback
 import re
+import traceback
 
-from mmcif.io.IoAdapterCore import IoAdapterCore
-from mmcif.api.PdbxContainers import DataContainer
 from mmcif.api.DataCategory import DataCategory
+from mmcif.api.PdbxContainers import DataContainer
+from mmcif.io.IoAdapterCore import IoAdapterCore
+
 from sf_convert.utils.CifUtils import reorderCategoryAttr
 
 
@@ -44,9 +45,8 @@ class StructureFactorFile:
         """
         if 0 <= block_index < len(self.__data_blocks):
             return self.__data_blocks[block_index]
-        else:
-            print(f"Block index {block_index} is not valid. It should be between 0 and {len(self.__data_blocks) - 1}.")
-            return None
+        print(f"Block index {block_index} is not valid. It should be between 0 and {len(self.__data_blocks) - 1}.")
+        return None
 
     def get_number_of_blocks(self):
         """
@@ -121,11 +121,10 @@ class StructureFactorFile:
         if block_name is None:
             block_index = self.__default_block_index
             return self.__data_blocks[block_index].getObj(category)
-        else:
-            block_index, block_res = self.get_block_by_name(block_name)
-            if block_res is None:
-                return None
-            return block_res.getObj(category)
+        block_index, block_res = self.get_block_by_name(block_name)
+        if block_res is None:
+            return None
+        return block_res.getObj(category)
 
     def set_default_block(self, block_name):
         """
@@ -151,11 +150,10 @@ class StructureFactorFile:
         if block_name == "Default" or block_name is None:
             block_index = self.__default_block_index
             return self.__data_blocks[block_index].getObjNameList()
-        else:
-            block_index, block_res = self.get_block_by_name(block_name)
-            if block_res is None:
-                return None
-            return block_res.getObjNameList()
+        block_index, block_res = self.get_block_by_name(block_name)
+        if block_res is None:
+            return None
+        return block_res.getObjNameList()
 
     def append_category_to_block(self, category, block_name=None):
         """
@@ -212,7 +210,7 @@ class StructureFactorFile:
                 print(f"Block {block_name} does not exist.")
                 return
         new_category = DataCategory(category_name)
-        for attribute in data_dict.keys():
+        for attribute in data_dict:
             new_category.appendAttribute(attribute)
         new_category.append(list(data_dict.values()))
         block.append(new_category)
@@ -398,7 +396,9 @@ class StructureFactorFile:
             pdbid (str): The PDB ID.
         """
         for index, block in enumerate(self.__data_blocks):
-            expected_name = self.generate_expected_block_name(pdbid, index)  # Assuming pdbid is the 4 characters after "r"
+            expected_name = self.generate_expected_block_name(
+                pdbid, index
+            )  # Assuming pdbid is the 4 characters after "r"
             if block.getName() != expected_name:
                 block.setName(expected_name)
 
@@ -431,15 +431,13 @@ class StructureFactorFile:
 
     def __insertComments(self, inpFn, outFn):
         """Insert end of block/file comments in the input file --"""
-        #
         try:
             pattern = r"[\r\n]+data_"
             replacement = r"\n#END\ndata_"
             reObj = re.compile(pattern, re.MULTILINE | re.DOTALL | re.VERBOSE)
             # Flush changes made to the in-memory copy of the file back to disk
-            with open(outFn, "w") as ofh:
-                with open(inpFn, "r") as ifh:
-                    ofh.write(reObj.sub(replacement, ifh.read()) + "\n#END OF REFLECTIONS\n")
+            with open(outFn, "w") as ofh, open(inpFn) as ifh:
+                ofh.write(reObj.sub(replacement, ifh.read()) + "\n#END OF REFLECTIONS\n")
             return True
         except:  # noqa: E722 pylint: disable=bare-except
             # What to do?

@@ -1,4 +1,5 @@
 import os
+
 import pytest
 
 
@@ -10,7 +11,7 @@ def fixture_data_dir():
     Returns:
         str: The path to the data directory.
     """
-    yield os.path.join(os.path.dirname(__file__), "data")
+    return os.path.join(os.path.dirname(__file__), "data")
 
 
 @pytest.fixture
@@ -24,7 +25,7 @@ def cns_data_path(data_dir):
     Returns:
         str: The path to the CNS data file.
     """
-    yield os.path.join(data_dir, "cif_files", "cns-sf6.cv")
+    return os.path.join(data_dir, "cif_files", "cns-sf6.cv")
 
 
 @pytest.fixture
@@ -38,7 +39,7 @@ def cif_5pny_data_path(data_dir):
     Returns:
         str: The path to the CIF data file.
     """
-    yield os.path.join(data_dir, "cif_files", "5pny-sf.cif")
+    return os.path.join(data_dir, "cif_files", "5pny-sf.cif")
 
 
 @pytest.fixture
@@ -52,7 +53,7 @@ def cif_5pny_coordinate_path(data_dir):
     Returns:
         str: The path to the CIF data file.
     """
-    yield os.path.join(data_dir, "cif_files", "5pny.cif")
+    return os.path.join(data_dir, "cif_files", "5pny.cif")
 
 
 @pytest.fixture
@@ -66,7 +67,7 @@ def cif_5pny_nodb2_coordinate_path(data_dir):
     Returns:
         str: The path to the CIF data file.
     """
-    yield os.path.join(data_dir, "cif_files", "5pny_nodb2.cif")
+    return os.path.join(data_dir, "cif_files", "5pny_nodb2.cif")
 
 
 @pytest.fixture
@@ -80,7 +81,7 @@ def cif_5pny_coordinate_pdb_path(data_dir):
     Returns:
         str: The path to the CIF data file.
     """
-    yield os.path.join(data_dir, "pdb_files", "5pny.pdb")
+    return os.path.join(data_dir, "pdb_files", "5pny.pdb")
 
 
 @pytest.fixture
@@ -94,7 +95,7 @@ def cns_5pny_data_path(data_dir):
     Returns:
         str: The path to the CNS data file.
     """
-    yield os.path.join(data_dir, "cif_files", "5pny-sf.CNS")
+    return os.path.join(data_dir, "cif_files", "5pny-sf.CNS")
 
 
 @pytest.fixture
@@ -108,7 +109,7 @@ def cns_cif_5pny_data_path(data_dir):
     Returns:
         str: The path to the CNS data file.
     """
-    yield os.path.join(data_dir, "cif_files", "5pny-sf-CNS.mmcif")
+    return os.path.join(data_dir, "cif_files", "5pny-sf-CNS.mmcif")
 
 
 @pytest.fixture
@@ -122,7 +123,7 @@ def mtz_Ras_NAD_data_path(data_dir):
     Returns:
         str: The path to the MTZ data file.
     """
-    yield os.path.join(data_dir, "cif_files", "Ras_NAD.mtz")
+    return os.path.join(data_dir, "cif_files", "Ras_NAD.mtz")
 
 
 @pytest.fixture
@@ -136,7 +137,7 @@ def cif_Ras_NAD_data_path(data_dir):
     Returns:
         str: The path to the CIF data file.
     """
-    yield os.path.join(data_dir, "cif_files", "Ras_NAD.mtz.mmcif")
+    return os.path.join(data_dir, "cif_files", "Ras_NAD.mtz.mmcif")
 
 
 @pytest.fixture
@@ -150,7 +151,7 @@ def cif_SF_4_validate_data_path(data_dir):
     Returns:
         str: The path to the CIF data file.
     """
-    yield os.path.join(data_dir, "cif_files", "SF_4_validate.cif")
+    return os.path.join(data_dir, "cif_files", "SF_4_validate.cif")
 
 
 @pytest.fixture
@@ -164,7 +165,7 @@ def cif_mmcif_5pny_data_path(data_dir):
     Returns:
         str: The path to the CIF data file.
     """
-    yield os.path.join(data_dir, "cif_files", "5pny-sf.cif.mmcif")
+    return os.path.join(data_dir, "cif_files", "5pny-sf.cif.mmcif")
 
 
 @pytest.fixture
@@ -178,7 +179,7 @@ def cif_mmcif_5pny_detail_data_path(data_dir):
     Returns:
         str: The path to the CIF data file.
     """
-    yield os.path.join(data_dir, "cif_files", "5pny-sf-detail.cif.mmcif")
+    return os.path.join(data_dir, "cif_files", "5pny-sf-detail.cif.mmcif")
 
 
 @pytest.fixture
@@ -192,7 +193,7 @@ def cns_to_mmcif_data_path(data_dir):
     Returns:
         str: The path to the CIF data file.
     """
-    yield os.path.join(data_dir, "cif_files", "cns-sf6.cv.mmcif")
+    return os.path.join(data_dir, "cif_files", "cns-sf6.cv.mmcif")
 
 
 @pytest.fixture
@@ -206,7 +207,7 @@ def pdb_100d_coordinate_pdb_path(data_dir):
     Returns:
         str: The path to the CIF data file.
     """
-    yield os.path.join(data_dir, "pdb_files", "pdb100d.ent")
+    return os.path.join(data_dir, "pdb_files", "pdb100d.ent")
 
 
 @pytest.fixture
@@ -220,7 +221,7 @@ def cif_100d_coordinate_path(data_dir):
     Returns:
         str: The path to the CIF data file.
     """
-    yield os.path.join(data_dir, "cif_files", "100d.cif")
+    return os.path.join(data_dir, "cif_files", "100d.cif")
 
 
 @pytest.fixture
@@ -234,4 +235,4 @@ def mtz_7yra_data_path(data_dir):
     Returns:
         str: The path to the CIF data file.
     """
-    yield os.path.join(data_dir, "mtz_files", "7yra.mtz")
+    return os.path.join(data_dir, "mtz_files", "7yra.mtz")

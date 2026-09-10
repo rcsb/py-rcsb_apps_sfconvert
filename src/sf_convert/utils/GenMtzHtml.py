@@ -46,10 +46,17 @@ class GenMtzHtml:
             fout.write("<HTML> \n <Head>\n <TITLE> Semi-auto conversion of MTZ to mmCIF format</TITLE>\n </Head>\n")
             fout.write("<CENTER> <h3> Semi-auto conversion of MTZ to mmCIF format</h3></CENTER>\n")
             fout.write('<form ENCTYPE="multipart/form-data" Method="post" Action="%sconvert_man.py">\n' % CGI_PATH)
-            fout.write('<p>INSTRUCTION: Select data item to match the appropriate <font color="blue"> SF PARAMETER </font> and click RUN to do conversion.\n')
+            fout.write(
+                '<p>INSTRUCTION: Select data item to match the appropriate <font color="blue"> SF PARAMETER </font> and click RUN to do conversion.\n'
+            )
 
-            fout.write('<li> Data items in the uploaded MTZ can be seen <a href = "%s/%s/mtzdmp.log"  TARGET="other"> here </A>,\n' % (URL_USERS_DATA, path))
-            fout.write('Details about the  MTZ format can be seen from  <a href = "https://www.ccp4.ac.uk/html/mtzformat.html" TARGET="other">CCP4</a>). </li>\n')
+            fout.write(
+                '<li> Data items in the uploaded MTZ can be seen <a href = "%s/%s/mtzdmp.log"  TARGET="other"> here </A>,\n'
+                % (URL_USERS_DATA, path)
+            )
+            fout.write(
+                'Details about the  MTZ format can be seen from  <a href = "https://www.ccp4.ac.uk/html/mtzformat.html" TARGET="other">CCP4</a>). </li>\n'
+            )
 
             fout.write("<li> Select FreeR value if it is not 0. </li>  \n")
 
@@ -184,7 +191,6 @@ class GenMtzHtml:
         self.__write_data_column(fout, align, "Fo-Fc map phases (DELPHWT):", "delphwt", idx, cdata)
         fout.write(" </tr>\n")
 
-        #
         fout.write("</table>\n")
 
     def __write_data_column(self, fout, align, item_name, fname, ds_id, cdata):
@@ -234,46 +240,48 @@ class GenMtzHtml:
                     ret.append(clabel)
 
             elif (
-                (ctype == "F" and clabel[0] == "F" and fname == "fp")
-                or (ctype == "Q" and clabel_uc.find("SIGF") >= 0 and fname == "sigfp")
-                or (ctype == "J" and clabel[0] == "I" and fname == "i")
-                or (ctype == "Q" and clabel_uc.find("SIGI") >= 0 and fname == "sigi")
-                or (ctype == "W" and clabel_uc.find("FOM") >= 0 and fname == "fom")
-                or (ctype == "P" and clabel_uc.find("PHIB") >= 0 and fname == "phib")
-                or (ctype == "F" and (clabel_uc.find("FC_ALL") >= 0 or (clabel_uc.find("F-MODEL"))) and fname == "fc")
-                or (ctype == "P" and (clabel_uc.find("PHIC_ALL") >= 0 or (clabel_uc.find("PHIF-MODEL"))) and fname == "phic")
-            ):
-                fout.write(f'<OPTION VALUE="{clabel}">{clabel}\n')
-                ret.append(clabel)
-
-            elif (
-                (ctype == "A" and clabel_uc.find("HLA") >= 0 and fname == "hla")
-                or (ctype == "A" and clabel_uc.find("HLB") >= 0 and fname == "hlb")
-                or (ctype == "A" and clabel_uc.find("HLC") >= 0 and fname == "hlc")
-                or (ctype == "A" and clabel_uc.find("HLD") >= 0 and fname == "hld")
-            ):
-                fout.write(f'<OPTION VALUE="{clabel}">{clabel}\n')
-                ret.append(clabel)
-
-            elif (
-                (ctype == "D" and clabel_uc[0] == "D" and fname == "dp")
-                or (ctype == "Q" and clabel_uc.find("SIGD") >= 0 and fname == "sigdp")
-                or (ctype == "G" and clabel_uc.find("(+)") >= 0 and clabel[0] == "F" and fname == "fplus")
-                or (ctype == "L" and clabel_uc.find("(+)") >= 0 and clabel_uc[:4] == "SIGF" and fname == "sigfplus")
-                or (ctype == "G" and clabel_uc.find("(-)") >= 0 and clabel[0] == "F" and fname == "fneg")
-                or (ctype == "L" and clabel_uc.find("(-)") >= 0 and clabel_uc[:4] == "SIGF" and fname == "sigfneg")
-                or (ctype == "K" and clabel_uc.find("(+)") >= 0 and clabel[0] == "I" and fname == "iplus")
-                or (ctype == "M" and clabel_uc.find("(+)") >= 0 and clabel_uc[:4] == "SIGI" and fname == "sigiplus")
-                or (ctype == "K" and clabel_uc.find("(-)") >= 0 and clabel[0] == "I" and fname == "ineg")
-                or (ctype == "M" and clabel_uc.find("(-)") >= 0 and clabel_uc[:4] == "SIGI" and fname == "sigineg")
-            ):
-                fout.write(f'<OPTION VALUE="{clabel}">{clabel}\n')
-                ret.append(clabel)
-            elif (
-                (ctype == "F" and clabel in ["2FOFCWT", "FWT"] and fname == "fwt")
-                or (ctype == "P" and clabel in ["PH2FOFCWT", "PHWT"] and fname == "phwt")
-                or (ctype == "F" and clabel in ["FOFCWT", "DELFWT"] and fname == "delfwt")
-                or (ctype == "P" and clabel in ["PHFOFCWT", "PHDELWT"] and fname == "delphwt")
+                (
+                    (ctype == "F" and clabel[0] == "F" and fname == "fp")
+                    or (ctype == "Q" and clabel_uc.find("SIGF") >= 0 and fname == "sigfp")
+                    or (ctype == "J" and clabel[0] == "I" and fname == "i")
+                    or (ctype == "Q" and clabel_uc.find("SIGI") >= 0 and fname == "sigi")
+                    or (ctype == "W" and clabel_uc.find("FOM") >= 0 and fname == "fom")
+                    or (ctype == "P" and clabel_uc.find("PHIB") >= 0 and fname == "phib")
+                    or (
+                        ctype == "F"
+                        and (clabel_uc.find("FC_ALL") >= 0 or (clabel_uc.find("F-MODEL")))
+                        and fname == "fc"
+                    )
+                    or (
+                        ctype == "P"
+                        and (clabel_uc.find("PHIC_ALL") >= 0 or (clabel_uc.find("PHIF-MODEL")))
+                        and fname == "phic"
+                    )
+                )
+                or (
+                    (ctype == "A" and clabel_uc.find("HLA") >= 0 and fname == "hla")
+                    or (ctype == "A" and clabel_uc.find("HLB") >= 0 and fname == "hlb")
+                    or (ctype == "A" and clabel_uc.find("HLC") >= 0 and fname == "hlc")
+                    or (ctype == "A" and clabel_uc.find("HLD") >= 0 and fname == "hld")
+                )
+                or (
+                    (ctype == "D" and clabel_uc[0] == "D" and fname == "dp")
+                    or (ctype == "Q" and clabel_uc.find("SIGD") >= 0 and fname == "sigdp")
+                    or (ctype == "G" and clabel_uc.find("(+)") >= 0 and clabel[0] == "F" and fname == "fplus")
+                    or (ctype == "L" and clabel_uc.find("(+)") >= 0 and clabel_uc[:4] == "SIGF" and fname == "sigfplus")
+                    or (ctype == "G" and clabel_uc.find("(-)") >= 0 and clabel[0] == "F" and fname == "fneg")
+                    or (ctype == "L" and clabel_uc.find("(-)") >= 0 and clabel_uc[:4] == "SIGF" and fname == "sigfneg")
+                    or (ctype == "K" and clabel_uc.find("(+)") >= 0 and clabel[0] == "I" and fname == "iplus")
+                    or (ctype == "M" and clabel_uc.find("(+)") >= 0 and clabel_uc[:4] == "SIGI" and fname == "sigiplus")
+                    or (ctype == "K" and clabel_uc.find("(-)") >= 0 and clabel[0] == "I" and fname == "ineg")
+                    or (ctype == "M" and clabel_uc.find("(-)") >= 0 and clabel_uc[:4] == "SIGI" and fname == "sigineg")
+                )
+                or (
+                    (ctype == "F" and clabel in ["2FOFCWT", "FWT"] and fname == "fwt")
+                    or (ctype == "P" and clabel in ["PH2FOFCWT", "PHWT"] and fname == "phwt")
+                    or (ctype == "F" and clabel in ["FOFCWT", "DELFWT"] and fname == "delfwt")
+                    or (ctype == "P" and clabel in ["PHFOFCWT", "PHDELWT"] and fname == "delphwt")
+                )
             ):
                 fout.write(f'<OPTION VALUE="{clabel}">{clabel}\n')
                 ret.append(clabel)

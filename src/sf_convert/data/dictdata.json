@@ -71,7 +71,15 @@
         "device_type",
         "method",
         "specimen_support",
-        "pdbx_date"
+        "pdbx_date",
+        "pdbx_angle_start",
+        "pdbx_angle_end",
+        "pdbx_rotation_rate",
+        "pdbx_exposure_time_per_image",
+        "rotation_mode",
+        "method_precession",
+        "sample_tracking",
+        "sample_tracking_method"
     ],
     "diffrn_orient_matrix": [
         "diffrn_id",
@@ -260,7 +268,8 @@
         "final_solution_details",
         "soaking_details",
         "cooling_details",
-        "annealing_details"
+        "annealing_details",
+        "cryogen"
     ],
     "pdbx_refln_signal_binning": [
         "ordinal",
@@ -339,6 +348,8 @@
         "solvent_model_details",
         "solvent_model_param_bsol",
         "solvent_model_param_ksol",
+        "correlation_coeff_I_to_Fcsqd_work",
+        "correlation_coeff_I_to_Fcsqd_free",
         "pdbx_R_complete",
         "ls_R_factor_gt",
         "ls_goodness_of_fit_gt",
@@ -641,6 +652,7 @@
         "os_version",
         "type",
         "version",
+        "pdbx_reference_DOI",
         "pdbx_ordinal"
     ],
     "symmetry": [

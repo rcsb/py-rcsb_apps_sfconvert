@@ -1,6 +1,5 @@
 class SpaceGroup:
     def __init__(self, logger):
-
         self.__logger = logger
 
         self.__symmetry95 = [

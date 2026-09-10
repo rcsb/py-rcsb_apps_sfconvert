@@ -1,11 +1,11 @@
 # Class to import cif files.
 
 import os
+
 from sf_convert.sffile.sf_file import StructureFactorFile
 
 
 class ImportCif:
-
     def __init__(self, logger):
         """Class to import CIF files - multiple supported"""
         self.__logger = logger
@@ -26,7 +26,7 @@ class ImportCif:
             if not os.path.exists(fpath):
                 self.__logger.pinfo(f"File {fpath} does not exist", 0)
                 self.__sf = None
-                return None
+                return
 
             sf = StructureFactorFile()
             sf.read_file(fpath)

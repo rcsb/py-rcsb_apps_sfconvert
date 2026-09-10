@@ -1,9 +1,10 @@
-import os
 import difflib
-from sf_convert.utils.reformat_sfhead import reformat_sfhead
-from sf_convert.utils.pinfo_file import PInfoLogger
+import os
+
 from sf_convert.export_dir.export_cif import ExportCif
 from sf_convert.import_dir.import_cif import ImportCif
+from sf_convert.utils.pinfo_file import PInfoLogger
+from sf_convert.utils.reformat_sfhead import reformat_sfhead
 
 
 class TestMmcifConversion:
@@ -38,12 +39,12 @@ class TestMmcifConversion:
         ec.write_file(output_path)
 
         # Read the expected output file and filter out comment lines
-        with open(cif_mmcif_5pny_data_path, "r") as file:
-            expected_lines = [line.strip() for line in file.readlines() if not line.strip().startswith("#")]
+        with open(cif_mmcif_5pny_data_path) as file:
+            expected_lines = [line.strip() for line in file if not line.strip().startswith("#")]
 
         # Read the generated output file and filter out comment lines
-        with open(output_path, "r") as file:
-            output_lines = [line.strip() for line in file.readlines() if not line.strip().startswith("#")]
+        with open(output_path) as file:
+            output_lines = [line.strip() for line in file if not line.strip().startswith("#")]
 
         # Join split lines
         expected_lines = self.join_split_lines(expected_lines)

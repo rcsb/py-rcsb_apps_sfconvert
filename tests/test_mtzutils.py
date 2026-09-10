@@ -1,4 +1,5 @@
 import os
+
 from sf_convert.utils.MtzUtils import GetMtzInfo
 
 
@@ -18,7 +19,7 @@ class TestMtzUtils:
 
         assert os.path.exists(outfile)
 
-        with open(outfile, "r") as fin:
+        with open(outfile) as fin:
             lines = fin.readlines()
 
         assert len(lines) > 20

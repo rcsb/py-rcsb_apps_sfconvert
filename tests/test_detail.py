@@ -1,8 +1,9 @@
-import os
 import difflib
+import os
+
 from sf_convert.sffile.sf_file import StructureFactorFile
-from sf_convert.utils.reformat_sfhead import reformat_sfhead
 from sf_convert.utils.pinfo_file import PInfoLogger
+from sf_convert.utils.reformat_sfhead import reformat_sfhead
 
 
 class TestMmcifConversion:
@@ -32,12 +33,12 @@ class TestMmcifConversion:
         sffile.write_file(output_path)
 
         # Read the expected output file and filter out comment lines
-        with open(cif_mmcif_5pny_detail_data_path, "r") as file:
-            expected_lines = [line.strip() for line in file.readlines() if not line.strip().startswith("#")]
+        with open(cif_mmcif_5pny_detail_data_path) as file:
+            expected_lines = [line.strip() for line in file if not line.strip().startswith("#")]
 
         # Read the generated output file and filter out comment lines
-        with open(output_path, "r") as file:
-            output_lines = [line.strip() for line in file.readlines() if not line.strip().startswith("#")]
+        with open(output_path) as file:
+            output_lines = [line.strip() for line in file if not line.strip().startswith("#")]
 
         # Join split lines
         expected_lines = self.join_split_lines(expected_lines)

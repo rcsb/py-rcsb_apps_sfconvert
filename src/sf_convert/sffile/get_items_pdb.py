@@ -23,7 +23,11 @@ class ProteinDataBank:
         attributes = self._get_cif_attributes(container)
 
         # Group cell parameters together
-        attributes["CELL"] = [attributes.pop(key) for key in ["CELL_a", "CELL_b", "CELL_c", "CELL_alpha", "CELL_beta", "CELL_gamma"] if key in attributes]
+        attributes["CELL"] = [
+            attributes.pop(key)
+            for key in ["CELL_a", "CELL_b", "CELL_c", "CELL_alpha", "CELL_beta", "CELL_gamma"]
+            if key in attributes
+        ]
 
         return attributes
 
@@ -116,7 +120,7 @@ class ProteinDataBank:
         pdb_id = wave = nfree = resoh = resol = freerv = symm = None
         cell = [None] * 6
 
-        with open(filename, "r") as file:
+        with open(filename) as file:
             for line in file:
                 if line.startswith("HEADER"):
                     pdb_id = line[61:66].strip()
@@ -140,7 +144,16 @@ class ProteinDataBank:
                     cell = self._extract_cell_parameters(line)
                     symm = line[55:66].strip()
 
-        return {"pdb_id": pdb_id, "RESOH": resoh, "RESOL": resol, "FREERV": freerv, "WAVE": wave, "NFREE": nfree, "SYMM": symm, "CELL": cell}
+        return {
+            "pdb_id": pdb_id,
+            "RESOH": resoh,
+            "RESOL": resol,
+            "FREERV": freerv,
+            "WAVE": wave,
+            "NFREE": nfree,
+            "SYMM": symm,
+            "CELL": cell,
+        }
 
     def _extract_float(self, line):
         """

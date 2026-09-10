@@ -1,8 +1,10 @@
 # pylint: disable=E1101
-import gemmi
 import os
-from mmcif.api.DataCategory import DataCategory
 import tempfile
+
+import gemmi
+from mmcif.api.DataCategory import DataCategory
+
 from sf_convert.sffile.sf_file import StructureFactorFile as SFFile
 
 
@@ -34,7 +36,7 @@ class ImportMtz:
             if not os.path.exists(fpath):
                 self.__logger.pinfo(f"File {fpath} does not exist", 0)
                 self.__sf = None
-                return None
+                return
 
             mtz2cif = MtzToCifConverter(fpath, self.__logger)
             if self.__label:
@@ -64,13 +66,13 @@ class ImportMtz:
         if len(fileList) > 1:
             self.__logger.pinfo("Error: When using labels, only a single file can be used", 0)
             self.__sf = None
-            return None
+            return
 
         fpath = fileList[0]
         if not os.path.exists(fpath):
             self.__logger.pinfo(f"File {fpath} does not exist", 0)
             self.__sf = None
-            return None
+            return
 
         for idx, label in enumerate(self.__label.split(":")):
             self.__logger.pinfo(f"Processing datablock {idx + 1}", 0)
@@ -103,10 +105,9 @@ class ImportMtz:
 
     def __have_multi_label(self):
         """Returns True if multiple datasets present in labels - i.e. with a ":" character"""
-        if self.__label and ":" in self.__label:
+        if self.__label and ":" in self.__label:  # noqa: SIM103
             return True
-        else:
-            return False
+        return False
 
 
 class MtzToCifConverter:
@@ -257,7 +258,7 @@ class MtzToCifConverter:
         """
         for category_name, data_dict in categories.items():
             category = DataCategory(category_name)
-            for key in data_dict.keys():
+            for key in data_dict:
                 category.appendAttribute(key)
             category.append(tuple(data_dict.values()))
             self.sffile.append_category_to_block(category)
@@ -294,14 +295,22 @@ class MtzToCifConverter:
         processed_labels = []
 
         for label in self.__labels:
-            if label[0] in ["?", "&"] and label[1] in key_value_dict.keys():
+            if label[0] in ["?", "&"] and label[1] in key_value_dict:
                 replaced_label = (label[0], key_value_dict[label[1]], label[2], label[3])
                 if len(label) == 5:
-                    processed_label = (f"{replaced_label[0]} {replaced_label[1]}", *replaced_label[2:], label[4]) if replaced_label[0] in ["?", "&"] else replaced_label
+                    processed_label = (
+                        (f"{replaced_label[0]} {replaced_label[1]}", *replaced_label[2:], label[4])
+                        if replaced_label[0] in ["?", "&"]
+                        else replaced_label
+                    )
                 else:
-                    processed_label = (f"{replaced_label[0]} {replaced_label[1]}", *replaced_label[2:]) if replaced_label[0] in ["?", "&"] else replaced_label
+                    processed_label = (
+                        (f"{replaced_label[0]} {replaced_label[1]}", *replaced_label[2:])
+                        if replaced_label[0] in ["?", "&"]
+                        else replaced_label
+                    )
                 processed_labels.append(processed_label)
-            elif label[0] in key_value_dict.keys():
+            elif label[0] in key_value_dict:
                 replaced_label = (key_value_dict[label[0]], label[1], *label[2:])
                 processed_label = replaced_label
                 processed_labels.append(processed_label)
@@ -339,81 +348,87 @@ class MtzToCifConverter:
         # Direct mappings
         if label_type == "H" and label_content in ["H", "K", "L"]:
             return self.__assign_label(f"index_{label_content.lower()}")
-        elif label_type == "F" and label_content in ["2FOFCWT", "FWT", "F_ampl"]:
+        if label_type == "F" and label_content in ["2FOFCWT", "FWT", "F_ampl"]:
             return self.__assign_label("pdbx_FWT")
-        elif label_type == "P" and label_content in ["PH2FOFCWT", "PHWT", "PHIF"]:
+        if label_type == "P" and label_content in ["PH2FOFCWT", "PHWT", "PHIF"]:
             return self.__assign_label("pdbx_PHWT")
-        elif label_content in ["FOFCWT", "DELFWT"]:
+        if label_content in ["FOFCWT", "DELFWT"]:
             return self.__assign_label("pdbx_DELFWT")
-        elif label_type == "P" and label_content in ["PHFOFCWT", "PHDELWT"]:
+        if label_type == "P" and label_content in ["PHFOFCWT", "PHDELWT"]:
             return self.__assign_label("pdbx_DELPHWT")
-        elif label_type == "I" and any(
-            term.lower() in label_content.lower() for term in ["free", "R-free-flag", "flag", "TEST", "FREE", "RFREE", "FREER", "FreeR_flag", "FreeRflag"]
+        if (
+            label_type == "I"
+            and any(
+                term.lower() in label_content.lower()
+                for term in ["free", "R-free-flag", "flag", "TEST", "FREE", "RFREE", "FREER", "FreeR_flag", "FreeRflag"]
+            )
+        ) or (
+            label_type == "R"
+            and any(
+                term.lower() in label_content.lower()
+                for term in ["free", "R-free-flag", "flag", "TEST", "FREE", "RFREE", "FREER", "FreeR_flag", "FreeRflag"]
+            )
         ):  # FREE|RFREE|FREER|FreeR_flag|R-free-flags|FreeRflag
             return self.__assign_label("pdbx_r_free_flag")
-
-        # Unusual R flag for free R
-        elif label_type == "R" and any(
-            term.lower() in label_content.lower() for term in ["free", "R-free-flag", "flag", "TEST", "FREE", "RFREE", "FREER", "FreeR_flag", "FreeRflag"]
-        ):  # FREE|RFREE|FREER|FreeR_flag|R-free-flags|FreeRflag
-            return self.__assign_label("pdbx_r_free_flag")
-        elif label_type == "D":
+        if label_type == "D":
             return self.__assign_label("pdbx_anom_difference")
-        elif label_type == "A":
+        if label_type == "A":
             if "HLA" in label_content.upper():
                 return self.__assign_label("pdbx_HL_A_iso")
-            elif "HLB" in label_content.upper():
+            if "HLB" in label_content.upper():
                 return self.__assign_label("pdbx_HL_B_iso")
-            elif "HLC" in label_content.upper():
+            if "HLC" in label_content.upper():
                 return self.__assign_label("pdbx_HL_C_iso")
-            elif "HLD" in label_content.upper():
+            if "HLD" in label_content.upper():
                 return self.__assign_label("pdbx_HL_D_iso")
         elif label_type == "W" and "FOM" in label_content.upper():
             return self.__assign_label("fom")
 
         # Conditional checks based on label content and type of the previous or next label
         if label_type == "F":
-            if label_content.upper() in ["FP", "F-OBS-FILTERED", "F-OBS"] or (i < len(labels_list) - 1 and labels_list[i + 1][0] == "Q"):
+            if label_content.upper() in ["FP", "F-OBS-FILTERED", "F-OBS"] or (
+                i < len(labels_list) - 1 and labels_list[i + 1][0] == "Q"
+            ):
                 return self.__assign_label("F_meas_au")
-            elif label_content.upper() in ["FC", "FCAL"]:
+            if label_content.upper() in ["FC", "FCAL"]:
                 return self.__assign_label("F_calc_au")
         elif label_type == "Q":
             if i > 0:
                 prev_label_type = labels_list[i - 1][0]
                 if prev_label_type == "F":
                     return self.__assign_label("F_meas_sigma_au")
-                elif prev_label_type == "J":
+                if prev_label_type == "J":
                     return self.__assign_label("intensity_sigma")
-                elif prev_label_type == "D":
+                if prev_label_type == "D":
                     return self.__assign_label("pdbx_anom_difference_sigma")
 
         # Conditional checks for labels that depend on label content alone
         if label_type == "J":
             return self.__assign_label("intensity_meas")
-        elif label_type == "G":
+        if label_type == "G":
             if "(+)" in label_content:
                 return self.__assign_label("pdbx_F_plus")
-            elif "(-)" in label_content:
+            if "(-)" in label_content:
                 return self.__assign_label("pdbx_F_minus")
         elif label_type == "L":
             if "(+)" in label_content:
                 return self.__assign_label("pdbx_F_plus_sigma")
-            elif "(-)" in label_content:
+            if "(-)" in label_content:
                 return self.__assign_label("pdbx_F_minus_sigma")
         elif label_type == "K":
             if "(+)" in label_content:
                 return self.__assign_label("pdbx_I_plus")
-            elif "(-)" in label_content:
+            if "(-)" in label_content:
                 return self.__assign_label("pdbx_I_minus")
         elif label_type == "M":
             if "(+)" in label_content:
                 return self.__assign_label("pdbx_I_plus_sigma")
-            elif "(-)" in label_content:
+            if "(-)" in label_content:
                 return self.__assign_label("pdbx_I_minus_sigma")
         elif label_type == "P":
             if "PHIC" in label_content or "PHIC_ALL" in label_content or "AC" in label_content:
                 return self.__assign_label("phase_calc")
-            elif "PHIB" in label_content or "PHIM" in label_content:
+            if "PHIB" in label_content or "PHIM" in label_content:
                 return self.__assign_label("phase_meas")
 
         return "Unknown Label"
@@ -436,7 +451,17 @@ class MtzToCifConverter:
 
         for i in range(len(labels_list)):
             label_type, label_content = labels_list[i]
-            if label_type == "I" and label_content in ["free", "R-free-flag", "flag", "TEST", "FREE", "RFREE", "FREER", "FreeR_flag", "FreeRflag"]:
+            if label_type == "I" and label_content in [
+                "free",
+                "R-free-flag",
+                "flag",
+                "TEST",
+                "FREE",
+                "RFREE",
+                "FREER",
+                "FreeR_flag",
+                "FreeRflag",
+            ]:
                 free_label = i
                 # Mark as used so will not be picked up by another
                 self.__assign_label("pdbx_r_free_flag")
@@ -466,7 +491,9 @@ class MtzToCifConverter:
         mtz = gemmi.read_mtz_file(mtz_file)
         labels_list = [(column.type, column.label) for column in mtz.columns]
         results = self.__generate_full_labels_for_list(labels_list)
-        filtered_results = [(type_, label, full_label) for label, type_, full_label in results if full_label != "Unknown Label"]
+        filtered_results = [
+            (type_, label, full_label) for label, type_, full_label in results if full_label != "Unknown Label"
+        ]
         return filtered_results + self.__CUSTOM_END
 
     def convert(self):
@@ -491,7 +518,17 @@ class MtzToCifConverter:
 
         self.__fix_attributes()
 
-        new_order = ["audit", "cell", "diffrn_radiation_wavelength", "entry", "exptl_crystal", "reflns_scale", "symmetry", "refln", "diffrn_refln"]
+        new_order = [
+            "audit",
+            "cell",
+            "diffrn_radiation_wavelength",
+            "entry",
+            "exptl_crystal",
+            "reflns_scale",
+            "symmetry",
+            "refln",
+            "diffrn_refln",
+        ]
         self.sffile.reorder_categories_in_block(new_order)
         self.sffile.correct_block_names("xxxx")  # XXXX assumes entry.id = xxxx - need to be able to specify pdb id
 

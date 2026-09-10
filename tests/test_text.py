@@ -1,5 +1,5 @@
-from sf_convert.utils.TextUtils import is_cif
 from sf_convert.utils.pinfo_file import PInfoLogger
+from sf_convert.utils.TextUtils import is_cif
 
 
 class TestTextUtils:
