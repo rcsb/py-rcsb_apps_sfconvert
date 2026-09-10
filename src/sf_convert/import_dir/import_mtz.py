@@ -222,7 +222,10 @@ class MtzToCifConverter:
         Sets the spec lines for the MtzToCif object.
         """
         spec_lines = ["\t".join(line) for line in self.__spec_file_content]
+
         self.mtz2cif.spec_lines = spec_lines
+        content = " ".join(line[0] for line in self.__spec_file_content)
+        self.__logger.pinfo(f"Advisory: The following column labels were used in conversion: {content}", 0)
 
     def set_free(self, free):
         """

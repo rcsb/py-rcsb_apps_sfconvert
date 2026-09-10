@@ -43,7 +43,7 @@ class PInfoBase:
         if self._firstblock and block and block != 0:
             skip = True
 
-        if "Warning" in info or "Error" in info:
+        if "Warning" in info or "Error" in info or "Advisory" in info:
             if not skip:
                 self._lf1.write(f"{info}\n")  # Log to FTMP1.log
             print(info)  # Also print to console
