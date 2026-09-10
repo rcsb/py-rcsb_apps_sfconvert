@@ -50,7 +50,7 @@ class CheckSfFile:
         """Sets the symmetry from the coordinate file"""
         self.__pdbsymm = symm
 
-    def __initialize_data(self):
+    def __initialize_data(self, nblock):
         """
         Initializes the data for the SF file.
 
@@ -75,12 +75,12 @@ class CheckSfFile:
         self.__phase_c = self.__phase_o = self.__fom = []
         self.__dH = self.__dK = self.__dL = []
         self.__unmerge_i = self.__unmerge_si = []
-        self.__initialize_refln_data()
+        self.__initialize_refln_data(nblock)
         self.__initialize_diffrn_refln_data()
         self.__initialize_counts()
-        self.__initialize_columns()
+        self.__initialize_columns(nblock)
 
-    def __initialize_refln_data(self):
+    def __initialize_refln_data(self, nblock):
         """
         Initializes the refln data.
 
@@ -92,7 +92,7 @@ class CheckSfFile:
         """
         self.__refln_data = self.__sf_block.getObj("refln")
         if self.__refln_data is not None:
-            self.__rcell, self.__cell = self.__calc_cell_and_recip()
+            self.__rcell, self.__cell = self.__calc_cell_and_recip(nblock)
 
     def __initialize_diffrn_refln_data(self):
         """
@@ -125,7 +125,7 @@ class CheckSfFile:
         else:
             self.__dnref = 0
 
-    def __initialize_columns(self):
+    def __initialize_columns(self, blkidx):
         """
         Initializes the columns of the SF file.
 
@@ -184,11 +184,11 @@ class CheckSfFile:
             else:
                 setattr(self, "_CheckSfFile__" + var, None)
 
-        self.__initialize_Io()
-        self.__initialize_sIo()
-        self.__initialize_status()
+        self.__initialize_Io(blkidx)
+        self.__initialize_sIo(blkidx)
+        self.__initialize_status(blkidx)
 
-    def __initialize_Io(self):
+    def __initialize_Io(self, blkidx):
         """
         Initializes the Io column.
 
@@ -211,7 +211,7 @@ class CheckSfFile:
 
             # If attribute "intensity_meas_au" is present and was successfully set to self.__Io, change the token
             if self.__Io:
-                self.__cif_token_change("intensity_meas_au", "intensity_meas")
+                self.__cif_token_change("intensity_meas_au", "intensity_meas", blkidx)
 
         # If self.__Io is still None, check for attribute "intensity"
         if not self.__Io:
@@ -220,9 +220,9 @@ class CheckSfFile:
 
             # If attribute "intensity" is present and was successfully set to self.__Io, change the token
             if self.__Io:
-                self.__cif_token_change("intensity", "intensity_meas")
+                self.__cif_token_change("intensity", "intensity_meas", blkidx)
 
-    def __initialize_sIo(self):
+    def __initialize_sIo(self, blkidx):
         """
         Initializes the sIo column.
 
@@ -245,7 +245,7 @@ class CheckSfFile:
 
             # If attribute "intensity_sigma_au" is present and was successfully set to self.__sIo, change the token
             if self.__sIo:
-                self.__cif_token_change("intensity_sigma_au", "intensity_sigma")
+                self.__cif_token_change("intensity_sigma_au", "intensity_sigma", blkidx)
 
         # If self.__sIo is still None, check for attribute "intensity_sigm"
         if not self.__sIo:
@@ -254,7 +254,7 @@ class CheckSfFile:
 
             # If attribute "intensity_sigm" is present and was successfully set to self.__sIo, change the token
             if self.__sIo:
-                self.__cif_token_change("intensity_sigm", "intensity_sigma")
+                self.__cif_token_change("intensity_sigm", "intensity_sigma", blkidx)
 
         # If self.__sIo is still None, check for attribute "intensity_meas_sigma"
         if not self.__sIo:
@@ -263,7 +263,7 @@ class CheckSfFile:
 
             # If attribute "intensity_meas_sigma" is present and was successfully set to self.__sIo, change the token
             if self.__sIo:
-                self.__cif_token_change("intensity_meas_sigma", "intensity_sigma")
+                self.__cif_token_change("intensity_meas_sigma", "intensity_sigma", blkidx)
 
         # If self.__sIo is still None, check for attribute "intensity_meas_sigma_au"
         if not self.__sIo:
@@ -272,9 +272,9 @@ class CheckSfFile:
 
             # If attribute "intensity_meas_sigma_au" is present and was successfully set to self.__sIo, change the token
             if self.__sIo:
-                self.__cif_token_change("intensity_meas_sigma_au", "intensity_sigma")
+                self.__cif_token_change("intensity_meas_sigma_au", "intensity_sigma", blkidx)
 
-    def __initialize_status(self):
+    def __initialize_status(self, blkidx):
         """
         Initializes the status column.
 
@@ -291,19 +291,19 @@ class CheckSfFile:
         if not self.__status:
             self.__status = self.__refln_data.getColumn(self.__refln_data.getIndex("R_free_flag"))
             if self.__status:
-                self.__cif_token_change("R_free_flag", "status")
+                self.__cif_token_change("R_free_flag", "status", blkidx)
 
             if not self.__status:
                 self.__status = self.__refln_data.getColumn(self.__refln_data.getIndex("statu"))
                 if self.__status:
-                    self.__cif_token_change("statu", "status")
+                    self.__cif_token_change("statu", "status", blkidx)
 
                 if not self.__status:
                     self.__status = self.__refln_data.getColumn(self.__refln_data.getIndex("status_au"))
                     if self.__status:
-                        self.__cif_token_change("status_au", "status")
+                        self.__cif_token_change("status_au", "status", blkidx)
 
-    def __calc_cell_and_recip(self, override=False):
+    def __calc_cell_and_recip(self, block, override=False):
         """
         Calculates the cell and reciprocal cell.
 
@@ -357,7 +357,7 @@ class CheckSfFile:
             rcell[5] = math.acos(coscst) / math.radians(1.0)
 
             return rcell, cell
-        self.__logger.pinfo("Warning: No cell data found in the mmCIF file.", self.__pinfo_value)
+        self.__logger.pinfo("Warning: No cell data found in the mmCIF file.", self.__pinfo_value, block=block)
         return None, None
 
     def __get_resolution(self, h, k, l, rcell):  # noqa: E741
@@ -388,7 +388,7 @@ class CheckSfFile:
 
         return resol
 
-    def __cif_token_change(self, old_token, new_token):
+    def __cif_token_change(self, old_token, new_token, nblock):
         """
         Changes the cif token.
 
@@ -399,8 +399,8 @@ class CheckSfFile:
         Returns:
             None
         """
-        self.__logger.pinfo(f"Warning! The mmcif token  _refln.{old_token} is wrong!", self.__pinfo_value)
-        self.__logger.pinfo(f"It has been corrected as _refln.{new_token}", self.__pinfo_value)
+        self.__logger.pinfo(f"Warning! The mmcif token  _refln.{old_token} is wrong!", self.__pinfo_value, block=nblock)
+        self.__logger.pinfo(f"It has been corrected as _refln.{new_token}", self.__pinfo_value, block=nblock)
 
     def __check_sf(self, nblock):
         """
@@ -414,9 +414,9 @@ class CheckSfFile:
         """
         self.__sf_block = self.__sf_file.get_block_by_index(nblock)
         self.__logger.pinfo(
-            f"Data_block_id={self.__sf_block.getName()}, block_number={nblock + 1}\n", 0
+            f"Data_block_id={self.__sf_block.getName()}, block_number={nblock + 1}\n", 0, block=nblock
         )  # self.__pinfo_value)
-        self.__initialize_data()
+        self.__initialize_data(nblock)
 
         temp_nref, nstart, n1, n4, n5, nfpairF, nfpairI, nf_sFo, nf_sIo, key = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
         # n2 removed
@@ -455,7 +455,9 @@ class CheckSfFile:
 
         if not (self.__dH or self.__dK or self.__dL or self.__H or self.__K or self.__L):
             self.__logger.pinfo(
-                f"Error: File has no 'index_h, index_k, index_l' (data block= {nblock + 1}).", self.__pinfo_value
+                f"Error: File has no 'index_h, index_k, index_l' (data block= {nblock + 1}).",
+                self.__pinfo_value,
+                block=nblock,
             )
             return
 
@@ -473,7 +475,9 @@ class CheckSfFile:
         ):
             msg = "Error" if nblock == 0 else "Warning"
             self.__logger.pinfo(
-                f"{msg}: File has no mandatory items 'F/I/F+/F-/I+/I-' (data block= {nblock + 1}). ", self.__pinfo_value
+                f"{msg}: File has no mandatory items 'F/I/F+/F-/I+/I-' (data block= {nblock + 1}). ",
+                self.__pinfo_value,
+                block=nblock,
             )
             return
 
@@ -482,7 +486,9 @@ class CheckSfFile:
 
         if self.__nref < 30:
             self.__logger.pinfo(
-                f"Error: File has too few reflections ({self.__nref}) (data block= {nblock + 1}).", self.__pinfo_value
+                f"Error: File has too few reflections ({self.__nref}) (data block= {nblock + 1}).",
+                self.__pinfo_value,
+                block=nblock,
             )
             return
 
@@ -497,12 +503,16 @@ class CheckSfFile:
             or (self.__F_minus and not self.__sF_minus)
             or (self.__unmerge_i and not self.__unmerge_si)
         ):
-            self.__logger.pinfo(f"Warning: Sigma values are missing (data block= {nblock + 1})!", self.__pinfo_value)
+            self.__logger.pinfo(
+                f"Warning: Sigma values are missing (data block= {nblock + 1})!", self.__pinfo_value, block=nblock
+            )
 
         if self.__status is None:
-            self.__logger.pinfo(f"Error: File has no free set (data block= {nblock + 1}).", self.__pinfo_value)
+            self.__logger.pinfo(
+                f"Error: File has no free set (data block= {nblock + 1}).", self.__pinfo_value, block=nblock
+            )
 
-        _rcell, cell = self.__calc_cell_and_recip()
+        _rcell, cell = self.__calc_cell_and_recip(nblock)
 
         if cell and (cell[0] > 0.01 and cell[1] > 0.01):
             key = 1
@@ -520,6 +530,7 @@ class CheckSfFile:
                     self.__logger.pinfo(
                         f"Error: Miller indices are not integral ({self.__H[i]}, {self.__K[i]}, {self.__L[i]})",
                         self.__pinfo_value,
+                        block=nblock,
                     )
                     invalid_miller = True
                 continue
@@ -551,7 +562,7 @@ class CheckSfFile:
             if (ah == 0 and ak == 0 and al == 0) or (abs(ah) > 800 or abs(ak) > 800 or abs(al) > 800):
                 n1 += 1
                 if n1 == 1:
-                    self.__logger.pinfo(f"Error: File has wrong indices ({hkl}).", self.__pinfo_value)
+                    self.__logger.pinfo(f"Error: File has wrong indices ({hkl}).", self.__pinfo_value, block=nblock)
 
             # --------------------------------------------------------------
             if self.__sFo_au and i > 0 and self.__is_float(self.__sFo_au[i - 1]) and self.__is_float(self.__sFo_au[i]):
@@ -575,6 +586,7 @@ class CheckSfFile:
                         self.__logger.pinfo(
                             f"Error: File has negative amplitude (F+: {self.__F_plus[i]}) for ({hkl}).",
                             self.__pinfo_value,
+                            block=nblock,
                         )
 
             if self.__I_plus and self.__is_float(self.__I_plus[i]):
@@ -651,6 +663,7 @@ class CheckSfFile:
                         self.__logger.pinfo(
                             f"Error: File has negative amplitude (Fo: {self.__Fo_au[i]}) for ({hkl}).",
                             self.__pinfo_value,
+                            block=nblock,
                         )
 
                 min_F = min(min_F, f)
@@ -697,7 +710,9 @@ class CheckSfFile:
                 if n6 == 0:
                     n6 += 1
                     self.__logger.pinfo(
-                        f"Warning: File has wrong values of FOM ({self.__fom[i]}) for ({hkl}).", self.__pinfo_value
+                        f"Warning: File has wrong values of FOM ({self.__fom[i]}) for ({hkl}).",
+                        self.__pinfo_value,
+                        block=nblock,
                     )
 
             if self.__phase_c and self.__is_float(self.__phase_c[i]) and abs(float(self.__phase_c[i])) > 361.0:
@@ -706,6 +721,7 @@ class CheckSfFile:
                     self.__logger.pinfo(
                         f"Warning: File has wrong values of phase ({self.__phase_c[i]}) for ({hkl}).",
                         self.__pinfo_value,
+                        block=nblock,
                     )
 
             if self.__phase_o and self.__is_float(self.__phase_o[i]) and abs(float(self.__phase_o[i])) > 361.0:
@@ -714,100 +730,128 @@ class CheckSfFile:
                     self.__logger.pinfo(
                         f"Warning: File has wrong values of phase ({self.__phase_o[i]}) for ({hkl}).",
                         self.__pinfo_value,
+                        block=nblock,
                     )
 
         if n1 > 0:
-            self.__logger.pinfo(f"Error: File has ({n1}) reflections with wrong indices.", self.__pinfo_value)
+            self.__logger.pinfo(
+                f"Error: File has ({n1}) reflections with wrong indices.", self.__pinfo_value, block=nblock
+            )
 
         # if n2 > 0:
         #     self.__logger.pinfo(f"Warning: File has ({n2}) reflections with negative SIGMA, (Corrected: given status '<').", self.__pinfo_value)
 
         if n4 > 0:
-            self.__logger.pinfo(f"Error: File has ({n4}) reflections with negative amplitude (F+).", self.__pinfo_value)
+            self.__logger.pinfo(
+                f"Error: File has ({n4}) reflections with negative amplitude (F+).", self.__pinfo_value, block=nblock
+            )
 
         if n5 > 0:
-            self.__logger.pinfo(f"Error: File has ({n5}) reflections with negative amplitude (Fo).", self.__pinfo_value)
+            self.__logger.pinfo(
+                f"Error: File has ({n5}) reflections with negative amplitude (Fo).", self.__pinfo_value, block=nblock
+            )
 
         if temp_nref > 10 and ((nf_sFo > 0 and temp_nref - nf_sFo < 3) or (nf_sIo > 0 and temp_nref - nf_sIo < 3)):
-            self.__logger.pinfo("Warning! File has Sigma_Fo all the same!", self.__pinfo_value)
+            self.__logger.pinfo("Warning! File has Sigma_Fo all the same!", self.__pinfo_value, block=nblock)
 
         # Warn if test set is more than 33% of working set...
         if (3 * n_free) > n_obs:
-            self.__logger.pinfo("Warning! Free test set much larger than working set!", self.__pinfo_value)
+            self.__logger.pinfo(
+                "Warning! Free test set much larger than working set!", self.__pinfo_value, block=nblock
+            )
 
         # Following are the messages related to total number of reflections
-        self.__logger.pinfo(f"Total number of observed reflections = {(n_obs + n_free)}", self.__pinfo_value)
-        self.__logger.pinfo(f"Total number of observed reflections (status='o') = {n_obs}", self.__pinfo_value)
-        self.__logger.pinfo(f"Total number of observed reflections (status='f') = {n_free}", self.__pinfo_value)
+        self.__logger.pinfo(
+            f"Total number of observed reflections = {(n_obs + n_free)}", self.__pinfo_value, block=nblock
+        )
+        self.__logger.pinfo(
+            f"Total number of observed reflections (status='o') = {n_obs}", self.__pinfo_value, block=nblock
+        )
+        self.__logger.pinfo(
+            f"Total number of observed reflections (status='f') = {n_free}", self.__pinfo_value, block=nblock
+        )
         if n_obs > 0:
             rfree_p = 100 * float(n_free) / float(n_obs)
-            self.__logger.pinfo(f"Percentage for free set = {rfree_p:.2f}", self.__pinfo_value)
+            self.__logger.pinfo(f"Percentage for free set = {rfree_p:.2f}", self.__pinfo_value, block=nblock)
 
         if nfpairF > 10:
-            self.__logger.pinfo(f"Total number of Friedel pairs (F+/F-) = {nfpairF}", self.__pinfo_value)
-            self.__logger.pinfo(f"Total number of observed F+ = {nfp}", self.__pinfo_value)
-            self.__logger.pinfo(f"Total number of observed F- = {nfn}", self.__pinfo_value)
-            self.__logger.pinfo(f"Sum of observed F+ and F-  = {(nfn + nfp)}", self.__pinfo_value)
+            self.__logger.pinfo(f"Total number of Friedel pairs (F+/F-) = {nfpairF}", self.__pinfo_value, block=nblock)
+            self.__logger.pinfo(f"Total number of observed F+ = {nfp}", self.__pinfo_value, block=nblock)
+            self.__logger.pinfo(f"Total number of observed F- = {nfn}", self.__pinfo_value, block=nblock)
+            self.__logger.pinfo(f"Sum of observed F+ and F-  = {(nfn + nfp)}", self.__pinfo_value, block=nblock)
 
         if nfpairI > 10:
-            self.__logger.pinfo(f"Total number of Friedel pairs (I+/I-) = {nfpairI}", self.__pinfo_value)
-            self.__logger.pinfo(f"Total number of observed I+ = {nip}", self.__pinfo_value)
-            self.__logger.pinfo(f"Total number of observed I- = {nin}", self.__pinfo_value)
-            self.__logger.pinfo(f"Sum of observed I+ and I-  = {(nin + nip)}", self.__pinfo_value)
+            self.__logger.pinfo(f"Total number of Friedel pairs (I+/I-) = {nfpairI}", self.__pinfo_value, block=nblock)
+            self.__logger.pinfo(f"Total number of observed I+ = {nip}", self.__pinfo_value, block=nblock)
+            self.__logger.pinfo(f"Total number of observed I- = {nin}", self.__pinfo_value, block=nblock)
+            self.__logger.pinfo(f"Sum of observed I+ and I-  = {(nin + nip)}", self.__pinfo_value, block=nblock)
 
         if key > 0 and self.__cell[0] > 0.001:
             self.__logger.pinfo(
                 f"Cell = {self.__cell[0]:.2f} {self.__cell[1]:.2f} {self.__cell[2]:.2f} {self.__cell[3]:.2f} {self.__cell[4]:.2f} {self.__cell[5]:.2f}",
                 self.__pinfo_value,
+                block=nblock,
             )
             self.__logger.pinfo(
-                f"Lowest resolution= {max_R:.2f} ; corresponding HKL={self.__hkl_max}", self.__pinfo_value
+                f"Lowest resolution= {max_R:.2f} ; corresponding HKL={self.__hkl_max}", self.__pinfo_value, block=nblock
             )
             self.__logger.pinfo(
-                f"Highest resolution={min_R:.2f} ; corresponding HKL={self.__hkl_min}", self.__pinfo_value
+                f"Highest resolution={min_R:.2f} ; corresponding HKL={self.__hkl_min}", self.__pinfo_value, block=nblock
             )
             if RESOH > 0.11 and abs(RESOH - min_R) > 0.4 and nblock == 0:
                 self.__logger.pinfo(
                     f"Warning: large difference between reportedre ({RESOH:.2f}) and calculated({min_R:.2f}) resolution.",
                     self.__pinfo_value,
+                    block=nblock,
                 )
             resol[0] = min_R
 
-        self.__logger.pinfo(f"Max indices (Hmax={max_H:4d}  Kmax={max_K:4d}  Lmax={max_L:4d})", self.__pinfo_value)
-        self.__logger.pinfo(f"Min indices (Hmin={min_H:4d}  Kmin={min_K:4d}  Lmin={min_L:4d})", self.__pinfo_value)
+        self.__logger.pinfo(
+            f"Max indices (Hmax={max_H:4d}  Kmax={max_K:4d}  Lmax={max_L:4d})", self.__pinfo_value, block=nblock
+        )
+        self.__logger.pinfo(
+            f"Min indices (Hmin={min_H:4d}  Kmin={min_K:4d}  Lmin={min_L:4d})", self.__pinfo_value, block=nblock
+        )
 
         if self.__Fo_au:
-            self.__logger.pinfo(f"maximum value of amplitude= {max_F:.2f}", self.__pinfo_value)
-            self.__logger.pinfo(f"minimum value of amplitude= {min_F:.2f}", self.__pinfo_value)
+            self.__logger.pinfo(f"maximum value of amplitude= {max_F:.2f}", self.__pinfo_value, block=nblock)
+            self.__logger.pinfo(f"minimum value of amplitude= {min_F:.2f}", self.__pinfo_value, block=nblock)
             if nf_Fo:
                 self.__logger.pinfo(
-                    f"<F/sigmaF> = {f_over_sf / nf_Fo:.2f};  <F>/<sigmaF> = {sum_f / sum_sf:.2f}", self.__pinfo_value
+                    f"<F/sigmaF> = {f_over_sf / nf_Fo:.2f};  <F>/<sigmaF> = {sum_f / sum_sf:.2f}",
+                    self.__pinfo_value,
+                    block=nblock,
                 )
             if sum_sf and (sum_f / sum_sf > 140 or sum_f / sum_sf < 4):
                 self.__logger.pinfo(
                     f"Warning: Value of (Fo_avg/sigFo_avg = {sum_f / sum_sf:.2f}) is out of range (check Fo or SigFo in SF file).",
                     self.__pinfo_value,
+                    block=nblock,
                 )
 
         if self.__F2o:
-            self.__logger.pinfo(f"maximum value of F square= {max_F2:.2f}", self.__pinfo_value)
-            self.__logger.pinfo(f"minimum value of F square= {min_F2:.2f}", self.__pinfo_value)
+            self.__logger.pinfo(f"maximum value of F square= {max_F2:.2f}", self.__pinfo_value, block=nblock)
+            self.__logger.pinfo(f"minimum value of F square= {min_F2:.2f}", self.__pinfo_value, block=nblock)
             self.__logger.pinfo(
                 f"<F2/sigmaF2> = {f2_over_sf2 / nf_F2o:.2f};  <F2>/<sigmaF2> = {sum_f2 / sum_sf2:.2f}",
                 self.__pinfo_value,
+                block=nblock,
             )
 
         if self.__Io:
-            self.__logger.pinfo(f"maximum value of intensity= {max_I:.2f}", self.__pinfo_value)
-            self.__logger.pinfo(f"minimum value of intensity= {min_I:.2f}", self.__pinfo_value)
+            self.__logger.pinfo(f"maximum value of intensity= {max_I:.2f}", self.__pinfo_value, block=nblock)
+            self.__logger.pinfo(f"minimum value of intensity= {min_I:.2f}", self.__pinfo_value, block=nblock)
             if sum_si:
                 self.__logger.pinfo(
-                    f"<I/sigmaI> = {i_over_si / nf_Io:.2f};  <I>/<sigmaI> = {sum_i / sum_si:.2f}", self.__pinfo_value
+                    f"<I/sigmaI> = {i_over_si / nf_Io:.2f};  <I>/<sigmaI> = {sum_i / sum_si:.2f}",
+                    self.__pinfo_value,
+                    block=nblock,
                 )
                 if sum_i / sum_si > 80 or sum_i / sum_si < 2:
                     self.__logger.pinfo(
                         f"Warning: Value of (I_avg/sigI_avg = {sum_i / sum_si:.2f}) is out of range (check Io or SigIo in SF file). ",
                         self.__pinfo_value,
+                        block=nblock,
                     )
 
             if nf_Fo and nf_Io:
@@ -817,21 +861,29 @@ class CheckSfFile:
                     self.__logger.pinfo(
                         f"Warning: too much difference Fo/sigFo = {f_over_sf / nf_Fo:.2f};  Io/sigIo = {i_over_si / nf_Io:.2f}",
                         self.__pinfo_value,
+                        block=nblock,
                     )
 
         if nnii > 10:
-            self.__logger.pinfo(f"Using all data:  <I/sigI>={ii_sigii / nnii:.2f}", self.__pinfo_value)
-            self.__logger.pinfo(f"Using all data:  <I>/<sigI>={sum_ii / sum_sigii:.2f}", self.__pinfo_value)
-            self.__logger.pinfo(f"Using all data:  Rsig(<sigI>/<I>)={sum_sigii / sum_ii:.3f}", self.__pinfo_value)
-            self.__logger.pinfo(f"The maximum value of <I/sigI>_max={ii_sigii_max:.2f}", self.__pinfo_value)
+            self.__logger.pinfo(f"Using all data:  <I/sigI>={ii_sigii / nnii:.2f}", self.__pinfo_value, block=nblock)
+            self.__logger.pinfo(
+                f"Using all data:  <I>/<sigI>={sum_ii / sum_sigii:.2f}", self.__pinfo_value, block=nblock
+            )
+            self.__logger.pinfo(
+                f"Using all data:  Rsig(<sigI>/<I>)={sum_sigii / sum_ii:.3f}", self.__pinfo_value, block=nblock
+            )
+            self.__logger.pinfo(
+                f"The maximum value of <I/sigI>_max={ii_sigii_max:.2f}", self.__pinfo_value, block=nblock
+            )
 
         if nnii_low > 10:
             self.__logger.pinfo(
                 f"Use data with resolution >7.0 Angstrom: <I/sigI>_low={ii_sigii_low / nnii_low:.2f}",
                 self.__pinfo_value,
+                block=nblock,
             )
 
-        self.__logger.pinfo("\n", self.__pinfo_value)
+        self.__logger.pinfo("\n", self.__pinfo_value, block=nblock)
 
         return
 
@@ -959,7 +1011,7 @@ class CheckSfFile:
         # file_path = os.path.join(self.__fout_path, file_name)
 
         self.__sf_block = self.__sf_file.get_block_by_index(nblock)
-        self.__initialize_data()
+        self.__initialize_data(nblock)
 
         myDataList = []
         curContainer = DataContainer("cif2cif")
@@ -973,7 +1025,7 @@ class CheckSfFile:
         n = self.__nref
 
         # If pdb cell provided use it
-        rcell, CELL = self.__calc_cell_and_recip(override=True)
+        rcell, CELL = self.__calc_cell_and_recip(nblock, override=True)
 
         # Add spacegroup.  Override with coordinate file if set
         if CELL and CELL[0] > 2 and CELL[4] > 2:
@@ -1211,7 +1263,7 @@ class CheckSfFile:
                 val = float(cObj.getValue(attr))
                 sfcell.append(val)
         except Exception:  # noqa: BLE001
-            self.__logger.pinfo(f"Error: Could not parse cell from {blkname}", 0)
+            self.__logger.pinfo(f"Error: Could not parse cell from {blkname}", 0, block=blkidx)
             return
 
         pdb = self.__pdbcell
@@ -1224,7 +1276,7 @@ class CheckSfFile:
             or abs(sfcell[4] - pdb[4]) > 0.1
             or abs(sfcell[5] - pdb[5]) > 0.1
         ):
-            self.__logger.pinfo(f"Warning! SF and PDB ({blkname}) cell values mismatch", 0)
+            self.__logger.pinfo(f"Warning! SF and PDB ({blkname}) cell values mismatch", 0, block=blkidx)
 
             if (
                 abs(sfcell[0] - pdb[0]) > 3.0
@@ -1243,7 +1295,7 @@ class CheckSfFile:
                 print(f"cell in  sf: {scell}")
                 print(f"cell in PDB: {pcell}")
 
-                self.__logger.pinfo(f"Error: {blkname} large cell value mismatch (> 3.0)", 0)
+                self.__logger.pinfo(f"Error: {blkname} large cell value mismatch (> 3.0)", 0, block=blkidx)
 
     def __check_symm(self, blk, blkidx):
         """Checks provided symmetry against SF file"""
@@ -1264,5 +1316,7 @@ class CheckSfFile:
 
         if sfsymm_norm != pdbsymm_norm:
             self.__logger.pinfo(
-                f"Warning! (nblock = {blkidx}) space group mismatch (pdb= {pdbsymm_norm} : sf= {sfsymm_norm})", 0
+                f"Warning! (nblock = {blkidx}) space group mismatch (pdb= {pdbsymm_norm} : sf= {sfsymm_norm})",
+                0,
+                block=blkidx,
             )
