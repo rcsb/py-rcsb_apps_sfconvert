@@ -7,6 +7,7 @@ from mmcif.api.PdbxContainers import CifName
 
 from sf_convert.utils.dict_filter import DictFilter
 from sf_convert.utils.reformat_sfhead import reformat_sfhead, reorder_sf_file
+from sf_convert.utils.SpaceGroup import SpaceGroup
 
 
 class SfCorrect:
@@ -305,6 +306,8 @@ class SfCorrect:
 
         if self.__legacy:
             self.__cleanup_symmetry(sffile)
+
+        self.__remove_sg_number(sffile)
 
         self.__ensure_catkeys(sffile, pdbid)
 
@@ -901,6 +904,24 @@ class SfCorrect:
             if cat in blk.getObjNameList():
                 blk.remove(cat)
                 self.__logger.pinfo(f"Removing {cat} category from block {blk.getName()}", 0, block=block_index)
+
+    def __remove_sg_number(self, sffile):
+        """Removes _symmetry.Int_Tables_number when space group not in standard notation"""
+
+        cat = "symmetry"
+        for block_index in range(sffile.get_number_of_blocks()):
+            blk = sffile.get_block_by_index(block_index)
+
+            cObj = blk.getObj(cat)
+
+            if cObj:
+                attrlist = cObj.getAttributeList()
+                if "Int_Tables_number" in attrlist and "space_group_name_H-M" in attrlist:
+                    sgname = cObj.getValue("space_group_name_H-M", 0)
+                    sg = SpaceGroup(logger=self.__logger)
+                    if not sg.std_sgname(sgname):
+                        # Remove the attribute
+                        cObj.removeAttribute("Int_Tables_number")
 
     def remove_empty_blocks(self, sffile):
         """Removes blocks with too little real data"""

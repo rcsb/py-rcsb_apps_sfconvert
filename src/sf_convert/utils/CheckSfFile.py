@@ -1311,8 +1311,8 @@ class CheckSfFile:
         sfsymm = cObj.getValueOrDefault("space_group_name_H-M", 0, None)
 
         sg = SpaceGroup(self.__logger)
-        sfsymm_norm = sg.standardize_sg_name(sfsymm)
-        pdbsymm_norm = sg.standardize_sg_name(self.__pdbsymm)
+        sfsymm_norm = sg.standardize_sg_name(sfsymm, blkidx)
+        pdbsymm_norm = sg.standardize_sg_name(self.__pdbsymm, blkidx)
 
         if sfsymm_norm != pdbsymm_norm:
             self.__logger.pinfo(
