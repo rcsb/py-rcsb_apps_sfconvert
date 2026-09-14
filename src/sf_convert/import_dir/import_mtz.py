@@ -225,7 +225,7 @@ class MtzToCifConverter:
 
         self.mtz2cif.spec_lines = spec_lines
         content = " ".join(line[0] for line in self.__spec_file_content)
-        self.__logger.pinfo(f"Advisory: The following column labels were used in conversion: {content}", 0)
+        self.__logger.pinfo(f"Advisory: The following column labels were used in conversion: {content}", 2)
 
     def set_free(self, free):
         """
