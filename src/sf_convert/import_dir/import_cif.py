@@ -10,6 +10,7 @@ class ImportCif:
         """Class to import CIF files - multiple supported"""
         self.__logger = logger
         self.__sf = None
+        self.__extendedError = True
 
     def import_files(self, fileList):
         """Reads in possibly multiple SF files
@@ -31,8 +32,26 @@ class ImportCif:
             sf = StructureFactorFile()
             ok = sf.read_file(fpath)
             if ok is False:
-                self.__logger.pinfo(f"Error: File {fpath} could not be parsed", 0)
+                # self.__logger.pinfo(f"Error: File {fpath} could not be parsed", 0)
                 self.__sf = None
+                report = True
+                if self.__extendedError:
+                    from gemmi import cif
+                    try:
+                        doc = cif.read_file(fpath)
+                    except Exception as e:
+                        ext_err = str(e)
+                        if "parse error" in ext_err:
+                            tup = ext_err.split(":")
+                            lno = tup[1]
+                            # Within OneDep - filename not relevant
+                            self.__logger.pinfo(f"Error: SF File could not be parsed - error possibly in line {lno}", 0)
+                            report = False
+
+                if report:
+                    self.__logger.pinfo(f"Error: SF File {fpath} could not be parsed", 0)
+                            
+
                 return
 
             if self.__sf:
