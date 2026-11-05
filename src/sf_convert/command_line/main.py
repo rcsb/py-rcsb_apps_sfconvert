@@ -64,8 +64,8 @@ class ImportSf:
         ic.import_files(sfin)
         sffile = ic.get_sf()
         if sffile is None:
-            self.__logger.pinfo("++ERROR: Could not parse file", 0)
-            sys.exit(1)
+            # Logged already
+            return None
 
         # We apply corrections if cif -> cif conversion, otherwise bring in
         sfc = SfCorrect(self.__logger, self.__legacy)
@@ -257,9 +257,12 @@ class SFConvertMain:
         self.__logger = logger
 
     def convert(self, pdict):
-        """Handles the conversion as needed"""
+        """Handles the conversion as needed - return True on success"""
         impsf = ImportSf(self.__logger)
         sffile = impsf.import_sf(pdict)
+        if sffile is None:
+            # An error in conversion - return up for output diag
+            return False
 
         # Any transformations that are necessary
         # None right now
@@ -281,7 +284,7 @@ class SFConvertMain:
         checksf.sf_stat(output, "SF_4_validate.cif")
 
         # checksffile code
-
+        return True
 
 class CustomHelpParser(argparse.ArgumentParser):
     def print_help(self, file=None):  # pylint: disable=unused-argument
@@ -636,10 +639,13 @@ def convert_files(args, input_format, pdb_data, logger):
     sfc = SFConvertMain(logger)
 
     if output_format in ["MMCIF", "CNS", "MTZ"]:
-        sfc.convert(pdict)
+        status = sfc.convert(pdict)
     elif args.valid is False:
         raise ValueError(f"Conversion from {input_format} to {output_format} is not supported.")
 
+    if status is False:
+        output = None
+        
     rdict = {"output": output, "out_format": output_format}
     return rdict
 
@@ -692,7 +698,8 @@ def main():
 
     outpath = rdict["output"]
     outformat = rdict["out_format"].lower()
-    print(f"Output File Name = {outpath} : ({outformat} format)")
+    if outpath:
+        print(f"Output File Name = {outpath} : ({outformat} format)")
 
     diags = args.diags if args.diags else None
 

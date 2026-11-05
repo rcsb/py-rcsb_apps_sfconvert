@@ -24,14 +24,14 @@ class ImportCif:
 
         for fpath in fileList:
             if not os.path.exists(fpath):
-                self.__logger.pinfo(f"File {fpath} does not exist", 0)
+                self.__logger.pinfo(f"Error: File {fpath} does not exist", 0)
                 self.__sf = None
                 return
 
             sf = StructureFactorFile()
             ok = sf.read_file(fpath)
             if ok is False:
-                self.__logger.pinfo(f"File {fpath} could not be parsed", 0)
+                self.__logger.pinfo(f"Error: File {fpath} could not be parsed", 0)
                 self.__sf = None
                 return
 
