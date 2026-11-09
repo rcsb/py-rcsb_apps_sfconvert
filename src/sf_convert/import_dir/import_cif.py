@@ -36,9 +36,9 @@ class ImportCif:
                 self.__sf = None
                 report = True
                 if self.__extendedError:
-                    from gemmi import cif
+                    from gemmi import cif  # pylint: disable=no-name-in-module
                     try:
-                        doc = cif.read_file(fpath)
+                        cif.read_file(fpath)  # Raises error
                     except Exception as e:
                         ext_err = str(e)
                         if "parse error" in ext_err:
@@ -50,7 +50,6 @@ class ImportCif:
 
                 if report:
                     self.__logger.pinfo(f"Error: SF File {fpath} could not be parsed", 0)
-                            
 
                 return
 

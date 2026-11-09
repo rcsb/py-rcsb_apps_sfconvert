@@ -286,6 +286,7 @@ class SFConvertMain:
         # checksffile code
         return True
 
+
 class CustomHelpParser(argparse.ArgumentParser):
     def print_help(self, file=None):  # pylint: disable=unused-argument
         """
@@ -638,6 +639,7 @@ def convert_files(args, input_format, pdb_data, logger):
 
     sfc = SFConvertMain(logger)
 
+    status = False
     if output_format in ["MMCIF", "CNS", "MTZ"]:
         status = sfc.convert(pdict)
     elif args.valid is False:
@@ -645,7 +647,7 @@ def convert_files(args, input_format, pdb_data, logger):
 
     if status is False:
         output = None
-        
+
     rdict = {"output": output, "out_format": output_format}
     return rdict
 
