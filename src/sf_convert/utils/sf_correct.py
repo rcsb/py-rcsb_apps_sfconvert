@@ -141,13 +141,13 @@ class SfCorrect:
                         if setwlf > 0.8 and setwlf < 2.5 and setwlf != 1.0 and wave:
                             if abs(setwlf - wave) > 0.0001 and idx == 0:
                                 self.__logger.pinfo(
-                                    f"Warning: ({pdb_id} nblock={idx}) wavelength mismatch (pdb= {setwlf} : sf= {curwave})!",
+                                    f"Error: ({pdb_id} nblock={idx}) wavelength mismatch (pdb= {setwlf} : sf= {curwave})!",
                                     0,
                                     block=idx,
                                 )
                             elif setwlf > 0 and abs(setwlf - wave) > 0.0001 and idx == 0:
                                 self.__logger.pinfo(
-                                    "Warning: ({pdb_id} nblock={idx}) wavelength mismatch (pdb= {setwlf} : sf= {curwave}). (double check!)",
+                                    "Error: ({pdb_id} nblock={idx}) wavelength mismatch (pdb= {setwlf} : sf= {curwave}). (double check!)",
                                     0,
                                     block=idx,
                                 )
@@ -155,6 +155,12 @@ class SfCorrect:
                         # Set the values....
                         for row in range(cObj.getRowCount()):
                             cObj.setValue(setwl, "wavelength", row)
+                # Current wavelength is ["." or "?"]
+                self.__logger.pinfo(
+                    f"Error: Warning: No wavelength value was found in SF file (data block={idx}).",
+                    0,
+                    block=idx,
+                )
 
             else:
                 # Create category - for dictionary compliance purposes. Might not be needed depending on data.
@@ -175,6 +181,12 @@ class SfCorrect:
                 newObj = DataCategory(cat, ["id", "wavelength"], data)
                 blk.append(newObj)
                 self.__logger.pinfo(f"Creating {cat} in nblock={idx}", 0, block=idx)
+                if wl in [".", "?"]:
+                    self.__logger.pinfo(
+                        f"Error: Warning: No wavelength value was found in SF file (data block={idx}).",
+                        0,
+                        block=idx,
+                    )
 
     def __instantiate_diffrn_rad_wavelength(self, sffile):
         """Instantiate diffrn_radiation_wavelength if needed.  In case wavelength is not set, but needed for dictionary purposes"""
@@ -1010,7 +1022,7 @@ class SfCorrect:
             # Legacy logic...
             if (ndup > 1 and (have_Io or have_I_plus)) or have_unmerge_i:
                 if block_index == 0:
-                    self.__logger.pinfo(f"Warning: Unmerged data in block 1 (blockId={blkname})!", 0, block=block_index)
+                    self.__logger.pinfo(f"Error: Unmerged data in block 1 (blockId={blkname})!", 0, block=block_index)
                 else:
                     self.__logger.pinfo(f"Note: Unmerged data in (blockId={blkname})!", 0, block=block_index)
 

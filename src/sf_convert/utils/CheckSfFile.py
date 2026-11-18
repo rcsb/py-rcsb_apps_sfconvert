@@ -1276,7 +1276,7 @@ class CheckSfFile:
             or abs(sfcell[4] - pdb[4]) > 0.1
             or abs(sfcell[5] - pdb[5]) > 0.1
         ):
-            self.__logger.pinfo(f"Warning! SF and PDB ({blkname}) cell values mismatch", 0, block=blkidx)
+            self.__logger.pinfo(f"Error: SF and PDB ({blkname}) cell values mismatch", 0, block=blkidx)
 
             if (
                 abs(sfcell[0] - pdb[0]) > 3.0
@@ -1316,7 +1316,7 @@ class CheckSfFile:
 
         if sfsymm_norm != pdbsymm_norm:
             self.__logger.pinfo(
-                f"Warning! (nblock = {blkidx}) space group mismatch (pdb= {pdbsymm_norm} : sf= {sfsymm_norm})",
+                f"Error: (nblock = {blkidx}) space group mismatch (pdb= {pdbsymm_norm} : sf= {sfsymm_norm})",
                 0,
                 block=blkidx,
             )
