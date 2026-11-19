@@ -155,12 +155,13 @@ class SfCorrect:
                         # Set the values....
                         for row in range(cObj.getRowCount()):
                             cObj.setValue(setwl, "wavelength", row)
-                # Current wavelength is ["." or "?"]
-                self.__logger.pinfo(
-                    f"Error: No wavelength value was found in SF file (data block={idx}).",
-                    0,
-                    block=idx,
-                )
+                else:
+                    # Current wavelength is ["." or "?"]
+                    self.__logger.pinfo(
+                        f"Error: No wavelength value was found in SF file (data block={idx}).",
+                        0,
+                        block=idx,
+                    )
 
             else:
                 # Create category - for dictionary compliance purposes. Might not be needed depending on data.
