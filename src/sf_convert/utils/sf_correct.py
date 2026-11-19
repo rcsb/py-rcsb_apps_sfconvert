@@ -157,7 +157,7 @@ class SfCorrect:
                             cObj.setValue(setwl, "wavelength", row)
                 # Current wavelength is ["." or "?"]
                 self.__logger.pinfo(
-                    f"Error: Warning: No wavelength value was found in SF file (data block={idx}).",
+                    f"Error: No wavelength value was found in SF file (data block={idx}).",
                     0,
                     block=idx,
                 )
@@ -183,7 +183,7 @@ class SfCorrect:
                 self.__logger.pinfo(f"Creating {cat} in nblock={idx}", 0, block=idx)
                 if wl in [".", "?"]:
                     self.__logger.pinfo(
-                        f"Error: Warning: No wavelength value was found in SF file (data block={idx}).",
+                        f"Error: No wavelength value was found in SF file (data block={idx}).",
                         0,
                         block=idx,
                     )
